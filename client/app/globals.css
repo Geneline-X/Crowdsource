@@ -1,0 +1,474 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+/*
+ * Vercel Geist Design System Tokens
+ * Based on: https://vercel.com/geist/colors
+ */
+
+:root {
+  /* Backgrounds */
+  --ds-background-100: #000000;
+  --ds-background-200: #0a0a0a;
+
+  /* Gray Scale */
+  --ds-gray-100: #1a1a1a;
+  --ds-gray-200: #1f1f1f;
+  --ds-gray-300: #292929;
+  --ds-gray-400: #2e2e2e;
+  --ds-gray-500: #454545;
+  --ds-gray-600: #878787;
+  --ds-gray-700: #8f8f8f;
+  --ds-gray-800: #a0a0a0;
+  --ds-gray-900: #ededed;
+  --ds-gray-1000: #ffffff;
+
+  /* Blue Scale */
+  --ds-blue-100: #0d1f3c;
+  --ds-blue-200: #0f2d5c;
+  --ds-blue-300: #0a3a75;
+  --ds-blue-400: #0954a5;
+  --ds-blue-500: #0091ff;
+  --ds-blue-600: #369eff;
+  --ds-blue-700: #52a9ff;
+  --ds-blue-800: #7dbdff;
+  --ds-blue-900: #a8d4ff;
+  --ds-blue-1000: #e6f4ff;
+
+  /* Red Scale */
+  --ds-red-100: #3c1618;
+  --ds-red-200: #5c1d1f;
+  --ds-red-300: #762022;
+  --ds-red-400: #a52a2d;
+  --ds-red-500: #e5484d;
+  --ds-red-600: #ff6369;
+  --ds-red-700: #ff8589;
+  --ds-red-800: #ffb3b3;
+  --ds-red-900: #ffd1d1;
+  --ds-red-1000: #fff5f5;
+
+  /* Green Scale */
+  --ds-green-100: #0b2211;
+  --ds-green-200: #0f3419;
+  --ds-green-300: #11441f;
+  --ds-green-400: #1b6930;
+  --ds-green-500: #30a46c;
+  --ds-green-600: #3dd68c;
+  --ds-green-700: #4ccea6;
+  --ds-green-800: #85e0bf;
+  --ds-green-900: #b4f1d6;
+  --ds-green-1000: #e6fbef;
+
+  /* Amber Scale */
+  --ds-amber-100: #2a1f00;
+  --ds-amber-200: #3d2e00;
+  --ds-amber-300: #4d3c09;
+  --ds-amber-400: #6f530e;
+  --ds-amber-500: #f5a623;
+  --ds-amber-600: #ffb224;
+  --ds-amber-700: #ffc940;
+  --ds-amber-800: #ffd97a;
+  --ds-amber-900: #ffe7a3;
+  --ds-amber-1000: #fff7e0;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--ds-background-100);
+  color: var(--ds-gray-1000);
+  font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: -0.006em;
+}
+
+/* Typography - Vercel style */
+.geist-text-title {
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.geist-text-subtitle {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+}
+
+.geist-text-body {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--ds-gray-900);
+}
+
+.geist-text-small {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ds-gray-700);
+}
+
+.geist-text-mono {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 13px;
+}
+
+.geist-text-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ds-gray-700);
+}
+
+/* Vercel Card */
+.geist-card {
+  background: var(--ds-background-200);
+  border: 1px solid var(--ds-gray-400);
+  border-radius: 8px;
+  transition: border-color 150ms ease;
+}
+
+.geist-card:hover {
+  border-color: var(--ds-gray-500);
+}
+
+/* Vercel Button - Primary */
+.geist-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.geist-button-primary {
+  background: var(--ds-gray-1000);
+  color: var(--ds-background-100);
+}
+
+.geist-button-primary:hover {
+  background: var(--ds-gray-900);
+}
+
+.geist-button-secondary {
+  background: transparent;
+  color: var(--ds-gray-1000);
+  border: 1px solid var(--ds-gray-400);
+}
+
+.geist-button-secondary:hover {
+  background: var(--ds-gray-100);
+  border-color: var(--ds-gray-500);
+}
+
+/* Vercel Input */
+.geist-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 14px;
+  background: var(--ds-background-100);
+  border: 1px solid var(--ds-gray-400);
+  border-radius: 6px;
+  color: var(--ds-gray-1000);
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.geist-input:focus {
+  border-color: var(--ds-gray-1000);
+  box-shadow: 0 0 0 1px var(--ds-gray-1000);
+}
+
+.geist-input::placeholder {
+  color: var(--ds-gray-600);
+}
+
+/* Vercel Textarea */
+.geist-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: inherit;
+  background: var(--ds-background-100);
+  border: 1px solid var(--ds-gray-400);
+  border-radius: 6px;
+  color: var(--ds-gray-1000);
+  outline: none;
+  resize: vertical;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.geist-textarea:focus {
+  border-color: var(--ds-gray-1000);
+  box-shadow: 0 0 0 1px var(--ds-gray-1000);
+}
+
+.geist-textarea::placeholder {
+  color: var(--ds-gray-600);
+}
+
+/* Vercel Badge */
+.geist-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+}
+
+.geist-badge-gray {
+  background: var(--ds-gray-200);
+  color: var(--ds-gray-900);
+  border-color: var(--ds-gray-400);
+}
+
+.geist-badge-blue {
+  background: var(--ds-blue-100);
+  color: var(--ds-blue-700);
+  border-color: var(--ds-blue-300);
+}
+
+.geist-badge-red {
+  background: var(--ds-red-100);
+  color: var(--ds-red-700);
+  border-color: var(--ds-red-300);
+}
+
+.geist-badge-green {
+  background: var(--ds-green-100);
+  color: var(--ds-green-700);
+  border-color: var(--ds-green-300);
+}
+
+.geist-badge-amber {
+  background: var(--ds-amber-100);
+  color: var(--ds-amber-700);
+  border-color: var(--ds-amber-300);
+}
+
+/* Vercel Progress */
+.geist-progress {
+  height: 4px;
+  background: var(--ds-gray-300);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.geist-progress-bar {
+  height: 100%;
+  background: var(--ds-gray-1000);
+  transition: width 300ms ease;
+}
+
+/* Vercel Divider */
+.geist-divider {
+  height: 1px;
+  background: var(--ds-gray-400);
+  border: none;
+  margin: 0;
+}
+
+/* Vercel Entity List Item */
+.geist-entity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ds-gray-300);
+  transition: background 100ms ease;
+}
+
+.geist-entity:last-child {
+  border-bottom: none;
+}
+
+.geist-entity:hover {
+  background: var(--ds-gray-100);
+}
+
+/* Vercel Vote Button */
+.geist-vote {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid var(--ds-gray-400);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.geist-vote:hover {
+  background: var(--ds-gray-100);
+  border-color: var(--ds-gray-500);
+}
+
+.geist-vote-arrow {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 8px solid var(--ds-gray-700);
+  transition: border-color 150ms ease;
+}
+
+.geist-vote:hover .geist-vote-arrow {
+  border-bottom-color: var(--ds-gray-1000);
+}
+
+.geist-vote-count {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ds-gray-1000);
+}
+
+/* Vercel Modal Overlay */
+.geist-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+/* Vercel Modal */
+.geist-modal {
+  background: var(--ds-background-200);
+  border: 1px solid var(--ds-gray-400);
+  border-radius: 12px;
+  box-shadow: 0 16px 70px rgba(0, 0, 0, 0.5);
+}
+
+/* Vercel Status Dot */
+.geist-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.geist-status-dot-green {
+  background: var(--ds-green-500);
+  box-shadow: 0 0 0 2px var(--ds-green-200);
+}
+
+.geist-status-dot-blue {
+  background: var(--ds-blue-500);
+  box-shadow: 0 0 0 2px var(--ds-blue-200);
+}
+
+.geist-status-dot-red {
+  background: var(--ds-red-500);
+  box-shadow: 0 0 0 2px var(--ds-red-200);
+}
+
+.geist-status-dot-amber {
+  background: var(--ds-amber-500);
+  box-shadow: 0 0 0 2px var(--ds-amber-200);
+}
+
+/* Vercel Spinner */
+.geist-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--ds-gray-400);
+  border-top-color: var(--ds-gray-1000);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Map container */
+.leaflet-container {
+  border-radius: 6px;
+  z-index: 1;
+}
+
+/* Scrollbar - Vercel style */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ds-gray-400);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ds-gray-500);
+}
+
+/* Map Cluster Icons */
+.custom-cluster-icon {
+  background: transparent !important;
+}
+
+.cluster-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  transition: transform 0.2s ease;
+}
+
+.cluster-icon:hover {
+  transform: scale(1.1);
+}
+
+.cluster-icon-small {
+  background: #0091ff;
+}
+
+.cluster-icon-medium {
+  background: #7b2dff;
+}
+
+.cluster-icon-large {
+  background: #e5484d;
+}
+
+/* Leaflet cluster overrides */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: transparent !important;
+}
+
+.marker-cluster div {
+  background: transparent !important;
+}
