@@ -84,7 +84,7 @@ const MAX_LOG = 200;
 
 // Session monitoring
 const sessionHealthChecks = new Map();
-const HEALTH_CHECK_INTERVAL = 30000; // 30 seconds
+const HEALTH_CHECK_INTERVAL = 30000; // 30 secondsAdd
 const SESSION_TIMEOUT = 300000; // 5 minutes without activity before considering unhealthy
 
 // Message queue helper functions

@@ -1,6 +1,258 @@
 import { logger } from "../logger";
 import { locationValidator } from "../location-validator";
 import type { ToolDefinition, ToolHandler } from "./types";
+import fs from "fs/promises";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+
+type NationalCategory =
+  | "Water & Sanitation"
+  | "Electricity"
+  | "Road Transport"
+  | "Health"
+  | "Security"
+  | "Education"
+  | "Waste Management"
+  | "Housing"
+  | "Environment"
+  | "Administrative / Government Service Delay";
+
+interface CategoryDefinition {
+  name: NationalCategory;
+  ministry: string;
+  keywords: string[];
+}
+
+const NATIONAL_TAXONOMY: CategoryDefinition[] = [
+  {
+    name: "Water & Sanitation",
+    ministry: "Ministry of Water Resources / Local Water & Sanitation Department",
+    keywords: [
+      "water",
+      "pipe",
+      "tap",
+      "borehole",
+      "well",
+      "sewage",
+      "toilet",
+      "sanitation",
+      "drain",
+      "drainage",
+      "flood",
+      "leak",
+    ],
+  },
+  {
+    name: "Electricity",
+    ministry: "Ministry of Power / Local Electricity Distribution Company",
+    keywords: [
+      "electric",
+      "electricity",
+      "power",
+      "transformer",
+      "cable",
+      "wire",
+      "light",
+      "blackout",
+      "outage",
+      "pole",
+    ],
+  },
+  {
+    name: "Road Transport",
+    ministry: "Ministry of Works & Transport / Roads and Highways Department",
+    keywords: [
+      "road",
+      "street",
+      "highway",
+      "bridge",
+      "pothole",
+      "traffic",
+      "junction",
+      "roundabout",
+      "speed bump",
+      "sidewalk",
+      "crosswalk",
+    ],
+  },
+  {
+    name: "Health",
+    ministry: "Ministry of Health / Local Health Directorate",
+    keywords: [
+      "hospital",
+      "clinic",
+      "health",
+      "nurse",
+      "doctor",
+      "medicine",
+      "drug",
+      "vaccine",
+      "ambulance",
+      "infection",
+    ],
+  },
+  {
+    name: "Security",
+    ministry: "Ministry of Interior / Police Service / Local Security Office",
+    keywords: [
+      "theft",
+      "robbery",
+      "armed",
+      "attack",
+      "violence",
+      "assault",
+      "rape",
+      "kidnap",
+      "gang",
+      "crime",
+      "security",
+      "fight",
+    ],
+  },
+  {
+    name: "Education",
+    ministry: "Ministry of Education / Local School Management",
+    keywords: [
+      "school",
+      "teacher",
+      "student",
+      "pupil",
+      "classroom",
+      "exam",
+      "university",
+      "college",
+      "education",
+    ],
+  },
+  {
+    name: "Waste Management",
+    ministry: "Municipal Waste Management Department / Sanitation Authority",
+    keywords: [
+      "waste",
+      "garbage",
+      "trash",
+      "refuse",
+      "dump",
+      "dumping",
+      "landfill",
+      "bin",
+      "rubbish",
+      "litter",
+    ],
+  },
+  {
+    name: "Housing",
+    ministry: "Ministry of Housing & Urban Development / Local Housing Authority",
+    keywords: [
+      "house",
+      "housing",
+      "apartment",
+      "rent",
+      "evict",
+      "eviction",
+      "tenant",
+      "landlord",
+      "building",
+      "collapse",
+      "structure",
+    ],
+  },
+  {
+    name: "Environment",
+    ministry: "Ministry of Environment / Environmental Protection Agency",
+    keywords: [
+      "pollution",
+      "smoke",
+      "noise",
+      "air",
+      "environment",
+      "tree",
+      "forest",
+      "erosion",
+      "river",
+      "stream",
+      "oil spill",
+    ],
+  },
+  {
+    name: "Administrative / Government Service Delay",
+    ministry: "Relevant Ministry or District Office Handling the Delayed Service",
+    keywords: [
+      "delay",
+      "document",
+      "permit",
+      "license",
+      "licence",
+      "certificate",
+      "registration",
+      "passport",
+      "id card",
+      "queue",
+      "office",
+      "bureaucracy",
+    ],
+  },
+];
+
+async function saveImageFromBase64(base64Data: string, mimeType: string): Promise<{ url: string; mimeType: string; size: number }> {
+  try {
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = path.join(process.cwd(), "uploads");
+    await fs.mkdir(uploadsDir, { recursive: true });
+    
+    // Generate unique filename
+    const extension = mimeType.split('/')[1] || 'bin';
+    const filename = `${uuidv4()}.${extension}`;
+    const filePath = path.join(uploadsDir, filename);
+    
+    // Convert base64 to buffer and save
+    const buffer = Buffer.from(base64Data, 'base64');
+    await fs.writeFile(filePath, buffer);
+    
+    // Return the full URL pointing to the server
+    const serverUrl = process.env.SERVER_URL || 'http://localhost:3800';
+    return {
+      url: `${serverUrl}/uploads/${filename}`,
+      mimeType,
+      size: buffer.length
+    };
+  } catch (error) {
+    logger.error({ error }, "Error saving image from base64");
+    throw error;
+  }
+}
+
+function classifyProblemIntoNationalTaxonomy(
+  title: string,
+  description: string
+): { category: NationalCategory; ministry: string } {
+  const text = `${title} ${description}`.toLowerCase();
+
+  let bestMatch: CategoryDefinition | null = null;
+  let bestScore = 0;
+
+  for (const def of NATIONAL_TAXONOMY) {
+    let score = 0;
+    for (const kw of def.keywords) {
+      if (text.includes(kw)) {
+        score += 1;
+      }
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestMatch = def;
+    }
+  }
+
+  if (!bestMatch) {
+    return {
+      category: "Administrative / Government Service Delay",
+      ministry: "Relevant Ministry or District Office Handling the Reported Issue",
+    };
+  }
+
+  return { category: bestMatch.name, ministry: bestMatch.ministry };
+}
 
 export const reportProblemTool: ToolDefinition = {
   type: "function",
@@ -36,7 +288,7 @@ export const reportProblemTool: ToolDefinition = {
 
 export const reportProblemHandler: ToolHandler = async (args, context) => {
   const { title, location, category, description } = args;
-  const { prisma, currentUserPhone, currentLocationContext } = context;
+  const { prisma, currentUserPhone, currentLocationContext, currentMediaContext } = context;
 
   try {
     logger.info(
@@ -89,6 +341,23 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
       );
     }
 
+    const classification = classifyProblemIntoNationalTaxonomy(title, description);
+
+    // Handle image if present
+    let imageData = null;
+    if (currentMediaContext?.hasMedia && currentMediaContext.data) {
+      try {
+        logger.info(
+          { phone: currentUserPhone, mimeType: currentMediaContext.mimeType },
+          "Saving image for problem report"
+        );
+        imageData = await saveImageFromBase64(currentMediaContext.data, currentMediaContext.mimeType);
+      } catch (error) {
+        logger.error({ error, phone: currentUserPhone }, "Failed to save image for problem");
+        // Continue without image - don't fail the whole problem report
+      }
+    }
+
     const problem = await prisma.problem.create({
       data: {
         reporterPhone: currentUserPhone,
@@ -99,7 +368,21 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
         longitude,
         locationVerified,
         locationSource,
+        nationalCategory: classification.category,
+        recommendedOffice: classification.ministry,
+        ...(imageData && {
+          images: {
+            create: [{
+              url: imageData.url,
+              mimeType: imageData.mimeType,
+              size: imageData.size
+            }]
+          }
+        })
       },
+      include: {
+        images: true
+      }
     });
 
     logger.info({ problemId: problem.id, phone: currentUserPhone, locationVerified }, "Problem reported successfully");
@@ -114,7 +397,9 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
         message += ` (${validationDetails})`;
       }
     }
-    
+    message += `\n\nCategory: ${classification.category}`;
+    message += `\nRecommended office: ${classification.ministry}`;
+
     message += "\n\nShare this number with neighbors so they can upvote.";
 
     return {
@@ -122,6 +407,8 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
       problemId: problem.id,
       title: problem.title,
       location: problem.locationText,
+      nationalCategory: classification.category,
+      recommendedOffice: classification.ministry,
       coordinates: latitude && longitude ? { latitude, longitude } : undefined,
       locationVerified,
       message,

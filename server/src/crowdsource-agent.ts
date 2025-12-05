@@ -1,10 +1,11 @@
 import OpenAI from "openai";
 import { PrismaClient, Prisma } from "@prisma/client";
-import { config } from "./config";
 import { logger } from "./logger";
-import { toolDefinitions, toolHandlers, type ToolContext } from "./tools";
-import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat";
+import { config } from "./config";
+import type { ToolDefinition, ToolHandler, ToolContext, MediaContext } from "./tools/types";
+import { toolDefinitions, toolHandlers } from "./tools";
 import axios from "axios";
+import type { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources/chat/completions";
 
 interface ConversationHistory {
   messages: ChatCompletionMessageParam[];
@@ -24,6 +25,7 @@ export class CrowdsourceAgent {
   private conversationHistory: Map<string, ConversationHistory>;
   private currentUserPhone: string | null = null;
   private currentLocationContext?: LocationContext;
+  private currentMediaContext?: MediaContext;
   private systemPrompt: string;
 
   constructor() {
@@ -287,7 +289,8 @@ SECURITY:
   async processMessage(
     userMessage: string,
     phoneE164: string,
-    locationContext?: LocationContext
+    locationContext?: LocationContext,
+    mediaContext?: MediaContext
   ): Promise<string> {
     try {
       logger.info(
@@ -301,6 +304,7 @@ SECURITY:
 
       this.currentUserPhone = phoneE164;
       this.currentLocationContext = locationContext;
+      this.currentMediaContext = mediaContext;
 
       const messages = this.getOrCreateConversation(phoneE164);
 
@@ -433,6 +437,7 @@ SECURITY:
         prisma: this.prisma,
         currentUserPhone: this.currentUserPhone || "",
         currentLocationContext: this.currentLocationContext,
+        currentMediaContext: this.currentMediaContext,
         sendWhatsAppMessage: async (phoneE164: string, message: string) => {
           await this.sendWhatsAppMessage(phoneE164, message);
         },

@@ -103,9 +103,20 @@ exports.Prisma.ProblemScalarFieldEnum = {
   longitude: 'longitude',
   locationVerified: 'locationVerified',
   locationSource: 'locationSource',
+  nationalCategory: 'nationalCategory',
+  recommendedOffice: 'recommendedOffice',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   upvoteCount: 'upvoteCount'
+};
+
+exports.Prisma.ProblemImageScalarFieldEnum = {
+  id: 'id',
+  problemId: 'problemId',
+  url: 'url',
+  mimeType: 'mimeType',
+  size: 'size',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ProblemUpvoteScalarFieldEnum = {
@@ -132,6 +143,7 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   Problem: 'Problem',
+  ProblemImage: 'ProblemImage',
   ProblemUpvote: 'ProblemUpvote'
 };
 /**
@@ -142,10 +154,10 @@ const config = {
   "clientVersion": "7.1.0",
   "engineVersion": "ab635e6b9d606fa5c8fb8b1a7f909c3c3c1c98ba",
   "activeProvider": "postgresql",
-  "inlineSchema": "datasource db {\n  provider = \"postgresql\"\n}\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma/client\"\n}\n\nmodel Problem {\n  id               Int      @id @default(autoincrement())\n  reporterPhone    String   @map(\"reporter_phone\")\n  rawMessage       String   @map(\"raw_message\")\n  title            String\n  locationText     String?  @map(\"location_text\")\n  latitude         Float?\n  longitude        Float?\n  locationVerified Boolean  @default(false) @map(\"location_verified\")\n  locationSource   String?  @map(\"location_source\")\n  createdAt        DateTime @default(now()) @map(\"created_at\")\n  updatedAt        DateTime @default(now()) @updatedAt @map(\"updated_at\")\n  upvoteCount      Int      @default(0) @map(\"upvote_count\")\n\n  upvotes ProblemUpvote[]\n\n  @@map(\"problems\")\n}\n\nmodel ProblemUpvote {\n  problemId  Int      @map(\"problem_id\")\n  voterPhone String   @map(\"voter_phone\")\n  createdAt  DateTime @default(now()) @map(\"created_at\")\n\n  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)\n\n  @@id([problemId, voterPhone])\n  @@map(\"problem_upvotes\")\n}\n"
+  "inlineSchema": "datasource db {\n  provider = \"postgresql\"\n}\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma/client\"\n}\n\nmodel Problem {\n  id                Int      @id @default(autoincrement())\n  reporterPhone     String   @map(\"reporter_phone\")\n  rawMessage        String   @map(\"raw_message\")\n  title             String\n  locationText      String?  @map(\"location_text\")\n  latitude          Float?\n  longitude         Float?\n  locationVerified  Boolean  @default(false) @map(\"location_verified\")\n  locationSource    String?  @map(\"location_source\")\n  nationalCategory  String?  @map(\"national_category\")\n  recommendedOffice String?  @map(\"recommended_office\")\n  createdAt         DateTime @default(now()) @map(\"created_at\")\n  updatedAt         DateTime @default(now()) @updatedAt @map(\"updated_at\")\n  upvoteCount       Int      @default(0) @map(\"upvote_count\")\n\n  upvotes ProblemUpvote[]\n  images  ProblemImage[]\n\n  @@map(\"problems\")\n}\n\nmodel ProblemImage {\n  id        Int      @id @default(autoincrement())\n  problemId Int      @map(\"problem_id\")\n  url       String\n  mimeType  String   @map(\"mime_type\")\n  size      Int\n  createdAt DateTime @default(now()) @map(\"created_at\")\n  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)\n\n  @@map(\"problem_images\")\n}\n\nmodel ProblemUpvote {\n  problemId  Int      @map(\"problem_id\")\n  voterPhone String   @map(\"voter_phone\")\n  createdAt  DateTime @default(now()) @map(\"created_at\")\n\n  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)\n\n  @@id([problemId, voterPhone])\n  @@map(\"problem_upvotes\")\n}\n"
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Problem\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"reporterPhone\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"reporter_phone\"},{\"name\":\"rawMessage\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"raw_message\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"locationText\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"location_text\"},{\"name\":\"latitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"longitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"locationVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\",\"dbName\":\"location_verified\"},{\"name\":\"locationSource\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"location_source\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"},{\"name\":\"upvoteCount\",\"kind\":\"scalar\",\"type\":\"Int\",\"dbName\":\"upvote_count\"},{\"name\":\"upvotes\",\"kind\":\"object\",\"type\":\"ProblemUpvote\",\"relationName\":\"ProblemToProblemUpvote\"}],\"dbName\":\"problems\"},\"ProblemUpvote\":{\"fields\":[{\"name\":\"problemId\",\"kind\":\"scalar\",\"type\":\"Int\",\"dbName\":\"problem_id\"},{\"name\":\"voterPhone\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"voter_phone\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"problem\",\"kind\":\"object\",\"type\":\"Problem\",\"relationName\":\"ProblemToProblemUpvote\"}],\"dbName\":\"problem_upvotes\"}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Problem\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"reporterPhone\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"reporter_phone\"},{\"name\":\"rawMessage\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"raw_message\"},{\"name\":\"title\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"locationText\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"location_text\"},{\"name\":\"latitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"longitude\",\"kind\":\"scalar\",\"type\":\"Float\"},{\"name\":\"locationVerified\",\"kind\":\"scalar\",\"type\":\"Boolean\",\"dbName\":\"location_verified\"},{\"name\":\"locationSource\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"location_source\"},{\"name\":\"nationalCategory\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"national_category\"},{\"name\":\"recommendedOffice\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"recommended_office\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"updated_at\"},{\"name\":\"upvoteCount\",\"kind\":\"scalar\",\"type\":\"Int\",\"dbName\":\"upvote_count\"},{\"name\":\"upvotes\",\"kind\":\"object\",\"type\":\"ProblemUpvote\",\"relationName\":\"ProblemToProblemUpvote\"},{\"name\":\"images\",\"kind\":\"object\",\"type\":\"ProblemImage\",\"relationName\":\"ProblemToProblemImage\"}],\"dbName\":\"problems\"},\"ProblemImage\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"problemId\",\"kind\":\"scalar\",\"type\":\"Int\",\"dbName\":\"problem_id\"},{\"name\":\"url\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"mimeType\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"mime_type\"},{\"name\":\"size\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"problem\",\"kind\":\"object\",\"type\":\"Problem\",\"relationName\":\"ProblemToProblemImage\"}],\"dbName\":\"problem_images\"},\"ProblemUpvote\":{\"fields\":[{\"name\":\"problemId\",\"kind\":\"scalar\",\"type\":\"Int\",\"dbName\":\"problem_id\"},{\"name\":\"voterPhone\",\"kind\":\"scalar\",\"type\":\"String\",\"dbName\":\"voter_phone\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\",\"dbName\":\"created_at\"},{\"name\":\"problem\",\"kind\":\"object\",\"type\":\"Problem\",\"relationName\":\"ProblemToProblemUpvote\"}],\"dbName\":\"problem_upvotes\"}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.compilerWasm = {
       getRuntime: async () => require('./query_compiler_bg.js'),

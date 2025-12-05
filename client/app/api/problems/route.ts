@@ -9,6 +9,15 @@ export async function GET() {
         _count: {
           select: { upvotes: true },
         },
+        images: {
+          select: {
+            id: true,
+            url: true,
+            mimeType: true,
+            size: true,
+            createdAt: true
+          }
+        },
       },
     });
 
