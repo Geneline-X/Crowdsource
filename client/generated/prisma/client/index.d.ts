@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type Problem = $Result.DefaultSelection<Prisma.$ProblemPayload>
 /**
+ * Model ProblemImage
+ * 
+ */
+export type ProblemImage = $Result.DefaultSelection<Prisma.$ProblemImagePayload>
+/**
  * Model ProblemUpvote
  * 
  */
@@ -150,6 +155,16 @@ export class PrismaClient<
     * ```
     */
   get problem(): Prisma.ProblemDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.problemImage`: Exposes CRUD operations for the **ProblemImage** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ProblemImages
+    * const problemImages = await prisma.problemImage.findMany()
+    * ```
+    */
+  get problemImage(): Prisma.ProblemImageDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.problemUpvote`: Exposes CRUD operations for the **ProblemUpvote** model.
@@ -595,6 +610,7 @@ export namespace Prisma {
 
   export const ModelName: {
     Problem: 'Problem',
+    ProblemImage: 'ProblemImage',
     ProblemUpvote: 'ProblemUpvote'
   };
 
@@ -611,7 +627,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "problem" | "problemUpvote"
+      modelProps: "problem" | "problemImage" | "problemUpvote"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -686,6 +702,80 @@ export namespace Prisma {
           count: {
             args: Prisma.ProblemCountArgs<ExtArgs>
             result: $Utils.Optional<ProblemCountAggregateOutputType> | number
+          }
+        }
+      }
+      ProblemImage: {
+        payload: Prisma.$ProblemImagePayload<ExtArgs>
+        fields: Prisma.ProblemImageFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ProblemImageFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ProblemImageFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>
+          }
+          findFirst: {
+            args: Prisma.ProblemImageFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ProblemImageFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>
+          }
+          findMany: {
+            args: Prisma.ProblemImageFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>[]
+          }
+          create: {
+            args: Prisma.ProblemImageCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>
+          }
+          createMany: {
+            args: Prisma.ProblemImageCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ProblemImageCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>[]
+          }
+          delete: {
+            args: Prisma.ProblemImageDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>
+          }
+          update: {
+            args: Prisma.ProblemImageUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>
+          }
+          deleteMany: {
+            args: Prisma.ProblemImageDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ProblemImageUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.ProblemImageUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>[]
+          }
+          upsert: {
+            args: Prisma.ProblemImageUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ProblemImagePayload>
+          }
+          aggregate: {
+            args: Prisma.ProblemImageAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProblemImage>
+          }
+          groupBy: {
+            args: Prisma.ProblemImageGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ProblemImageGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ProblemImageCountArgs<ExtArgs>
+            result: $Utils.Optional<ProblemImageCountAggregateOutputType> | number
           }
         }
       }
@@ -872,6 +962,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     problem?: ProblemOmit
+    problemImage?: ProblemImageOmit
     problemUpvote?: ProblemUpvoteOmit
   }
 
@@ -954,10 +1045,12 @@ export namespace Prisma {
 
   export type ProblemCountOutputType = {
     upvotes: number
+    images: number
   }
 
   export type ProblemCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     upvotes?: boolean | ProblemCountOutputTypeCountUpvotesArgs
+    images?: boolean | ProblemCountOutputTypeCountImagesArgs
   }
 
   // Custom InputTypes
@@ -976,6 +1069,13 @@ export namespace Prisma {
    */
   export type ProblemCountOutputTypeCountUpvotesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ProblemUpvoteWhereInput
+  }
+
+  /**
+   * ProblemCountOutputType without action
+   */
+  export type ProblemCountOutputTypeCountImagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProblemImageWhereInput
   }
 
 
@@ -1019,6 +1119,8 @@ export namespace Prisma {
     longitude: number | null
     locationVerified: boolean | null
     locationSource: string | null
+    nationalCategory: string | null
+    recommendedOffice: string | null
     createdAt: Date | null
     updatedAt: Date | null
     upvoteCount: number | null
@@ -1034,6 +1136,8 @@ export namespace Prisma {
     longitude: number | null
     locationVerified: boolean | null
     locationSource: string | null
+    nationalCategory: string | null
+    recommendedOffice: string | null
     createdAt: Date | null
     updatedAt: Date | null
     upvoteCount: number | null
@@ -1049,6 +1153,8 @@ export namespace Prisma {
     longitude: number
     locationVerified: number
     locationSource: number
+    nationalCategory: number
+    recommendedOffice: number
     createdAt: number
     updatedAt: number
     upvoteCount: number
@@ -1080,6 +1186,8 @@ export namespace Prisma {
     longitude?: true
     locationVerified?: true
     locationSource?: true
+    nationalCategory?: true
+    recommendedOffice?: true
     createdAt?: true
     updatedAt?: true
     upvoteCount?: true
@@ -1095,6 +1203,8 @@ export namespace Prisma {
     longitude?: true
     locationVerified?: true
     locationSource?: true
+    nationalCategory?: true
+    recommendedOffice?: true
     createdAt?: true
     updatedAt?: true
     upvoteCount?: true
@@ -1110,6 +1220,8 @@ export namespace Prisma {
     longitude?: true
     locationVerified?: true
     locationSource?: true
+    nationalCategory?: true
+    recommendedOffice?: true
     createdAt?: true
     updatedAt?: true
     upvoteCount?: true
@@ -1212,6 +1324,8 @@ export namespace Prisma {
     longitude: number | null
     locationVerified: boolean
     locationSource: string | null
+    nationalCategory: string | null
+    recommendedOffice: string | null
     createdAt: Date
     updatedAt: Date
     upvoteCount: number
@@ -1246,10 +1360,13 @@ export namespace Prisma {
     longitude?: boolean
     locationVerified?: boolean
     locationSource?: boolean
+    nationalCategory?: boolean
+    recommendedOffice?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     upvoteCount?: boolean
     upvotes?: boolean | Problem$upvotesArgs<ExtArgs>
+    images?: boolean | Problem$imagesArgs<ExtArgs>
     _count?: boolean | ProblemCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["problem"]>
 
@@ -1263,6 +1380,8 @@ export namespace Prisma {
     longitude?: boolean
     locationVerified?: boolean
     locationSource?: boolean
+    nationalCategory?: boolean
+    recommendedOffice?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     upvoteCount?: boolean
@@ -1278,6 +1397,8 @@ export namespace Prisma {
     longitude?: boolean
     locationVerified?: boolean
     locationSource?: boolean
+    nationalCategory?: boolean
+    recommendedOffice?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     upvoteCount?: boolean
@@ -1293,14 +1414,17 @@ export namespace Prisma {
     longitude?: boolean
     locationVerified?: boolean
     locationSource?: boolean
+    nationalCategory?: boolean
+    recommendedOffice?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     upvoteCount?: boolean
   }
 
-  export type ProblemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "reporterPhone" | "rawMessage" | "title" | "locationText" | "latitude" | "longitude" | "locationVerified" | "locationSource" | "createdAt" | "updatedAt" | "upvoteCount", ExtArgs["result"]["problem"]>
+  export type ProblemOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "reporterPhone" | "rawMessage" | "title" | "locationText" | "latitude" | "longitude" | "locationVerified" | "locationSource" | "nationalCategory" | "recommendedOffice" | "createdAt" | "updatedAt" | "upvoteCount", ExtArgs["result"]["problem"]>
   export type ProblemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     upvotes?: boolean | Problem$upvotesArgs<ExtArgs>
+    images?: boolean | Problem$imagesArgs<ExtArgs>
     _count?: boolean | ProblemCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type ProblemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1310,6 +1434,7 @@ export namespace Prisma {
     name: "Problem"
     objects: {
       upvotes: Prisma.$ProblemUpvotePayload<ExtArgs>[]
+      images: Prisma.$ProblemImagePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -1321,6 +1446,8 @@ export namespace Prisma {
       longitude: number | null
       locationVerified: boolean
       locationSource: string | null
+      nationalCategory: string | null
+      recommendedOffice: string | null
       createdAt: Date
       updatedAt: Date
       upvoteCount: number
@@ -1719,6 +1846,7 @@ export namespace Prisma {
   export interface Prisma__ProblemClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     upvotes<T extends Problem$upvotesArgs<ExtArgs> = {}>(args?: Subset<T, Problem$upvotesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProblemUpvotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    images<T extends Problem$imagesArgs<ExtArgs> = {}>(args?: Subset<T, Problem$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1757,6 +1885,8 @@ export namespace Prisma {
     readonly longitude: FieldRef<"Problem", 'Float'>
     readonly locationVerified: FieldRef<"Problem", 'Boolean'>
     readonly locationSource: FieldRef<"Problem", 'String'>
+    readonly nationalCategory: FieldRef<"Problem", 'String'>
+    readonly recommendedOffice: FieldRef<"Problem", 'String'>
     readonly createdAt: FieldRef<"Problem", 'DateTime'>
     readonly updatedAt: FieldRef<"Problem", 'DateTime'>
     readonly upvoteCount: FieldRef<"Problem", 'Int'>
@@ -2172,6 +2302,30 @@ export namespace Prisma {
   }
 
   /**
+   * Problem.images
+   */
+  export type Problem$imagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    where?: ProblemImageWhereInput
+    orderBy?: ProblemImageOrderByWithRelationInput | ProblemImageOrderByWithRelationInput[]
+    cursor?: ProblemImageWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ProblemImageScalarFieldEnum | ProblemImageScalarFieldEnum[]
+  }
+
+  /**
    * Problem without action
    */
   export type ProblemDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2187,6 +2341,1119 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: ProblemInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ProblemImage
+   */
+
+  export type AggregateProblemImage = {
+    _count: ProblemImageCountAggregateOutputType | null
+    _avg: ProblemImageAvgAggregateOutputType | null
+    _sum: ProblemImageSumAggregateOutputType | null
+    _min: ProblemImageMinAggregateOutputType | null
+    _max: ProblemImageMaxAggregateOutputType | null
+  }
+
+  export type ProblemImageAvgAggregateOutputType = {
+    id: number | null
+    problemId: number | null
+    size: number | null
+  }
+
+  export type ProblemImageSumAggregateOutputType = {
+    id: number | null
+    problemId: number | null
+    size: number | null
+  }
+
+  export type ProblemImageMinAggregateOutputType = {
+    id: number | null
+    problemId: number | null
+    url: string | null
+    mimeType: string | null
+    size: number | null
+    createdAt: Date | null
+  }
+
+  export type ProblemImageMaxAggregateOutputType = {
+    id: number | null
+    problemId: number | null
+    url: string | null
+    mimeType: string | null
+    size: number | null
+    createdAt: Date | null
+  }
+
+  export type ProblemImageCountAggregateOutputType = {
+    id: number
+    problemId: number
+    url: number
+    mimeType: number
+    size: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ProblemImageAvgAggregateInputType = {
+    id?: true
+    problemId?: true
+    size?: true
+  }
+
+  export type ProblemImageSumAggregateInputType = {
+    id?: true
+    problemId?: true
+    size?: true
+  }
+
+  export type ProblemImageMinAggregateInputType = {
+    id?: true
+    problemId?: true
+    url?: true
+    mimeType?: true
+    size?: true
+    createdAt?: true
+  }
+
+  export type ProblemImageMaxAggregateInputType = {
+    id?: true
+    problemId?: true
+    url?: true
+    mimeType?: true
+    size?: true
+    createdAt?: true
+  }
+
+  export type ProblemImageCountAggregateInputType = {
+    id?: true
+    problemId?: true
+    url?: true
+    mimeType?: true
+    size?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ProblemImageAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProblemImage to aggregate.
+     */
+    where?: ProblemImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProblemImages to fetch.
+     */
+    orderBy?: ProblemImageOrderByWithRelationInput | ProblemImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ProblemImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProblemImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProblemImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ProblemImages
+    **/
+    _count?: true | ProblemImageCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ProblemImageAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ProblemImageSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ProblemImageMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ProblemImageMaxAggregateInputType
+  }
+
+  export type GetProblemImageAggregateType<T extends ProblemImageAggregateArgs> = {
+        [P in keyof T & keyof AggregateProblemImage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProblemImage[P]>
+      : GetScalarType<T[P], AggregateProblemImage[P]>
+  }
+
+
+
+
+  export type ProblemImageGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ProblemImageWhereInput
+    orderBy?: ProblemImageOrderByWithAggregationInput | ProblemImageOrderByWithAggregationInput[]
+    by: ProblemImageScalarFieldEnum[] | ProblemImageScalarFieldEnum
+    having?: ProblemImageScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ProblemImageCountAggregateInputType | true
+    _avg?: ProblemImageAvgAggregateInputType
+    _sum?: ProblemImageSumAggregateInputType
+    _min?: ProblemImageMinAggregateInputType
+    _max?: ProblemImageMaxAggregateInputType
+  }
+
+  export type ProblemImageGroupByOutputType = {
+    id: number
+    problemId: number
+    url: string
+    mimeType: string
+    size: number
+    createdAt: Date
+    _count: ProblemImageCountAggregateOutputType | null
+    _avg: ProblemImageAvgAggregateOutputType | null
+    _sum: ProblemImageSumAggregateOutputType | null
+    _min: ProblemImageMinAggregateOutputType | null
+    _max: ProblemImageMaxAggregateOutputType | null
+  }
+
+  type GetProblemImageGroupByPayload<T extends ProblemImageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ProblemImageGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ProblemImageGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ProblemImageGroupByOutputType[P]>
+            : GetScalarType<T[P], ProblemImageGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ProblemImageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    problemId?: boolean
+    url?: boolean
+    mimeType?: boolean
+    size?: boolean
+    createdAt?: boolean
+    problem?: boolean | ProblemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["problemImage"]>
+
+  export type ProblemImageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    problemId?: boolean
+    url?: boolean
+    mimeType?: boolean
+    size?: boolean
+    createdAt?: boolean
+    problem?: boolean | ProblemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["problemImage"]>
+
+  export type ProblemImageSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    problemId?: boolean
+    url?: boolean
+    mimeType?: boolean
+    size?: boolean
+    createdAt?: boolean
+    problem?: boolean | ProblemDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["problemImage"]>
+
+  export type ProblemImageSelectScalar = {
+    id?: boolean
+    problemId?: boolean
+    url?: boolean
+    mimeType?: boolean
+    size?: boolean
+    createdAt?: boolean
+  }
+
+  export type ProblemImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "problemId" | "url" | "mimeType" | "size" | "createdAt", ExtArgs["result"]["problemImage"]>
+  export type ProblemImageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    problem?: boolean | ProblemDefaultArgs<ExtArgs>
+  }
+  export type ProblemImageIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    problem?: boolean | ProblemDefaultArgs<ExtArgs>
+  }
+  export type ProblemImageIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    problem?: boolean | ProblemDefaultArgs<ExtArgs>
+  }
+
+  export type $ProblemImagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ProblemImage"
+    objects: {
+      problem: Prisma.$ProblemPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      problemId: number
+      url: string
+      mimeType: string
+      size: number
+      createdAt: Date
+    }, ExtArgs["result"]["problemImage"]>
+    composites: {}
+  }
+
+  type ProblemImageGetPayload<S extends boolean | null | undefined | ProblemImageDefaultArgs> = $Result.GetResult<Prisma.$ProblemImagePayload, S>
+
+  type ProblemImageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<ProblemImageFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: ProblemImageCountAggregateInputType | true
+    }
+
+  export interface ProblemImageDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ProblemImage'], meta: { name: 'ProblemImage' } }
+    /**
+     * Find zero or one ProblemImage that matches the filter.
+     * @param {ProblemImageFindUniqueArgs} args - Arguments to find a ProblemImage
+     * @example
+     * // Get one ProblemImage
+     * const problemImage = await prisma.problemImage.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ProblemImageFindUniqueArgs>(args: SelectSubset<T, ProblemImageFindUniqueArgs<ExtArgs>>): Prisma__ProblemImageClient<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one ProblemImage that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {ProblemImageFindUniqueOrThrowArgs} args - Arguments to find a ProblemImage
+     * @example
+     * // Get one ProblemImage
+     * const problemImage = await prisma.problemImage.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ProblemImageFindUniqueOrThrowArgs>(args: SelectSubset<T, ProblemImageFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ProblemImageClient<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProblemImage that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProblemImageFindFirstArgs} args - Arguments to find a ProblemImage
+     * @example
+     * // Get one ProblemImage
+     * const problemImage = await prisma.problemImage.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ProblemImageFindFirstArgs>(args?: SelectSubset<T, ProblemImageFindFirstArgs<ExtArgs>>): Prisma__ProblemImageClient<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first ProblemImage that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProblemImageFindFirstOrThrowArgs} args - Arguments to find a ProblemImage
+     * @example
+     * // Get one ProblemImage
+     * const problemImage = await prisma.problemImage.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ProblemImageFindFirstOrThrowArgs>(args?: SelectSubset<T, ProblemImageFindFirstOrThrowArgs<ExtArgs>>): Prisma__ProblemImageClient<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more ProblemImages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProblemImageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ProblemImages
+     * const problemImages = await prisma.problemImage.findMany()
+     * 
+     * // Get first 10 ProblemImages
+     * const problemImages = await prisma.problemImage.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const problemImageWithIdOnly = await prisma.problemImage.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ProblemImageFindManyArgs>(args?: SelectSubset<T, ProblemImageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a ProblemImage.
+     * @param {ProblemImageCreateArgs} args - Arguments to create a ProblemImage.
+     * @example
+     * // Create one ProblemImage
+     * const ProblemImage = await prisma.problemImage.create({
+     *   data: {
+     *     // ... data to create a ProblemImage
+     *   }
+     * })
+     * 
+     */
+    create<T extends ProblemImageCreateArgs>(args: SelectSubset<T, ProblemImageCreateArgs<ExtArgs>>): Prisma__ProblemImageClient<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many ProblemImages.
+     * @param {ProblemImageCreateManyArgs} args - Arguments to create many ProblemImages.
+     * @example
+     * // Create many ProblemImages
+     * const problemImage = await prisma.problemImage.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ProblemImageCreateManyArgs>(args?: SelectSubset<T, ProblemImageCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ProblemImages and returns the data saved in the database.
+     * @param {ProblemImageCreateManyAndReturnArgs} args - Arguments to create many ProblemImages.
+     * @example
+     * // Create many ProblemImages
+     * const problemImage = await prisma.problemImage.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ProblemImages and only return the `id`
+     * const problemImageWithIdOnly = await prisma.problemImage.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ProblemImageCreateManyAndReturnArgs>(args?: SelectSubset<T, ProblemImageCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a ProblemImage.
+     * @param {ProblemImageDeleteArgs} args - Arguments to delete one ProblemImage.
+     * @example
+     * // Delete one ProblemImage
+     * const ProblemImage = await prisma.problemImage.delete({
+     *   where: {
+     *     // ... filter to delete one ProblemImage
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ProblemImageDeleteArgs>(args: SelectSubset<T, ProblemImageDeleteArgs<ExtArgs>>): Prisma__ProblemImageClient<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one ProblemImage.
+     * @param {ProblemImageUpdateArgs} args - Arguments to update one ProblemImage.
+     * @example
+     * // Update one ProblemImage
+     * const problemImage = await prisma.problemImage.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ProblemImageUpdateArgs>(args: SelectSubset<T, ProblemImageUpdateArgs<ExtArgs>>): Prisma__ProblemImageClient<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more ProblemImages.
+     * @param {ProblemImageDeleteManyArgs} args - Arguments to filter ProblemImages to delete.
+     * @example
+     * // Delete a few ProblemImages
+     * const { count } = await prisma.problemImage.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ProblemImageDeleteManyArgs>(args?: SelectSubset<T, ProblemImageDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProblemImages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProblemImageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ProblemImages
+     * const problemImage = await prisma.problemImage.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ProblemImageUpdateManyArgs>(args: SelectSubset<T, ProblemImageUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ProblemImages and returns the data updated in the database.
+     * @param {ProblemImageUpdateManyAndReturnArgs} args - Arguments to update many ProblemImages.
+     * @example
+     * // Update many ProblemImages
+     * const problemImage = await prisma.problemImage.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more ProblemImages and only return the `id`
+     * const problemImageWithIdOnly = await prisma.problemImage.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends ProblemImageUpdateManyAndReturnArgs>(args: SelectSubset<T, ProblemImageUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one ProblemImage.
+     * @param {ProblemImageUpsertArgs} args - Arguments to update or create a ProblemImage.
+     * @example
+     * // Update or create a ProblemImage
+     * const problemImage = await prisma.problemImage.upsert({
+     *   create: {
+     *     // ... data to create a ProblemImage
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ProblemImage we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ProblemImageUpsertArgs>(args: SelectSubset<T, ProblemImageUpsertArgs<ExtArgs>>): Prisma__ProblemImageClient<$Result.GetResult<Prisma.$ProblemImagePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of ProblemImages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProblemImageCountArgs} args - Arguments to filter ProblemImages to count.
+     * @example
+     * // Count the number of ProblemImages
+     * const count = await prisma.problemImage.count({
+     *   where: {
+     *     // ... the filter for the ProblemImages we want to count
+     *   }
+     * })
+    **/
+    count<T extends ProblemImageCountArgs>(
+      args?: Subset<T, ProblemImageCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ProblemImageCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ProblemImage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProblemImageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ProblemImageAggregateArgs>(args: Subset<T, ProblemImageAggregateArgs>): Prisma.PrismaPromise<GetProblemImageAggregateType<T>>
+
+    /**
+     * Group by ProblemImage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ProblemImageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ProblemImageGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ProblemImageGroupByArgs['orderBy'] }
+        : { orderBy?: ProblemImageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ProblemImageGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProblemImageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ProblemImage model
+   */
+  readonly fields: ProblemImageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ProblemImage.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ProblemImageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    problem<T extends ProblemDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ProblemDefaultArgs<ExtArgs>>): Prisma__ProblemClient<$Result.GetResult<Prisma.$ProblemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ProblemImage model
+   */
+  interface ProblemImageFieldRefs {
+    readonly id: FieldRef<"ProblemImage", 'Int'>
+    readonly problemId: FieldRef<"ProblemImage", 'Int'>
+    readonly url: FieldRef<"ProblemImage", 'String'>
+    readonly mimeType: FieldRef<"ProblemImage", 'String'>
+    readonly size: FieldRef<"ProblemImage", 'Int'>
+    readonly createdAt: FieldRef<"ProblemImage", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ProblemImage findUnique
+   */
+  export type ProblemImageFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ProblemImage to fetch.
+     */
+    where: ProblemImageWhereUniqueInput
+  }
+
+  /**
+   * ProblemImage findUniqueOrThrow
+   */
+  export type ProblemImageFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ProblemImage to fetch.
+     */
+    where: ProblemImageWhereUniqueInput
+  }
+
+  /**
+   * ProblemImage findFirst
+   */
+  export type ProblemImageFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ProblemImage to fetch.
+     */
+    where?: ProblemImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProblemImages to fetch.
+     */
+    orderBy?: ProblemImageOrderByWithRelationInput | ProblemImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProblemImages.
+     */
+    cursor?: ProblemImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProblemImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProblemImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProblemImages.
+     */
+    distinct?: ProblemImageScalarFieldEnum | ProblemImageScalarFieldEnum[]
+  }
+
+  /**
+   * ProblemImage findFirstOrThrow
+   */
+  export type ProblemImageFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ProblemImage to fetch.
+     */
+    where?: ProblemImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProblemImages to fetch.
+     */
+    orderBy?: ProblemImageOrderByWithRelationInput | ProblemImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ProblemImages.
+     */
+    cursor?: ProblemImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProblemImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProblemImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ProblemImages.
+     */
+    distinct?: ProblemImageScalarFieldEnum | ProblemImageScalarFieldEnum[]
+  }
+
+  /**
+   * ProblemImage findMany
+   */
+  export type ProblemImageFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ProblemImages to fetch.
+     */
+    where?: ProblemImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ProblemImages to fetch.
+     */
+    orderBy?: ProblemImageOrderByWithRelationInput | ProblemImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ProblemImages.
+     */
+    cursor?: ProblemImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ProblemImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ProblemImages.
+     */
+    skip?: number
+    distinct?: ProblemImageScalarFieldEnum | ProblemImageScalarFieldEnum[]
+  }
+
+  /**
+   * ProblemImage create
+   */
+  export type ProblemImageCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ProblemImage.
+     */
+    data: XOR<ProblemImageCreateInput, ProblemImageUncheckedCreateInput>
+  }
+
+  /**
+   * ProblemImage createMany
+   */
+  export type ProblemImageCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ProblemImages.
+     */
+    data: ProblemImageCreateManyInput | ProblemImageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ProblemImage createManyAndReturn
+   */
+  export type ProblemImageCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * The data used to create many ProblemImages.
+     */
+    data: ProblemImageCreateManyInput | ProblemImageCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProblemImage update
+   */
+  export type ProblemImageUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ProblemImage.
+     */
+    data: XOR<ProblemImageUpdateInput, ProblemImageUncheckedUpdateInput>
+    /**
+     * Choose, which ProblemImage to update.
+     */
+    where: ProblemImageWhereUniqueInput
+  }
+
+  /**
+   * ProblemImage updateMany
+   */
+  export type ProblemImageUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ProblemImages.
+     */
+    data: XOR<ProblemImageUpdateManyMutationInput, ProblemImageUncheckedUpdateManyInput>
+    /**
+     * Filter which ProblemImages to update
+     */
+    where?: ProblemImageWhereInput
+    /**
+     * Limit how many ProblemImages to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProblemImage updateManyAndReturn
+   */
+  export type ProblemImageUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * The data used to update ProblemImages.
+     */
+    data: XOR<ProblemImageUpdateManyMutationInput, ProblemImageUncheckedUpdateManyInput>
+    /**
+     * Filter which ProblemImages to update
+     */
+    where?: ProblemImageWhereInput
+    /**
+     * Limit how many ProblemImages to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ProblemImage upsert
+   */
+  export type ProblemImageUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ProblemImage to update in case it exists.
+     */
+    where: ProblemImageWhereUniqueInput
+    /**
+     * In case the ProblemImage found by the `where` argument doesn't exist, create a new ProblemImage with this data.
+     */
+    create: XOR<ProblemImageCreateInput, ProblemImageUncheckedCreateInput>
+    /**
+     * In case the ProblemImage was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ProblemImageUpdateInput, ProblemImageUncheckedUpdateInput>
+  }
+
+  /**
+   * ProblemImage delete
+   */
+  export type ProblemImageDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
+    /**
+     * Filter which ProblemImage to delete.
+     */
+    where: ProblemImageWhereUniqueInput
+  }
+
+  /**
+   * ProblemImage deleteMany
+   */
+  export type ProblemImageDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ProblemImages to delete
+     */
+    where?: ProblemImageWhereInput
+    /**
+     * Limit how many ProblemImages to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * ProblemImage without action
+   */
+  export type ProblemImageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ProblemImage
+     */
+    select?: ProblemImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the ProblemImage
+     */
+    omit?: ProblemImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ProblemImageInclude<ExtArgs> | null
   }
 
 
@@ -3280,12 +4547,26 @@ export namespace Prisma {
     longitude: 'longitude',
     locationVerified: 'locationVerified',
     locationSource: 'locationSource',
+    nationalCategory: 'nationalCategory',
+    recommendedOffice: 'recommendedOffice',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     upvoteCount: 'upvoteCount'
   };
 
   export type ProblemScalarFieldEnum = (typeof ProblemScalarFieldEnum)[keyof typeof ProblemScalarFieldEnum]
+
+
+  export const ProblemImageScalarFieldEnum: {
+    id: 'id',
+    problemId: 'problemId',
+    url: 'url',
+    mimeType: 'mimeType',
+    size: 'size',
+    createdAt: 'createdAt'
+  };
+
+  export type ProblemImageScalarFieldEnum = (typeof ProblemImageScalarFieldEnum)[keyof typeof ProblemImageScalarFieldEnum]
 
 
   export const ProblemUpvoteScalarFieldEnum: {
@@ -3405,10 +4686,13 @@ export namespace Prisma {
     longitude?: FloatNullableFilter<"Problem"> | number | null
     locationVerified?: BoolFilter<"Problem"> | boolean
     locationSource?: StringNullableFilter<"Problem"> | string | null
+    nationalCategory?: StringNullableFilter<"Problem"> | string | null
+    recommendedOffice?: StringNullableFilter<"Problem"> | string | null
     createdAt?: DateTimeFilter<"Problem"> | Date | string
     updatedAt?: DateTimeFilter<"Problem"> | Date | string
     upvoteCount?: IntFilter<"Problem"> | number
     upvotes?: ProblemUpvoteListRelationFilter
+    images?: ProblemImageListRelationFilter
   }
 
   export type ProblemOrderByWithRelationInput = {
@@ -3421,10 +4705,13 @@ export namespace Prisma {
     longitude?: SortOrderInput | SortOrder
     locationVerified?: SortOrder
     locationSource?: SortOrderInput | SortOrder
+    nationalCategory?: SortOrderInput | SortOrder
+    recommendedOffice?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     upvoteCount?: SortOrder
     upvotes?: ProblemUpvoteOrderByRelationAggregateInput
+    images?: ProblemImageOrderByRelationAggregateInput
   }
 
   export type ProblemWhereUniqueInput = Prisma.AtLeast<{
@@ -3440,10 +4727,13 @@ export namespace Prisma {
     longitude?: FloatNullableFilter<"Problem"> | number | null
     locationVerified?: BoolFilter<"Problem"> | boolean
     locationSource?: StringNullableFilter<"Problem"> | string | null
+    nationalCategory?: StringNullableFilter<"Problem"> | string | null
+    recommendedOffice?: StringNullableFilter<"Problem"> | string | null
     createdAt?: DateTimeFilter<"Problem"> | Date | string
     updatedAt?: DateTimeFilter<"Problem"> | Date | string
     upvoteCount?: IntFilter<"Problem"> | number
     upvotes?: ProblemUpvoteListRelationFilter
+    images?: ProblemImageListRelationFilter
   }, "id">
 
   export type ProblemOrderByWithAggregationInput = {
@@ -3456,6 +4746,8 @@ export namespace Prisma {
     longitude?: SortOrderInput | SortOrder
     locationVerified?: SortOrder
     locationSource?: SortOrderInput | SortOrder
+    nationalCategory?: SortOrderInput | SortOrder
+    recommendedOffice?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     upvoteCount?: SortOrder
@@ -3479,9 +4771,73 @@ export namespace Prisma {
     longitude?: FloatNullableWithAggregatesFilter<"Problem"> | number | null
     locationVerified?: BoolWithAggregatesFilter<"Problem"> | boolean
     locationSource?: StringNullableWithAggregatesFilter<"Problem"> | string | null
+    nationalCategory?: StringNullableWithAggregatesFilter<"Problem"> | string | null
+    recommendedOffice?: StringNullableWithAggregatesFilter<"Problem"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Problem"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Problem"> | Date | string
     upvoteCount?: IntWithAggregatesFilter<"Problem"> | number
+  }
+
+  export type ProblemImageWhereInput = {
+    AND?: ProblemImageWhereInput | ProblemImageWhereInput[]
+    OR?: ProblemImageWhereInput[]
+    NOT?: ProblemImageWhereInput | ProblemImageWhereInput[]
+    id?: IntFilter<"ProblemImage"> | number
+    problemId?: IntFilter<"ProblemImage"> | number
+    url?: StringFilter<"ProblemImage"> | string
+    mimeType?: StringFilter<"ProblemImage"> | string
+    size?: IntFilter<"ProblemImage"> | number
+    createdAt?: DateTimeFilter<"ProblemImage"> | Date | string
+    problem?: XOR<ProblemScalarRelationFilter, ProblemWhereInput>
+  }
+
+  export type ProblemImageOrderByWithRelationInput = {
+    id?: SortOrder
+    problemId?: SortOrder
+    url?: SortOrder
+    mimeType?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+    problem?: ProblemOrderByWithRelationInput
+  }
+
+  export type ProblemImageWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: ProblemImageWhereInput | ProblemImageWhereInput[]
+    OR?: ProblemImageWhereInput[]
+    NOT?: ProblemImageWhereInput | ProblemImageWhereInput[]
+    problemId?: IntFilter<"ProblemImage"> | number
+    url?: StringFilter<"ProblemImage"> | string
+    mimeType?: StringFilter<"ProblemImage"> | string
+    size?: IntFilter<"ProblemImage"> | number
+    createdAt?: DateTimeFilter<"ProblemImage"> | Date | string
+    problem?: XOR<ProblemScalarRelationFilter, ProblemWhereInput>
+  }, "id">
+
+  export type ProblemImageOrderByWithAggregationInput = {
+    id?: SortOrder
+    problemId?: SortOrder
+    url?: SortOrder
+    mimeType?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+    _count?: ProblemImageCountOrderByAggregateInput
+    _avg?: ProblemImageAvgOrderByAggregateInput
+    _max?: ProblemImageMaxOrderByAggregateInput
+    _min?: ProblemImageMinOrderByAggregateInput
+    _sum?: ProblemImageSumOrderByAggregateInput
+  }
+
+  export type ProblemImageScalarWhereWithAggregatesInput = {
+    AND?: ProblemImageScalarWhereWithAggregatesInput | ProblemImageScalarWhereWithAggregatesInput[]
+    OR?: ProblemImageScalarWhereWithAggregatesInput[]
+    NOT?: ProblemImageScalarWhereWithAggregatesInput | ProblemImageScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"ProblemImage"> | number
+    problemId?: IntWithAggregatesFilter<"ProblemImage"> | number
+    url?: StringWithAggregatesFilter<"ProblemImage"> | string
+    mimeType?: StringWithAggregatesFilter<"ProblemImage"> | string
+    size?: IntWithAggregatesFilter<"ProblemImage"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"ProblemImage"> | Date | string
   }
 
   export type ProblemUpvoteWhereInput = {
@@ -3541,10 +4897,13 @@ export namespace Prisma {
     longitude?: number | null
     locationVerified?: boolean
     locationSource?: string | null
+    nationalCategory?: string | null
+    recommendedOffice?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     upvoteCount?: number
     upvotes?: ProblemUpvoteCreateNestedManyWithoutProblemInput
+    images?: ProblemImageCreateNestedManyWithoutProblemInput
   }
 
   export type ProblemUncheckedCreateInput = {
@@ -3557,10 +4916,13 @@ export namespace Prisma {
     longitude?: number | null
     locationVerified?: boolean
     locationSource?: string | null
+    nationalCategory?: string | null
+    recommendedOffice?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     upvoteCount?: number
     upvotes?: ProblemUpvoteUncheckedCreateNestedManyWithoutProblemInput
+    images?: ProblemImageUncheckedCreateNestedManyWithoutProblemInput
   }
 
   export type ProblemUpdateInput = {
@@ -3572,10 +4934,13 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     locationVerified?: BoolFieldUpdateOperationsInput | boolean
     locationSource?: NullableStringFieldUpdateOperationsInput | string | null
+    nationalCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    recommendedOffice?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     upvoteCount?: IntFieldUpdateOperationsInput | number
     upvotes?: ProblemUpvoteUpdateManyWithoutProblemNestedInput
+    images?: ProblemImageUpdateManyWithoutProblemNestedInput
   }
 
   export type ProblemUncheckedUpdateInput = {
@@ -3588,10 +4953,13 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     locationVerified?: BoolFieldUpdateOperationsInput | boolean
     locationSource?: NullableStringFieldUpdateOperationsInput | string | null
+    nationalCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    recommendedOffice?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     upvoteCount?: IntFieldUpdateOperationsInput | number
     upvotes?: ProblemUpvoteUncheckedUpdateManyWithoutProblemNestedInput
+    images?: ProblemImageUncheckedUpdateManyWithoutProblemNestedInput
   }
 
   export type ProblemCreateManyInput = {
@@ -3604,6 +4972,8 @@ export namespace Prisma {
     longitude?: number | null
     locationVerified?: boolean
     locationSource?: string | null
+    nationalCategory?: string | null
+    recommendedOffice?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     upvoteCount?: number
@@ -3618,6 +4988,8 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     locationVerified?: BoolFieldUpdateOperationsInput | boolean
     locationSource?: NullableStringFieldUpdateOperationsInput | string | null
+    nationalCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    recommendedOffice?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     upvoteCount?: IntFieldUpdateOperationsInput | number
@@ -3633,9 +5005,70 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     locationVerified?: BoolFieldUpdateOperationsInput | boolean
     locationSource?: NullableStringFieldUpdateOperationsInput | string | null
+    nationalCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    recommendedOffice?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     upvoteCount?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type ProblemImageCreateInput = {
+    url: string
+    mimeType: string
+    size: number
+    createdAt?: Date | string
+    problem: ProblemCreateNestedOneWithoutImagesInput
+  }
+
+  export type ProblemImageUncheckedCreateInput = {
+    id?: number
+    problemId: number
+    url: string
+    mimeType: string
+    size: number
+    createdAt?: Date | string
+  }
+
+  export type ProblemImageUpdateInput = {
+    url?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    problem?: ProblemUpdateOneRequiredWithoutImagesNestedInput
+  }
+
+  export type ProblemImageUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    problemId?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProblemImageCreateManyInput = {
+    id?: number
+    problemId: number
+    url: string
+    mimeType: string
+    size: number
+    createdAt?: Date | string
+  }
+
+  export type ProblemImageUpdateManyMutationInput = {
+    url?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProblemImageUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    problemId?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProblemUpvoteCreateInput = {
@@ -3753,12 +5186,22 @@ export namespace Prisma {
     none?: ProblemUpvoteWhereInput
   }
 
+  export type ProblemImageListRelationFilter = {
+    every?: ProblemImageWhereInput
+    some?: ProblemImageWhereInput
+    none?: ProblemImageWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
   }
 
   export type ProblemUpvoteOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ProblemImageOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -3772,6 +5215,8 @@ export namespace Prisma {
     longitude?: SortOrder
     locationVerified?: SortOrder
     locationSource?: SortOrder
+    nationalCategory?: SortOrder
+    recommendedOffice?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     upvoteCount?: SortOrder
@@ -3794,6 +5239,8 @@ export namespace Prisma {
     longitude?: SortOrder
     locationVerified?: SortOrder
     locationSource?: SortOrder
+    nationalCategory?: SortOrder
+    recommendedOffice?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     upvoteCount?: SortOrder
@@ -3809,6 +5256,8 @@ export namespace Prisma {
     longitude?: SortOrder
     locationVerified?: SortOrder
     locationSource?: SortOrder
+    nationalCategory?: SortOrder
+    recommendedOffice?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     upvoteCount?: SortOrder
@@ -3916,6 +5365,45 @@ export namespace Prisma {
     isNot?: ProblemWhereInput
   }
 
+  export type ProblemImageCountOrderByAggregateInput = {
+    id?: SortOrder
+    problemId?: SortOrder
+    url?: SortOrder
+    mimeType?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProblemImageAvgOrderByAggregateInput = {
+    id?: SortOrder
+    problemId?: SortOrder
+    size?: SortOrder
+  }
+
+  export type ProblemImageMaxOrderByAggregateInput = {
+    id?: SortOrder
+    problemId?: SortOrder
+    url?: SortOrder
+    mimeType?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProblemImageMinOrderByAggregateInput = {
+    id?: SortOrder
+    problemId?: SortOrder
+    url?: SortOrder
+    mimeType?: SortOrder
+    size?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ProblemImageSumOrderByAggregateInput = {
+    id?: SortOrder
+    problemId?: SortOrder
+    size?: SortOrder
+  }
+
   export type ProblemUpvoteProblemIdVoterPhoneCompoundUniqueInput = {
     problemId: number
     voterPhone: string
@@ -3954,11 +5442,25 @@ export namespace Prisma {
     connect?: ProblemUpvoteWhereUniqueInput | ProblemUpvoteWhereUniqueInput[]
   }
 
+  export type ProblemImageCreateNestedManyWithoutProblemInput = {
+    create?: XOR<ProblemImageCreateWithoutProblemInput, ProblemImageUncheckedCreateWithoutProblemInput> | ProblemImageCreateWithoutProblemInput[] | ProblemImageUncheckedCreateWithoutProblemInput[]
+    connectOrCreate?: ProblemImageCreateOrConnectWithoutProblemInput | ProblemImageCreateOrConnectWithoutProblemInput[]
+    createMany?: ProblemImageCreateManyProblemInputEnvelope
+    connect?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+  }
+
   export type ProblemUpvoteUncheckedCreateNestedManyWithoutProblemInput = {
     create?: XOR<ProblemUpvoteCreateWithoutProblemInput, ProblemUpvoteUncheckedCreateWithoutProblemInput> | ProblemUpvoteCreateWithoutProblemInput[] | ProblemUpvoteUncheckedCreateWithoutProblemInput[]
     connectOrCreate?: ProblemUpvoteCreateOrConnectWithoutProblemInput | ProblemUpvoteCreateOrConnectWithoutProblemInput[]
     createMany?: ProblemUpvoteCreateManyProblemInputEnvelope
     connect?: ProblemUpvoteWhereUniqueInput | ProblemUpvoteWhereUniqueInput[]
+  }
+
+  export type ProblemImageUncheckedCreateNestedManyWithoutProblemInput = {
+    create?: XOR<ProblemImageCreateWithoutProblemInput, ProblemImageUncheckedCreateWithoutProblemInput> | ProblemImageCreateWithoutProblemInput[] | ProblemImageUncheckedCreateWithoutProblemInput[]
+    connectOrCreate?: ProblemImageCreateOrConnectWithoutProblemInput | ProblemImageCreateOrConnectWithoutProblemInput[]
+    createMany?: ProblemImageCreateManyProblemInputEnvelope
+    connect?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -4007,6 +5509,20 @@ export namespace Prisma {
     deleteMany?: ProblemUpvoteScalarWhereInput | ProblemUpvoteScalarWhereInput[]
   }
 
+  export type ProblemImageUpdateManyWithoutProblemNestedInput = {
+    create?: XOR<ProblemImageCreateWithoutProblemInput, ProblemImageUncheckedCreateWithoutProblemInput> | ProblemImageCreateWithoutProblemInput[] | ProblemImageUncheckedCreateWithoutProblemInput[]
+    connectOrCreate?: ProblemImageCreateOrConnectWithoutProblemInput | ProblemImageCreateOrConnectWithoutProblemInput[]
+    upsert?: ProblemImageUpsertWithWhereUniqueWithoutProblemInput | ProblemImageUpsertWithWhereUniqueWithoutProblemInput[]
+    createMany?: ProblemImageCreateManyProblemInputEnvelope
+    set?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+    disconnect?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+    delete?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+    connect?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+    update?: ProblemImageUpdateWithWhereUniqueWithoutProblemInput | ProblemImageUpdateWithWhereUniqueWithoutProblemInput[]
+    updateMany?: ProblemImageUpdateManyWithWhereWithoutProblemInput | ProblemImageUpdateManyWithWhereWithoutProblemInput[]
+    deleteMany?: ProblemImageScalarWhereInput | ProblemImageScalarWhereInput[]
+  }
+
   export type ProblemUpvoteUncheckedUpdateManyWithoutProblemNestedInput = {
     create?: XOR<ProblemUpvoteCreateWithoutProblemInput, ProblemUpvoteUncheckedCreateWithoutProblemInput> | ProblemUpvoteCreateWithoutProblemInput[] | ProblemUpvoteUncheckedCreateWithoutProblemInput[]
     connectOrCreate?: ProblemUpvoteCreateOrConnectWithoutProblemInput | ProblemUpvoteCreateOrConnectWithoutProblemInput[]
@@ -4019,6 +5535,34 @@ export namespace Prisma {
     update?: ProblemUpvoteUpdateWithWhereUniqueWithoutProblemInput | ProblemUpvoteUpdateWithWhereUniqueWithoutProblemInput[]
     updateMany?: ProblemUpvoteUpdateManyWithWhereWithoutProblemInput | ProblemUpvoteUpdateManyWithWhereWithoutProblemInput[]
     deleteMany?: ProblemUpvoteScalarWhereInput | ProblemUpvoteScalarWhereInput[]
+  }
+
+  export type ProblemImageUncheckedUpdateManyWithoutProblemNestedInput = {
+    create?: XOR<ProblemImageCreateWithoutProblemInput, ProblemImageUncheckedCreateWithoutProblemInput> | ProblemImageCreateWithoutProblemInput[] | ProblemImageUncheckedCreateWithoutProblemInput[]
+    connectOrCreate?: ProblemImageCreateOrConnectWithoutProblemInput | ProblemImageCreateOrConnectWithoutProblemInput[]
+    upsert?: ProblemImageUpsertWithWhereUniqueWithoutProblemInput | ProblemImageUpsertWithWhereUniqueWithoutProblemInput[]
+    createMany?: ProblemImageCreateManyProblemInputEnvelope
+    set?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+    disconnect?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+    delete?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+    connect?: ProblemImageWhereUniqueInput | ProblemImageWhereUniqueInput[]
+    update?: ProblemImageUpdateWithWhereUniqueWithoutProblemInput | ProblemImageUpdateWithWhereUniqueWithoutProblemInput[]
+    updateMany?: ProblemImageUpdateManyWithWhereWithoutProblemInput | ProblemImageUpdateManyWithWhereWithoutProblemInput[]
+    deleteMany?: ProblemImageScalarWhereInput | ProblemImageScalarWhereInput[]
+  }
+
+  export type ProblemCreateNestedOneWithoutImagesInput = {
+    create?: XOR<ProblemCreateWithoutImagesInput, ProblemUncheckedCreateWithoutImagesInput>
+    connectOrCreate?: ProblemCreateOrConnectWithoutImagesInput
+    connect?: ProblemWhereUniqueInput
+  }
+
+  export type ProblemUpdateOneRequiredWithoutImagesNestedInput = {
+    create?: XOR<ProblemCreateWithoutImagesInput, ProblemUncheckedCreateWithoutImagesInput>
+    connectOrCreate?: ProblemCreateOrConnectWithoutImagesInput
+    upsert?: ProblemUpsertWithoutImagesInput
+    connect?: ProblemWhereUniqueInput
+    update?: XOR<XOR<ProblemUpdateToOneWithWhereWithoutImagesInput, ProblemUpdateWithoutImagesInput>, ProblemUncheckedUpdateWithoutImagesInput>
   }
 
   export type ProblemCreateNestedOneWithoutUpvotesInput = {
@@ -4231,6 +5775,31 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type ProblemImageCreateWithoutProblemInput = {
+    url: string
+    mimeType: string
+    size: number
+    createdAt?: Date | string
+  }
+
+  export type ProblemImageUncheckedCreateWithoutProblemInput = {
+    id?: number
+    url: string
+    mimeType: string
+    size: number
+    createdAt?: Date | string
+  }
+
+  export type ProblemImageCreateOrConnectWithoutProblemInput = {
+    where: ProblemImageWhereUniqueInput
+    create: XOR<ProblemImageCreateWithoutProblemInput, ProblemImageUncheckedCreateWithoutProblemInput>
+  }
+
+  export type ProblemImageCreateManyProblemInputEnvelope = {
+    data: ProblemImageCreateManyProblemInput | ProblemImageCreateManyProblemInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ProblemUpvoteUpsertWithWhereUniqueWithoutProblemInput = {
     where: ProblemUpvoteWhereUniqueInput
     update: XOR<ProblemUpvoteUpdateWithoutProblemInput, ProblemUpvoteUncheckedUpdateWithoutProblemInput>
@@ -4256,6 +5825,120 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"ProblemUpvote"> | Date | string
   }
 
+  export type ProblemImageUpsertWithWhereUniqueWithoutProblemInput = {
+    where: ProblemImageWhereUniqueInput
+    update: XOR<ProblemImageUpdateWithoutProblemInput, ProblemImageUncheckedUpdateWithoutProblemInput>
+    create: XOR<ProblemImageCreateWithoutProblemInput, ProblemImageUncheckedCreateWithoutProblemInput>
+  }
+
+  export type ProblemImageUpdateWithWhereUniqueWithoutProblemInput = {
+    where: ProblemImageWhereUniqueInput
+    data: XOR<ProblemImageUpdateWithoutProblemInput, ProblemImageUncheckedUpdateWithoutProblemInput>
+  }
+
+  export type ProblemImageUpdateManyWithWhereWithoutProblemInput = {
+    where: ProblemImageScalarWhereInput
+    data: XOR<ProblemImageUpdateManyMutationInput, ProblemImageUncheckedUpdateManyWithoutProblemInput>
+  }
+
+  export type ProblemImageScalarWhereInput = {
+    AND?: ProblemImageScalarWhereInput | ProblemImageScalarWhereInput[]
+    OR?: ProblemImageScalarWhereInput[]
+    NOT?: ProblemImageScalarWhereInput | ProblemImageScalarWhereInput[]
+    id?: IntFilter<"ProblemImage"> | number
+    problemId?: IntFilter<"ProblemImage"> | number
+    url?: StringFilter<"ProblemImage"> | string
+    mimeType?: StringFilter<"ProblemImage"> | string
+    size?: IntFilter<"ProblemImage"> | number
+    createdAt?: DateTimeFilter<"ProblemImage"> | Date | string
+  }
+
+  export type ProblemCreateWithoutImagesInput = {
+    reporterPhone: string
+    rawMessage: string
+    title: string
+    locationText?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    locationVerified?: boolean
+    locationSource?: string | null
+    nationalCategory?: string | null
+    recommendedOffice?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    upvoteCount?: number
+    upvotes?: ProblemUpvoteCreateNestedManyWithoutProblemInput
+  }
+
+  export type ProblemUncheckedCreateWithoutImagesInput = {
+    id?: number
+    reporterPhone: string
+    rawMessage: string
+    title: string
+    locationText?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    locationVerified?: boolean
+    locationSource?: string | null
+    nationalCategory?: string | null
+    recommendedOffice?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    upvoteCount?: number
+    upvotes?: ProblemUpvoteUncheckedCreateNestedManyWithoutProblemInput
+  }
+
+  export type ProblemCreateOrConnectWithoutImagesInput = {
+    where: ProblemWhereUniqueInput
+    create: XOR<ProblemCreateWithoutImagesInput, ProblemUncheckedCreateWithoutImagesInput>
+  }
+
+  export type ProblemUpsertWithoutImagesInput = {
+    update: XOR<ProblemUpdateWithoutImagesInput, ProblemUncheckedUpdateWithoutImagesInput>
+    create: XOR<ProblemCreateWithoutImagesInput, ProblemUncheckedCreateWithoutImagesInput>
+    where?: ProblemWhereInput
+  }
+
+  export type ProblemUpdateToOneWithWhereWithoutImagesInput = {
+    where?: ProblemWhereInput
+    data: XOR<ProblemUpdateWithoutImagesInput, ProblemUncheckedUpdateWithoutImagesInput>
+  }
+
+  export type ProblemUpdateWithoutImagesInput = {
+    reporterPhone?: StringFieldUpdateOperationsInput | string
+    rawMessage?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    locationText?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    locationVerified?: BoolFieldUpdateOperationsInput | boolean
+    locationSource?: NullableStringFieldUpdateOperationsInput | string | null
+    nationalCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    recommendedOffice?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    upvoteCount?: IntFieldUpdateOperationsInput | number
+    upvotes?: ProblemUpvoteUpdateManyWithoutProblemNestedInput
+  }
+
+  export type ProblemUncheckedUpdateWithoutImagesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    reporterPhone?: StringFieldUpdateOperationsInput | string
+    rawMessage?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    locationText?: NullableStringFieldUpdateOperationsInput | string | null
+    latitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    longitude?: NullableFloatFieldUpdateOperationsInput | number | null
+    locationVerified?: BoolFieldUpdateOperationsInput | boolean
+    locationSource?: NullableStringFieldUpdateOperationsInput | string | null
+    nationalCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    recommendedOffice?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    upvoteCount?: IntFieldUpdateOperationsInput | number
+    upvotes?: ProblemUpvoteUncheckedUpdateManyWithoutProblemNestedInput
+  }
+
   export type ProblemCreateWithoutUpvotesInput = {
     reporterPhone: string
     rawMessage: string
@@ -4265,9 +5948,12 @@ export namespace Prisma {
     longitude?: number | null
     locationVerified?: boolean
     locationSource?: string | null
+    nationalCategory?: string | null
+    recommendedOffice?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     upvoteCount?: number
+    images?: ProblemImageCreateNestedManyWithoutProblemInput
   }
 
   export type ProblemUncheckedCreateWithoutUpvotesInput = {
@@ -4280,9 +5966,12 @@ export namespace Prisma {
     longitude?: number | null
     locationVerified?: boolean
     locationSource?: string | null
+    nationalCategory?: string | null
+    recommendedOffice?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
     upvoteCount?: number
+    images?: ProblemImageUncheckedCreateNestedManyWithoutProblemInput
   }
 
   export type ProblemCreateOrConnectWithoutUpvotesInput = {
@@ -4310,9 +5999,12 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     locationVerified?: BoolFieldUpdateOperationsInput | boolean
     locationSource?: NullableStringFieldUpdateOperationsInput | string | null
+    nationalCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    recommendedOffice?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     upvoteCount?: IntFieldUpdateOperationsInput | number
+    images?: ProblemImageUpdateManyWithoutProblemNestedInput
   }
 
   export type ProblemUncheckedUpdateWithoutUpvotesInput = {
@@ -4325,13 +6017,24 @@ export namespace Prisma {
     longitude?: NullableFloatFieldUpdateOperationsInput | number | null
     locationVerified?: BoolFieldUpdateOperationsInput | boolean
     locationSource?: NullableStringFieldUpdateOperationsInput | string | null
+    nationalCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    recommendedOffice?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     upvoteCount?: IntFieldUpdateOperationsInput | number
+    images?: ProblemImageUncheckedUpdateManyWithoutProblemNestedInput
   }
 
   export type ProblemUpvoteCreateManyProblemInput = {
     voterPhone: string
+    createdAt?: Date | string
+  }
+
+  export type ProblemImageCreateManyProblemInput = {
+    id?: number
+    url: string
+    mimeType: string
+    size: number
     createdAt?: Date | string
   }
 
@@ -4347,6 +6050,29 @@ export namespace Prisma {
 
   export type ProblemUpvoteUncheckedUpdateManyWithoutProblemInput = {
     voterPhone?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProblemImageUpdateWithoutProblemInput = {
+    url?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProblemImageUncheckedUpdateWithoutProblemInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ProblemImageUncheckedUpdateManyWithoutProblemInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    mimeType?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

@@ -1,12 +1,18 @@
 import express, { Request, Response, NextFunction } from "express";
-import cors from "cors";
-import { config } from "./config";
 import { logger } from "./logger";
+import { config } from "./config";
 import { CrowdsourceAgent } from "./crowdsource-agent";
+import { PrismaClient } from "@prisma/client";
+import cors from "cors";
+import path from "path";
+import ministryRoutes from "./routes/ministry";
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3001', 'http://localhost:3000'],
+  credentials: true
+}));
 
 let agent: CrowdsourceAgent;
 
@@ -56,6 +62,12 @@ function requireApiKey(req: Request, res: Response, next: NextFunction): void {
 
   next();
 }
+
+// Serve uploaded files
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
+// Ministry dashboard routes
+app.use("/api/ministry", ministryRoutes);
 
 // Health check
 app.get("/health", (req: Request, res: Response) => {
@@ -113,7 +125,7 @@ app.get("/webhook/whatsapp", (req: Request, res: Response) => {
 // External WhatsApp client webhook (POST)
 app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response) => {
   try {
-    const { event, message, from, phoneE164, messageType, location } = req.body;
+    const { event, message, from, phoneE164, messageType, location, media } = req.body;
 
     logger.info({ event, from, phoneE164, message }, "Received WhatsApp message");
 
@@ -186,8 +198,29 @@ app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response)
         }) as any;
       }
 
+      // Handle media attachments
+      let mediaContext;
+      if (media && media.data) {
+        logger.info(
+          {
+            phone,
+            mimeType: media.mimetype,
+            size: media.size,
+            filename: media.filename
+          },
+          "Media attachment received"
+        );
+        mediaContext = {
+          hasMedia: true,
+          mimeType: media.mimetype,
+          data: media.data,
+          filename: media.filename,
+          size: media.size
+        };
+      }
+
       // Process message with OpenAI Agent
-      const response = await agent.processMessage(message, phone, locationContext);
+      const response = await agent.processMessage(message, phone, locationContext, mediaContext);
 
       return res.json({
         answer: response,

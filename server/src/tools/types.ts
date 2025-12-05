@@ -1,5 +1,13 @@
 import type { PrismaClient } from "@prisma/client";
 
+export interface MediaContext {
+  hasMedia: boolean;
+  mimeType: string;
+  data: string; // base64 encoded
+  filename: string;
+  size: number;
+}
+
 export interface ToolContext {
   prisma: PrismaClient;
   currentUserPhone: string;
@@ -9,6 +17,7 @@ export interface ToolContext {
     longitude?: number;
     locationDescription?: string;
   };
+  currentMediaContext?: MediaContext;
   sendWhatsAppMessage: (phoneE164: string, message: string) => Promise<void>;
 }
 

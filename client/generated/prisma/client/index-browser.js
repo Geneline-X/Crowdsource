@@ -130,9 +130,20 @@ exports.Prisma.ProblemScalarFieldEnum = {
   longitude: 'longitude',
   locationVerified: 'locationVerified',
   locationSource: 'locationSource',
+  nationalCategory: 'nationalCategory',
+  recommendedOffice: 'recommendedOffice',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   upvoteCount: 'upvoteCount'
+};
+
+exports.Prisma.ProblemImageScalarFieldEnum = {
+  id: 'id',
+  problemId: 'problemId',
+  url: 'url',
+  mimeType: 'mimeType',
+  size: 'size',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.ProblemUpvoteScalarFieldEnum = {
@@ -159,6 +170,7 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   Problem: 'Problem',
+  ProblemImage: 'ProblemImage',
   ProblemUpvote: 'ProblemUpvote'
 };
 
