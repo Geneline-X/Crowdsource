@@ -18,6 +18,15 @@ export async function GET() {
             createdAt: true
           }
         },
+        media: {
+          select: {
+            id: true,
+            url: true,
+            mimeType: true,
+            size: true,
+            createdAt: true
+          }
+        }
       },
     });
 
