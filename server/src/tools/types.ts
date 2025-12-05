@@ -19,6 +19,13 @@ export interface ToolContext {
   };
   currentMediaContext?: MediaContext;
   sendWhatsAppMessage: (phoneE164: string, message: string) => Promise<void>;
+  currentProblemContext?: {
+    problemId: string;
+    title: string;
+    location: string;
+    category: string;
+    description: string;
+  };
 }
 
 export interface ToolDefinition {

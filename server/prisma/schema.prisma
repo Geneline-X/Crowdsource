@@ -34,6 +34,7 @@ model Problem {
 
   upvotes         ProblemUpvote[]
   images          ProblemImage[]
+  media           Media[]
 
   @@map("problems")
 }
@@ -59,4 +60,16 @@ model ProblemUpvote {
 
   @@id([problemId, voterPhone])
   @@map("problem_upvotes")
+}
+
+model Media {
+  id        Int      @id @default(autoincrement())
+  problemId Int      @map("problem_id")
+  url       String
+  mimeType  String   @map("mime_type")
+  size      Int
+  createdAt DateTime @default(now()) @map("created_at")
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@map("media")
 }

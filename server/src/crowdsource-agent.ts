@@ -27,6 +27,13 @@ export class CrowdsourceAgent {
   private currentLocationContext?: LocationContext;
   private currentMediaContext?: MediaContext;
   private systemPrompt: string;
+  private currentProblemContext?: {
+    problemId: string;
+    title: string;
+    location: string;
+    category: string;
+    description: string;
+  };
 
   constructor() {
     this.openai = new OpenAI({
@@ -45,6 +52,7 @@ LOCATION SUPPORT:
 - Text-based locations (e.g., "Ojodu market") are validated against map databases
 - Accept locations skeptically if they can't be verified, but flag them as unverified
 - Verified locations get a ✓ checkmark in responses
+- Users can also share images 
 
 SMART LOCATION HANDLING (CRITICAL):
 When a user shares their location (you see [LOCATION_SHARED: lat, lon]):
@@ -290,7 +298,14 @@ SECURITY:
     userMessage: string,
     phoneE164: string,
     locationContext?: LocationContext,
-    mediaContext?: MediaContext
+    mediaContext?: MediaContext,
+    problemContext?: {
+      problemId: string;
+      title: string;
+      location: string;
+      category: string;
+      description: string;
+    }
   ): Promise<string> {
     try {
       logger.info(
@@ -305,6 +320,7 @@ SECURITY:
       this.currentUserPhone = phoneE164;
       this.currentLocationContext = locationContext;
       this.currentMediaContext = mediaContext;
+      this.currentProblemContext = problemContext;
 
       const messages = this.getOrCreateConversation(phoneE164);
 
@@ -438,6 +454,7 @@ SECURITY:
         currentUserPhone: this.currentUserPhone || "",
         currentLocationContext: this.currentLocationContext,
         currentMediaContext: this.currentMediaContext,
+        currentProblemContext: this.currentProblemContext,
         sendWhatsAppMessage: async (phoneE164: string, message: string) => {
           await this.sendWhatsAppMessage(phoneE164, message);
         },

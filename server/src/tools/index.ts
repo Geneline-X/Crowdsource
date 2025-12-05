@@ -17,6 +17,11 @@ import {
   updateProblemDescriptionHandler,
 } from "./problems";
 
+import {
+  uploadImageTool,
+  uploadImageHandler,
+} from "./upload-image";
+
 export type { ToolContext, ToolDefinition, ToolHandler } from "./types";
 
 export const toolDefinitions: ToolDefinition[] = [
@@ -27,6 +32,7 @@ export const toolDefinitions: ToolDefinition[] = [
   updateProblemLocationTool,
   getUserRecentProblemsTool,
   updateProblemDescriptionTool,
+  uploadImageTool,
 ];
 
 export const toolHandlers: Record<string, ToolHandler> = {
@@ -37,4 +43,5 @@ export const toolHandlers: Record<string, ToolHandler> = {
   update_problem_location: updateProblemLocationHandler,
   get_user_recent_problems: getUserRecentProblemsHandler,
   update_problem_description: updateProblemDescriptionHandler,
+  upload_image: uploadImageHandler,
 };
