@@ -12,7 +12,7 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(problems);
+    return NextResponse.json(problems || []);
   } catch (error) {
     console.error("Failed to fetch problems:", error);
     return NextResponse.json(
