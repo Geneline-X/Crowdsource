@@ -100,7 +100,7 @@ export default function MapClient({
   const defaultCenter: LatLngExpression =
     validProblems.length > 0
       ? [validProblems[0].latitude!, validProblems[0].longitude!]
-      : [40.7128, -74.006];
+      : [8.7128, -11.006];
 
   return (
     <MapContainer

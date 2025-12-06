@@ -110,29 +110,29 @@ export default function MinistryDashboard() {
   }, [page, statusFilter, searchTerm]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-3 md:p-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Ministry Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-8">Ministry Dashboard</h1>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg shadow p-3 md:p-4 mb-4 md:mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Search</label>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search problems..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Status Filter</label>
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">Status Filter</label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Status</option>
                 <option value="REPORTED">Reported</option>
@@ -149,7 +149,7 @@ export default function MinistryDashboard() {
                   setSearchTerm('');
                   setPage(1);
                 }}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                className="w-full md:w-auto px-3 md:px-4 py-1.5 md:py-2 text-sm bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
               >
                 Clear Filters
               </button>
@@ -173,20 +173,20 @@ export default function MinistryDashboard() {
                 key={problem.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-lg shadow p-6"
+                className="bg-white rounded-lg shadow p-3 md:p-6"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{problem.title}</h3>
-                    <p className="text-gray-600 mt-1">{problem.rawMessage}</p>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[problem.status]}`}>
+                <div className="flex flex-col md:flex-row justify-between items-start mb-3 md:mb-4 gap-3">
+                  <div className="flex-1 w-full">
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900">{problem.title}</h3>
+                    <p className="text-sm md:text-base text-gray-600 mt-1">{problem.rawMessage}</p>
+                    <div className="flex flex-wrap gap-1.5 md:gap-2 mt-2">
+                      <span className={`px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium ${statusColors[problem.status]}`}>
                         {problem.status.replace('_', ' ')}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs md:text-sm text-gray-500">
                         {new Date(problem.createdAt).toLocaleDateString()}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-xs md:text-sm text-gray-500 hidden sm:inline">
                         From: {problem.reporterPhone}
                       </span>
                     </div>
@@ -196,7 +196,7 @@ export default function MinistryDashboard() {
                       <img
                         src={problem.images[0].url}
                         alt="Problem thumbnail"
-                        className="w-20 h-20 object-cover rounded-md cursor-pointer"
+                        className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-md cursor-pointer shrink-0"
                         onClick={() => setSelectedProblem(problem)}
                       />
                     )}
@@ -204,17 +204,17 @@ export default function MinistryDashboard() {
                 </div>
 
                 {problem.locationText && (
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-xs md:text-sm text-gray-600 mb-2 md:mb-3">
                     <strong>Location:</strong> {problem.locationText}
                   </p>
                 )}
 
-                <div className="flex justify-between items-center">
-                  <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                  <div className="flex gap-2 w-full sm:w-auto">
                     <select
                       value={problem.status}
                       onChange={(e) => updateProblemStatus(problem.id, e.target.value)}
-                      className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 sm:flex-initial px-2 md:px-3 py-1 border border-gray-300 rounded-md text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="REPORTED">Reported</option>
                       <option value="IN_REVIEW">In Review</option>
@@ -225,7 +225,7 @@ export default function MinistryDashboard() {
                   </div>
                   <button
                     onClick={() => setSelectedProblem(problem)}
-                    className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
+                    className="w-full sm:w-auto px-3 py-1 bg-blue-600 text-white rounded-md text-xs md:text-sm hover:bg-blue-700 transition-colors"
                   >
                     View Details
                   </button>
@@ -237,21 +237,21 @@ export default function MinistryDashboard() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center mt-8 gap-2">
+          <div className="flex justify-center mt-4 md:mt-8 gap-2">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >
               Previous
             </button>
-            <span className="px-4 py-2">
+            <span className="px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm">
               Page {page} of {totalPages}
             </span>
             <button
               onClick={() => setPage(p => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+              className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >
               Next
             </button>
@@ -265,54 +265,54 @@ export default function MinistryDashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 md:p-4"
               onClick={() => setSelectedProblem(null)}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-lg max-w-4xl max-h-full overflow-y-auto"
+                className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto w-full"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h2 className="text-2xl font-bold">{selectedProblem.title}</h2>
+                <div className="p-4 md:p-6">
+                  <div className="flex justify-between items-start mb-3 md:mb-4">
+                    <h2 className="text-xl md:text-2xl font-bold pr-2">{selectedProblem.title}</h2>
                     <button
                       onClick={() => setSelectedProblem(null)}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-gray-500 hover:text-gray-700 shrink-0"
                     >
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
                   </div>
 
-                  <p className="text-gray-700 mb-4">{selectedProblem.rawMessage}</p>
+                  <p className="text-sm md:text-base text-gray-700 mb-3 md:mb-4">{selectedProblem.rawMessage}</p>
 
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 md:gap-4 mb-3 md:mb-4">
+                    <div className="text-sm md:text-base">
                       <strong>Status:</strong>
-                      <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${statusColors[selectedProblem.status]}`}>
+                      <span className={`ml-2 px-1.5 md:px-2 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium ${statusColors[selectedProblem.status]}`}>
                         {selectedProblem.status.replace('_', ' ')}
                       </span>
                     </div>
-                    <div>
+                    <div className="text-sm md:text-base">
                       <strong>Reporter:</strong> {selectedProblem.reporterPhone}
                     </div>
-                    <div>
+                    <div className="text-sm md:text-base">
                       <strong>Created:</strong> {new Date(selectedProblem.createdAt).toLocaleString()}
                     </div>
-                    <div>
+                    <div className="text-sm md:text-base">
                       <strong>Upvotes:</strong> {selectedProblem.upvoteCount}
                     </div>
                   </div>
 
                   {selectedProblem.locationText && (
-                    <div className="mb-4">
+                    <div className="mb-3 md:mb-4 text-sm md:text-base">
                       <strong>Location:</strong> {selectedProblem.locationText}
                       {selectedProblem.latitude && selectedProblem.longitude && (
-                        <span className="ml-2 text-sm text-gray-500">
+                        <span className="ml-2 text-xs md:text-sm text-gray-500">
                           ({selectedProblem.latitude.toFixed(6)}, {selectedProblem.longitude.toFixed(6)})
                         </span>
                       )}
@@ -320,15 +320,15 @@ export default function MinistryDashboard() {
                   )}
 
                   {selectedProblem.images.length > 0 && (
-                    <div className="mb-4">
+                    <div className="mb-3 md:mb-4 text-sm md:text-base">
                       <strong>Images:</strong>
-                      <div className="grid grid-cols-3 gap-2 mt-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 md:gap-2 mt-2">
                         {selectedProblem.images.map((image) => (
                           <img
                             key={image.id}
                             src={image.url}
                             alt="Problem image"
-                            className="w-full h-32 object-cover rounded-md cursor-pointer"
+                            className="w-full h-24 md:h-32 object-cover rounded-md cursor-pointer"
                             onClick={() => window.open(image.url, '_blank')}
                           />
                         ))}
@@ -342,7 +342,7 @@ export default function MinistryDashboard() {
                       onChange={(e) => {
                         updateProblemStatus(selectedProblem.id, e.target.value);
                       }}
-                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="flex-1 sm:flex-initial px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="REPORTED">Reported</option>
                       <option value="IN_REVIEW">In Review</option>

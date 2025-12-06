@@ -154,57 +154,58 @@ export default function HomePage() {
       </AnimatePresence>
 
       <header className="sticky top-0 z-40 bg-[var(--ds-background-100)] border-b border-[var(--ds-gray-300)]">
-        <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-screen-xl mx-auto px-3 md:px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2 md:gap-3">
             <div className="w-6 h-6 rounded bg-[var(--ds-gray-1000)]" />
-            <span className="font-semibold">Crowdsource</span>
+            <span className="font-semibold text-sm md:text-base">Crowdsource</span>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="geist-text-small text-[var(--ds-gray-600)]">Live</span>
+              <span className="geist-text-small text-[var(--ds-gray-600)] hidden sm:inline">Live</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="geist-text-small">{problems.length} issues reported</span>
-            <span className="geist-text-small text-[var(--ds-gray-500)]">
+          <div className="flex items-center gap-2 md:gap-3">
+            <span className="geist-text-small hidden md:inline">{problems.length} issues reported</span>
+            <span className="geist-text-small text-[var(--ds-gray-500)] hidden lg:inline">
               Updated {lastUpdated.toLocaleTimeString()}
             </span>
             <Link
               href="/weekly-blog"
-              className="geist-button geist-button-secondary geist-text-small h-7 px-3"
+              className="geist-button geist-button-secondary geist-text-small h-7 px-2 md:px-3"
             >
-              Weekly blog
+              <span className="hidden sm:inline">Weekly blog</span>
+              <span className="sm:hidden">Blog</span>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="geist-text-title mb-2">Community Issues</h1>
-          <p className="geist-text-body">
+      <main className="max-w-screen-xl mx-auto px-3 md:px-4 py-4 md:py-8">
+        <div className="mb-4 md:mb-8">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-2">Community Issues</h1>
+          <p className="geist-text-body text-sm md:text-base">
             Problems reported by community members. Vote on issues that matter to you.
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-8">
           {[
             { label: "Active Issues", value: problems.length },
             { label: "Total Votes", value: totalVotes },
             { label: "With Location", value: problems.filter((p) => p.latitude && p.longitude).length },
           ].map((stat) => (
-            <div key={stat.label} className="geist-card p-4">
-              <p className="geist-text-label mb-1">{stat.label}</p>
-              <p className="geist-text-title">{stat.value}</p>
+            <div key={stat.label} className="geist-card p-3 md:p-4">
+              <p className="geist-text-label mb-1 text-xs md:text-sm">{stat.label}</p>
+              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{stat.value}</p>
             </div>
           ))}
         </div>
 
-        <hr className="geist-divider mb-8" />
+        <hr className="geist-divider mb-4 md:mb-8" />
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex gap-1">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
+          <div className="lg:col-span-3 order-2 lg:order-1">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
+              <div className="flex gap-1 overflow-x-auto">
                 {[
                   { key: "all", label: "All", count: problems.length },
                   { key: "verified", label: "Verified", count: verifiedCount },
@@ -214,24 +215,24 @@ export default function HomePage() {
                     key={tab.key}
                     onClick={() => setActiveFilter(tab.key as typeof activeFilter)}
                     className={cn(
-                      "px-3 py-1.5 text-sm font-medium rounded-md transition-colors",
+                      "px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium rounded-md transition-colors whitespace-nowrap",
                       activeFilter === tab.key
                         ? "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]"
                         : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-100)]"
                     )}
                   >
                     {tab.label}
-                    <span className="ml-1.5 text-xs opacity-60">{tab.count}</span>
+                    <span className="ml-1 md:ml-1.5 text-xs opacity-60">{tab.count}</span>
                   </button>
                 ))}
               </div>
-              <p className="geist-text-small">{filteredProblems.length} shown</p>
+              <p className="geist-text-small text-xs md:text-sm whitespace-nowrap ml-2">{filteredProblems.length} shown</p>
             </div>
 
             <div className="geist-card overflow-hidden">
               {filteredProblems.length === 0 ? (
-                <div className="p-8 text-center">
-                  <p className="geist-text-body">No problems in this category</p>
+                <div className="p-4 md:p-8 text-center">
+                  <p className="geist-text-body text-sm md:text-base">No problems in this category</p>
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">
@@ -256,7 +257,7 @@ export default function HomePage() {
                           }
                         }}
                         className={cn(
-                          "geist-entity",
+                          "geist-entity gap-2 md:gap-3 p-3 md:p-4",
                           (hasLocation || (problem.images && problem.images.length > 0)) && "cursor-pointer",
                           isSelected && "bg-[var(--ds-blue-100)] border-l-2 border-l-[var(--ds-blue-500)]"
                         )}
@@ -266,50 +267,50 @@ export default function HomePage() {
                             e.stopPropagation();
                             handleVote(problem.id);
                           }}
-                          className="geist-vote shrink-0"
+                          className="geist-vote shrink-0 px-2 md:px-3 py-1 md:py-2"
                         >
                           <div className="geist-vote-arrow" />
-                          <span className="geist-vote-count">{problem.upvoteCount}</span>
+                          <span className="geist-vote-count text-sm md:text-base">{problem.upvoteCount}</span>
                         </button>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
+                          <div className="flex items-center gap-1 md:gap-2 mb-1">
                             <div className={cn("geist-status-dot", category.dot)} />
-                            <h3 className="font-medium truncate">{problem.title}</h3>
+                            <h3 className="font-medium truncate text-sm md:text-base">{problem.title}</h3>
                             {hasLocation && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[var(--ds-gray-200)] text-[var(--ds-gray-700)]">
+                              <span className="text-[9px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded bg-[var(--ds-gray-200)] text-[var(--ds-gray-700)]">
                                 MAP
                               </span>
                             )}
                           </div>
-                          <p className="geist-text-small line-clamp-2 mb-2">
+                          <p className="geist-text-small line-clamp-2 mb-2 text-xs md:text-sm">
                             {problem.rawMessage}
                           </p>
                           {problem.images && problem.images.length > 0 && (
                             <div className="mb-2">
-                              <div className="flex gap-2 mb-1">
+                              <div className="flex gap-1.5 md:gap-2 mb-1">
                                 {problem.images.slice(0, 3).map((image, idx) => (
                                   <div key={idx} className="relative group">
                                     <img
                                       src={image.url}
                                       alt="Problem image"
-                                      className="w-20 h-20 object-cover rounded-lg border-2 border-[var(--ds-gray-200)] cursor-pointer hover:border-[var(--ds-blue-500)] transition-colors"
+                                      className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg border-2 border-[var(--ds-gray-200)] cursor-pointer hover:border-[var(--ds-blue-500)] transition-colors"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setSelectedImage({ url: image.url, mimeType: image.mimeType });
                                       }}
                                     />
                                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
-                                      <svg className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <svg className="w-5 h-5 md:w-6 md:h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                                       </svg>
                                     </div>
                                   </div>
                                 ))}
                                 {problem.images.length > 3 && (
-                                  <div className="w-20 h-20 bg-[var(--ds-gray-100)] rounded-lg border-2 border-[var(--ds-gray-200)] flex flex-col items-center justify-center text-xs text-[var(--ds-gray-600)]">
-                                    <span className="font-semibold">+{problem.images.length - 3}</span>
-                                    <span>more</span>
+                                  <div className="w-16 h-16 md:w-20 md:h-20 bg-[var(--ds-gray-100)] rounded-lg border-2 border-[var(--ds-gray-200)] flex flex-col items-center justify-center text-xs text-[var(--ds-gray-600)]">
+                                    <span className="font-semibold text-xs md:text-sm">+{problem.images.length - 3}</span>
+                                    <span className="text-[10px] md:text-xs">more</span>
                                   </div>
                                 )}
                               </div>
@@ -321,16 +322,16 @@ export default function HomePage() {
                               </div>
                             </div>
                           )}
-                          <div className="flex items-center gap-4">
-                            <span className="geist-text-mono text-[var(--ds-gray-600)]">
+                          <div className="flex items-center gap-2 md:gap-4 flex-wrap">
+                            <span className="geist-text-mono text-[var(--ds-gray-600)] text-xs hidden sm:inline">
                               {problem.title}
                             </span>
                             {problem.nationalCategory && (
-                              <span className="geist-badge geist-badge-blue">
+                              <span className="geist-badge geist-badge-blue text-[10px] md:text-xs">
                                 {problem.nationalCategory}
                               </span>
                             )}
-                            <span className={cn("geist-badge", category.badge)}>
+                            <span className={cn("geist-badge text-[10px] md:text-xs", category.badge)}>
                               {problem.locationVerified ? "Verified" : "Pending"}
                             </span>
                           </div>
@@ -349,18 +350,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="lg:col-span-2">
-            <div className="sticky top-20">
-              <div className="flex items-center justify-between mb-4">
-                <p className="geist-text-label">Geographic View</p>
+          <div className="lg:col-span-2 order-1 lg:order-2">
+            <div className="lg:sticky lg:top-20">
+              <div className="flex items-center justify-between mb-3 md:mb-4">
+                <p className="geist-text-label text-xs md:text-sm">Geographic View</p>
                 <button
                   onClick={() => setIsMapFullscreen(true)}
-                  className="geist-button geist-button-secondary text-xs h-7 px-2"
+                  className="geist-button geist-button-secondary text-xs h-6 md:h-7 px-2"
                 >
                   Expand
                 </button>
               </div>
-              <div className="geist-card overflow-hidden">
+              <div className="geist-card overflow-hidden h-64 md:h-96">
                 <MapView
                   problems={problems.filter((p) => p.latitude !== null && p.longitude !== null)}
                   onSelectProblem={(id) => setSelectedId(id)}
@@ -369,13 +370,13 @@ export default function HomePage() {
                 />
               </div>
               {selectedProblem && (
-                <div className="mt-2 p-3 geist-card bg-[var(--ds-blue-100)]">
-                  <p className="geist-text-small font-medium text-[var(--ds-blue-700)]">
+                <div className="mt-2 p-2 md:p-3 geist-card bg-[var(--ds-blue-100)]">
+                  <p className="geist-text-small font-medium text-[var(--ds-blue-700)] text-xs md:text-sm">
                     Selected: {selectedProblem.title}
                   </p>
                   <button
                     onClick={() => setSelectedId(null)}
-                    className="geist-text-small text-[var(--ds-gray-600)] mt-1 hover:underline"
+                    className="geist-text-small text-[var(--ds-gray-600)] mt-1 hover:underline text-xs md:text-sm"
                   >
                     Clear selection
                   </button>
@@ -395,18 +396,18 @@ export default function HomePage() {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-[var(--ds-background-100)]"
           >
-            <div className="absolute top-4 right-4 z-10 flex gap-2">
+            <div className="absolute top-2 md:top-4 right-2 md:right-4 z-10 flex gap-2">
               {selectedProblem && (
-                <div className="geist-card p-3 bg-[var(--ds-blue-100)]">
-                  <p className="geist-text-small font-medium">{selectedProblem.title}</p>
-                  <p className="geist-text-small text-[var(--ds-gray-600)]">
+                <div className="geist-card p-2 md:p-3 bg-[var(--ds-blue-100)] max-w-[200px] md:max-w-none">
+                  <p className="geist-text-small font-medium text-xs md:text-sm truncate">{selectedProblem.title}</p>
+                  <p className="geist-text-small text-[var(--ds-gray-600)] text-xs">
                     {selectedProblem.upvoteCount} votes
                   </p>
                 </div>
               )}
               <button
                 onClick={() => setIsMapFullscreen(false)}
-                className="geist-button geist-button-primary"
+                className="geist-button geist-button-primary text-sm md:text-base h-8 md:h-9 px-3 md:px-4"
               >
                 Close
               </button>
@@ -436,28 +437,28 @@ export default function HomePage() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-4xl max-h-full"
+              className="relative max-w-4xl max-h-full w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <img
                 src={selectedImage.url}
                 alt="Problem image"
-                className="max-w-full max-h-full object-contain rounded-lg"
+                className="max-w-full max-h-[90vh] object-contain rounded-lg w-full"
               />
               <button
                 onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                className="absolute top-2 md:top-4 right-2 md:right-4 bg-white rounded-full p-1.5 md:p-2 shadow-lg hover:bg-gray-100 transition-colors"
               >
-                <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
               <a
                 href={selectedImage.url}
                 download="problem-image"
-                className="absolute bottom-4 right-4 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-white rounded-full p-1.5 md:p-2 shadow-lg hover:bg-gray-100 transition-colors"
               >
-                <svg className="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
               </a>
