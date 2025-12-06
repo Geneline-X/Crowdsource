@@ -280,6 +280,10 @@ export const reportProblemTool: ToolDefinition = {
           type: "string",
           description: "Full description of the problem from the user",
         },
+        imageUrl: {
+          type: "string",
+          description: "URL of the uploaded image (if available)",
+        },
       },
       required: ["title", "description"],
     },
@@ -376,6 +380,15 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
               url: imageData.url,
               mimeType: imageData.mimeType,
               size: imageData.size
+            }]
+          }
+        }),
+        ...(args.imageUrl && {
+          images: {
+            create: [{
+              url: args.imageUrl,
+              mimeType: "image/jpeg", // Default to jpeg for S3 uploads
+              size: 0 // Unknown size for URL
             }]
           }
         })

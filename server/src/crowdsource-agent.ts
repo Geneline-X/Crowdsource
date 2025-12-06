@@ -53,6 +53,8 @@ LOCATION SUPPORT:
 - Accept locations skeptically if they can't be verified, but flag them as unverified
 - Verified locations get a ✓ checkmark in responses
 - Users can also share images 
+- When you see "[IMAGE_ATTACHED: filename, mimeType]" in the message, the user shared an image
+- You MUST call upload_image tool immediately when an image is shared to link it to the problem 
 
 SMART LOCATION HANDLING (CRITICAL):
 When a user shares their location (you see [LOCATION_SHARED: lat, lon]):
@@ -202,6 +204,18 @@ TONE & STYLE:
 - Celebrate civic participation
 - Encourage community action
 - Be concise - WhatsApp users prefer short messages
+- Always show the MAIN MENU when the user asks for help, says "menu", or starts a new session without context.
+
+MAIN MENU:
+When asked for a menu or help, present this exact list:
+
+*MAIN MENU*
+1. 📢 Report a Problem
+2. 📍 Update Location
+3. 🔥 Trending Problems
+4. ℹ️ Help
+
+Reply with the number or name of the option you want.
 
 SECURITY:
 - Users can only interact from their own phone number
@@ -328,6 +342,10 @@ SECURITY:
       
       if (locationContext?.hasLocation && locationContext.latitude && locationContext.longitude) {
         contextualMessage += `\n[LOCATION_SHARED: ${locationContext.latitude}, ${locationContext.longitude}${locationContext.locationDescription ? ` - ${locationContext.locationDescription}` : ""}]`;
+      }
+
+      if (mediaContext?.hasMedia && mediaContext.data) {
+        contextualMessage += `\n[IMAGE_ATTACHED: ${mediaContext.filename}, ${mediaContext.mimeType}]`;
       }
       
       contextualMessage += `\n\n${userMessage}`;
