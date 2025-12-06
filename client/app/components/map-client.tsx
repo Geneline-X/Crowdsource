@@ -149,6 +149,15 @@ export default function MapClient({
                     {problem.upvoteCount} votes
                   </p>
                   
+                  {problem.images && problem.images.length > 0 && (
+                    <div className="mt-2">
+                      <img
+                        src={problem.images[0].url}
+                        alt="Problem"
+                        className="w-full h-24 object-cover rounded-md"
+                      />
+                    </div>
+                  )}
                 </div>
               </Popup>
             </Marker>

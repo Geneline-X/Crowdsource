@@ -248,10 +248,16 @@ export default function HomePage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2, delay: index * 0.03 }}
-                        onClick={() => hasLocation && handleSelectProblem(problem.id)}
+                        onClick={() => {
+                          if (hasLocation) {
+                            handleSelectProblem(problem.id);
+                          } else if (problem.images && problem.images.length > 0) {
+                            setSelectedImage({ url: problem.images[0].url, mimeType: problem.images[0].mimeType });
+                          }
+                        }}
                         className={cn(
                           "geist-entity",
-                          hasLocation && "cursor-pointer",
+                          (hasLocation || (problem.images && problem.images.length > 0)) && "cursor-pointer",
                           isSelected && "bg-[var(--ds-blue-100)] border-l-2 border-l-[var(--ds-blue-500)]"
                         )}
                       >
