@@ -178,9 +178,12 @@ app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response)
         };
 
         // Auto-trigger problem report flow with location
+        // We append the coordinates to the message so they are preserved in the conversation history
+        // This allows the LLM to extract them if the user describes the problem in a subsequent message
         const locationMessage =
-          message ||
-          `I'm sharing my location to report a problem.`;
+          message 
+            ? `${message} \n[System: Location shared: ${location.latitude}, ${location.longitude}]`
+            : `I'm sharing my location to report a problem. \n[System: Location shared: ${location.latitude}, ${location.longitude}]`;
         const response = await agent.processMessage(locationMessage, phone, locationContext);
 
         return res.json({

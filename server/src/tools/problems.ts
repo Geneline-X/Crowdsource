@@ -269,7 +269,15 @@ export const reportProblemTool: ToolDefinition = {
         },
         location: {
           type: "string",
-          description: "Location where the problem exists (neighborhood, street, landmark). Optional if not mentioned.",
+          description: "Text description of the location (neighborhood, street, landmark). Use this if exact coordinates are not provided.",
+        },
+        latitude: {
+          type: "number",
+          description: "Latitude of the problem location, if explicitly provided in the message.",
+        },
+        longitude: {
+          type: "number",
+          description: "Longitude of the problem location, if explicitly provided in the message.",
         },
         category: {
           type: "string",
@@ -291,7 +299,7 @@ export const reportProblemTool: ToolDefinition = {
 };
 
 export const reportProblemHandler: ToolHandler = async (args, context) => {
-  const { title, location, category, description } = args;
+  const { title, location, category, description, latitude: argLat, longitude: argLong } = args;
   const { prisma, currentUserPhone, currentLocationContext, currentMediaContext } = context;
 
   try {
@@ -331,7 +339,21 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
         "Location from WhatsApp share validated"
       );
     }
-    // Priority 2: Text-based location (validate if real place)
+    // Priority 2: Explicit coordinates from arguments
+    else if (typeof argLat === 'number' && typeof argLong === 'number') {
+      latitude = argLat;
+      longitude = argLong;
+      locationSource = "manual_coordinates";
+      // We treat explicit coordinates as verified since the user provided them specifically
+      locationVerified = true; 
+      locationText = locationText || `${latitude}, ${longitude}`;
+      
+      logger.info(
+        { latitude, longitude, locationText },
+        "Using explicit coordinates from arguments"
+      );
+    }
+    // Priority 3: Text-based location (validate if real place)
     else if (location) {
       locationSource = "text_extracted";
       const validation = await locationValidator.validateTextLocation(location);
