@@ -38,7 +38,30 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [newProblemDetected, setNewProblemDetected] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; mimeType: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [votedProblems, setVotedProblems] = useState<Set<number>>(new Set());
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const voterIdRef = useRef<string>("");
+
+  // Generate a hashed voter ID for this session
+  useEffect(() => {
+    const initVoterId = async () => {
+      const storedVoterId = localStorage.getItem("crowdsource_vid");
+      if (storedVoterId) {
+        voterIdRef.current = storedVoterId;
+      } else {
+        // Generate unique fingerprint and hash it
+        const fingerprint = `${navigator.userAgent}_${screen.width}x${screen.height}_${new Date().getTimezoneOffset()}_${Date.now()}`;
+        const encoder = new TextEncoder();
+        const data = encoder.encode(fingerprint);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashedId = hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
+        localStorage.setItem("crowdsource_vid", hashedId);
+        voterIdRef.current = hashedId;
+      }
+    };
+    initVoterId();
+  }, []);
 
   const fetchProblems = useCallback(async () => {
     try {
@@ -77,20 +100,29 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   }, [fetchProblems]);
 
   const handleVote = useCallback(async (id: number) => {
+    // Prevent double voting on same problem
+    if (votedProblems.has(id)) {
+      return;
+    }
+    
     try {
       const response = await fetch(`/api/problems/${id}/upvote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voterPhone: "anonymous" }),
+        body: JSON.stringify({ voterPhone: voterIdRef.current || "anonymous" }),
       });
 
       if (response.ok) {
+        setVotedProblems(prev => new Set(prev).add(id));
         fetchProblems();
+      } else if (response.status === 409) {
+        // Already voted - track it locally
+        setVotedProblems(prev => new Set(prev).add(id));
       }
     } catch (err) {
       console.error("Failed to upvote problem:", err);
     }
-  }, [fetchProblems]);
+  }, [fetchProblems, votedProblems]);
 
   const handleSelectProblem = useCallback((id: number) => {
     const problem = problems.find((p) => p.id === id);
@@ -250,9 +282,16 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                             e.stopPropagation();
                             handleVote(problem.id);
                           }}
-                          className="geist-vote shrink-0 px-2 md:px-3 py-1 md:py-2"
+                          disabled={votedProblems.has(problem.id)}
+                          className={cn(
+                            "geist-vote shrink-0 px-2 md:px-3 py-1 md:py-2",
+                            votedProblems.has(problem.id) && "opacity-60 cursor-not-allowed"
+                          )}
                         >
-                          <div className="geist-vote-arrow" />
+                          <div className={cn(
+                            "geist-vote-arrow",
+                            votedProblems.has(problem.id) && "text-green-500"
+                          )} />
                           <span className="geist-vote-count text-sm md:text-base">{problem.upvoteCount}</span>
                         </button>
 
