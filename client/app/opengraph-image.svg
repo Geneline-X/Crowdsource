@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="grad-og" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f172a;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#grad-og)"/>
+  
+  <!-- Decorative grid -->
+  <g opacity="0.1" stroke="#ffffff" stroke-width="1" fill="none">
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+  </g>
+  
+  <!-- Icon -->
+  <g transform="translate(200, 165)">
+    <defs>
+      <linearGradient id="grad-icon" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+    
+    <circle cx="150" cy="150" r="145" fill="url(#grad-icon)"/>
+    
+    <path d="M150 80c-37 0-67 30-67 67 0 50 67 112 67 112s67-62 67-112c0-37-30-67-67-67z" 
+          fill="#ffffff" opacity="0.95"/>
+    
+    <circle cx="150" cy="147" r="28" fill="#3b82f6"/>
+    
+    <g opacity="0.9">
+      <circle cx="100" cy="250" r="16" fill="#ffffff"/>
+      <path d="M100 270c-12 0-22 4-22 10h44c0-6-10-10-22-10z" fill="#ffffff"/>
+      
+      <circle cx="200" cy="250" r="16" fill="#ffffff"/>
+      <path d="M200 270c-12 0-22 4-22 10h44c0-6-10-10-22-10z" fill="#ffffff"/>
+    </g>
+  </g>
+  
+  <!-- Text -->
+  <text x="550" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="96" font-weight="bold" fill="#ffffff">
+    Crowdsource
+  </text>
+  <text x="550" y="360" font-family="system-ui, -apple-system, sans-serif" font-size="36" fill="#94a3b8">
+    Report and prioritize community issues
+  </text>
+</svg>

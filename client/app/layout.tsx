@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   title: "Crowdsource",
   description: "Report and prioritize community issues. Make your voice heard.",
   keywords: ["civic tech", "community", "government", "local issues"],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({

@@ -39,3 +39,43 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { title, description, locationText, category, reporterPhone, latitude, longitude } = body;
+
+    if (!title || !description) {
+      return NextResponse.json(
+        { error: "Title and description are required" },
+        { status: 400 }
+      );
+    }
+
+    const problem = await prisma.problem.create({
+      data: {
+        title,
+        rawMessage: description,
+        locationText: locationText || null,
+        reporterPhone: reporterPhone || "anonymous",
+        locationSource: category || null,
+        upvoteCount: 0,
+        locationVerified: !!(latitude && longitude),
+        latitude: latitude || null,
+        longitude: longitude || null,
+      },
+      include: {
+        images: true,
+        media: true,
+      },
+    });
+
+    return NextResponse.json(problem, { status: 201 });
+  } catch (error) {
+    console.error("Failed to create problem:", error);
+    return NextResponse.json(
+      { error: "Failed to create problem" },
+      { status: 500 }
+    );
+  }
+}
