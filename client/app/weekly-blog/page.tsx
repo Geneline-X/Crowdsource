@@ -156,7 +156,7 @@ export default function WeeklyBlogPage() {
 
           <section className="geist-card p-3 md:p-4">
             <div className="mb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <h2 className="text-base md:text-lg font-medium">Global Ranking</h2>
+              <h2 className="text-base md:text-lg font-medium">Ranking</h2>
               <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)]">
                 All problems reported this week, ordered by upvotes.
               </p>
