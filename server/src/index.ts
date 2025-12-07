@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import path from "path";
 import ministryRoutes from "./routes/ministry";
+import { transcribeAudio, isAudioMimeType } from "./services/audio-transcription";
 
 const app = express();
 app.use(express.json());
@@ -192,17 +193,10 @@ app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response)
         }) as any;
       }
 
-      // Handle text-only messages
-      if (!message || !message.trim()) {
-        return res.json({
-          answer:
-            "Welcome! You can report community problems or upvote existing ones by sending the problem number.\n\nYou can also share your WhatsApp location when reporting a problem.",
-          status: "success",
-        }) as any;
-      }
-
-      // Handle media attachments
+      // Handle media attachments (BEFORE empty message check - audio messages have empty body)
       let mediaContext;
+      let processedMessage = message || "";
+      
       if (media && media.data) {
         logger.info(
           {
@@ -213,17 +207,68 @@ app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response)
           },
           "Media attachment received"
         );
-        mediaContext = {
-          hasMedia: true,
-          mimeType: media.mimetype,
-          data: media.data,
-          filename: media.filename,
-          size: media.size
-        };
+        
+        // Check if this is an audio message and transcribe it
+        if (isAudioMimeType(media.mimetype) || messageType === "ptt" || messageType === "audio") {
+          logger.info(
+            { phone, mimeType: media.mimetype, messageType },
+            "Audio message received, transcribing..."
+          );
+          
+          try {
+            const transcribedText = await transcribeAudio(
+              media.data,
+              media.mimetype,
+              media.filename
+            );
+            
+            if (transcribedText && transcribedText.trim()) {
+              // Use transcribed text as the message
+              processedMessage = transcribedText;
+              logger.info(
+                { phone, transcribedLength: transcribedText.length },
+                "Audio transcribed successfully"
+              );
+            } else {
+              logger.warn({ phone }, "Empty transcription result");
+              return res.json({
+                answer: "I received your voice message but couldn't understand it. Could you please try speaking more clearly, or send a text message instead?",
+                status: "success",
+              }) as any;
+            }
+          } catch (transcriptionError: any) {
+            logger.error(
+              { error: transcriptionError.message, phone },
+              "Failed to transcribe audio"
+            );
+            return res.json({
+              answer: "I received your voice message but couldn't transcribe it. Please try sending a text message instead, or try again.",
+              status: "success",
+            }) as any;
+          }
+        } else {
+          // Non-audio media (images, etc.)
+          mediaContext = {
+            hasMedia: true,
+            mimeType: media.mimetype,
+            data: media.data,
+            filename: media.filename,
+            size: media.size
+          };
+        }
+      }
+
+      // Handle text-only messages (after audio processing, so we have transcribed text)
+      if (!processedMessage || !processedMessage.trim()) {
+        return res.json({
+          answer:
+            "Welcome! You can report community problems or upvote existing ones by sending the problem number.\n\nYou can also share your WhatsApp location when reporting a problem.",
+          status: "success",
+        }) as any;
       }
 
       // Process message with OpenAI Agent
-      const response = await agent.processMessage(message, phone, locationContext, mediaContext);
+      const response = await agent.processMessage(processedMessage, phone, locationContext, mediaContext);
 
       return res.json({
         answer: response,

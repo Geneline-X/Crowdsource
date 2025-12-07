@@ -25,6 +25,11 @@ export const config = {
   },
   
   brandName: process.env.BRAND_NAME || "Crowdsource Agent",
+  
+  asr: {
+    gatewayUrl: process.env.ASR_GATEWAY_URL || "",
+    apiKey: process.env.ASR_API_KEY || "",
+  },
 };
 
 // Validate required config
