@@ -64,7 +64,7 @@ interface TranslationResponse {
 interface TranslationRequest {
   text: string;
   source_lang: string;
-  target: string;
+  target_lang: string;
 }
 
 
