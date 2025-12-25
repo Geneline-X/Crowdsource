@@ -243,7 +243,7 @@ export async function transcribeAudio(
     const translationRequest: TranslationRequest = {
       text: krioText,
       source_lang: "kri",
-      target: "en",
+      target_lang: "en",
     };
 
     const trl_response = await axios.post<TranslationResponse>(
