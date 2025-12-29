@@ -100,9 +100,11 @@ function VerificationVisualizer({ problem }: { problem: Problem }) {
   }
 
   // Also verify against reported location if available
+  // Also verify against reported location if available
   if (problem.latitude && problem.longitude) {
     for (const pos of positions) {
       const dist = calculateDistance(problem.latitude, problem.longitude, pos[0], pos[1]);
+      if (dist > maxDistance) maxDistance = dist;
     }
   }
 
