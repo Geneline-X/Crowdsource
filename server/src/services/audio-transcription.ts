@@ -225,7 +225,9 @@ export async function transcribeAudio(
 
     const krioText = response.data.krio_text;
 
-    if (!krioText) {
+    const krioText = response.data.krio_text;
+
+    if (!krioText || !krioText.trim()) {
       logger.warn(
         { response: response.data },
         "Empty or invalid transcription response"
