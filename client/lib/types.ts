@@ -7,6 +7,15 @@ export interface ProblemImage {
   createdAt: string;
 }
 
+export interface ProblemVerification {
+  id: number;
+  latitude: number;
+  longitude: number;
+  imageUrls: string[];
+  createdAt: string;
+  fingerprint: string;
+}
+
 export interface Problem {
   id: number;
   reporterPhone: string;
@@ -22,7 +31,9 @@ export interface Problem {
   createdAt: string;
   updatedAt: string;
   upvoteCount: number;
+  verificationCount: number;
   images: ProblemImage[];
+  verifications?: ProblemVerification[];
 }
 
 export interface ProblemUpvote {

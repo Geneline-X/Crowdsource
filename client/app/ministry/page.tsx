@@ -112,7 +112,18 @@ export default function MinistryDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-8">Ministry Dashboard</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-8 gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Ministry Dashboard</h1>
+          <a
+            href="/ministry/analytics"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-indigo-700 transition-colors shadow-lg shadow-purple-500/25"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            View Analytics
+          </a>
+        </div>
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-3 md:p-4 mb-4 md:mb-6">

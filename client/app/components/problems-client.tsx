@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, ShieldCheck } from "lucide-react";
 
 import { Problem } from "@/lib/types";
 import { MapView } from "@/app/components/map-view";
 import { SubmitProblemForm } from "@/app/components/submit-problem-form";
+import { VerifyProblemModal } from "@/app/components/verify-problem-modal";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_MAP: Record<string, { label: string; badge: string; dot: string }> = {
@@ -39,6 +40,8 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [selectedImage, setSelectedImage] = useState<{ url: string; mimeType: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [votedProblems, setVotedProblems] = useState<Set<number>>(new Set());
+  const [verifyModalOpen, setVerifyModalOpen] = useState(false);
+  const [verifyProblemId, setVerifyProblemId] = useState<number | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const voterIdRef = useRef<string>("");
 
@@ -359,7 +362,54 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                             <span className={cn("geist-badge text-[10px] md:text-xs", category.badge)}>
                               {problem.locationVerified ? "Verified" : "Pending"}
                             </span>
+                            {/* Verify Button */}
+                            {!problem.locationVerified && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setVerifyProblemId(problem.id);
+                                  setVerifyModalOpen(true);
+                                }}
+                                className="geist-button geist-button-secondary h-6 px-2 text-[10px] md:text-xs flex items-center gap-1"
+                              >
+                                <ShieldCheck className="w-3 h-3" />
+                                Verify
+                              </button>
+                            )}
+                            {/* Verification count badge */}
+                            {problem.verificationCount > 0 && (
+                              <span className="text-[10px] text-[var(--ds-green-600)] flex items-center gap-0.5">
+                                <ShieldCheck className="w-3 h-3" />
+                                {problem.verificationCount}/3
+                              </span>
+                            )}
                           </div>
+
+                          {/* Verification Images */}
+                          {problem.verifications && problem.verifications.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-[var(--ds-gray-200)]">
+                              <p className="text-[10px] font-medium text-[var(--ds-gray-500)] mb-1.5 uppercase tracking-wider">
+                                Community Verifications
+                              </p>
+                              <div className="flex gap-1.5 md:gap-2 overflow-x-auto pb-1">
+                                {problem.verifications.flatMap(v => v.imageUrls).map((url, idx) => (
+                                  <div key={`ver-img-${idx}`} className="relative group shrink-0">
+                                    <Image
+                                      src={url}
+                                      alt="Verification evidence"
+                                      width={60}
+                                      height={60}
+                                      className="w-12 h-12 md:w-14 md:h-14 object-cover rounded-md border border-[var(--ds-gray-200)] cursor-pointer hover:border-[var(--ds-green-500)] transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedImage({ url, mimeType: 'image/jpeg' });
+                                      }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <div className="geist-progress mt-3">
                             <div
                               className="geist-progress-bar"
@@ -392,7 +442,10 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             </div>
             <div className="geist-card overflow-hidden h-64 md:h-96">
               <MapView
-                problems={problems.filter((p) => p.latitude !== null && p.longitude !== null)}
+                problems={problems.filter((p) => 
+                  (p.latitude !== null && p.longitude !== null) || 
+                  (p.verifications && p.verifications.length > 0)
+                )}
                 onSelectProblem={(id) => setSelectedId(id)}
                 selectedProblemId={selectedId}
                 centerOnProblem={selectedProblem}
@@ -441,7 +494,10 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               </button>
             </div>
             <MapView
-              problems={problems.filter((p) => p.latitude !== null && p.longitude !== null)}
+              problems={problems.filter((p) => 
+                (p.latitude !== null && p.longitude !== null) || 
+                (p.verifications && p.verifications.length > 0)
+              )}
               onSelectProblem={(id) => setSelectedId(id)}
               selectedProblemId={selectedId}
               centerOnProblem={selectedProblem}
@@ -465,7 +521,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-4xl max-h-full w-full"
+              className="relative max-w-4xl max-h-[90vh] h-[90vh] w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <Image
@@ -497,6 +553,24 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Verify Problem Modal */}
+      {verifyProblemId && (
+        <VerifyProblemModal
+          problemId={verifyProblemId}
+          problemTitle={problems.find(p => p.id === verifyProblemId)?.title || ""}
+          isOpen={verifyModalOpen}
+          onClose={() => {
+            setVerifyModalOpen(false);
+            setVerifyProblemId(null);
+          }}
+          onSuccess={() => {
+            fetchProblems();
+          }}
+          fingerprint={voterIdRef.current}
+        />
+      )}
     </>
   );
 }
+

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ProblemsClient } from "@/app/components/problems-client";
+import { ImpactBanner } from "@/app/components/impact-banner";
 
 export const dynamic = "force-dynamic";
 async function getProblems() {
@@ -54,6 +55,13 @@ export default async function HomePage() {
           <div className="flex items-center gap-2 md:gap-3">
             <span className="geist-text-small hidden md:inline">{problems.length} issues reported</span>
             <Link
+              href="/analytics"
+              className="geist-button geist-button-secondary geist-text-small h-7 px-2 md:px-3"
+            >
+              <span className="hidden sm:inline">Analytics</span>
+              <span className="sm:hidden">Stats</span>
+            </Link>
+            <Link
               href="/weekly-blog"
               className="geist-button geist-button-secondary geist-text-small h-7 px-2 md:px-3"
             >
@@ -65,15 +73,19 @@ export default async function HomePage() {
       </header>
 
       <main className="max-w-screen-xl mx-auto px-3 md:px-4 py-4 md:py-8">
-        <div className="mb-4 md:mb-8">
+        <div className="mb-4 md:mb-6">
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-2">Community Issues</h1>
           <p className="geist-text-body text-sm md:text-base">
             Problems reported by community members. Vote on issues that matter to you.
           </p>
         </div>
 
+        {/* Impact Metrics Banner */}
+        <ImpactBanner />
+
         <ProblemsClient initialProblems={problems} />
       </main>
     </>
   );
 }
+

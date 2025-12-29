@@ -1,11 +1,9 @@
-"use client";
-
-import { useEffect } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import { Icon, LatLngExpression, divIcon, point } from "leaflet";
+import { Icon, LatLngExpression, divIcon, point, LatLng } from "leaflet";
 import { Problem } from "@/lib/types";
 import "leaflet/dist/leaflet.css";
+import { useEffect } from "react";
 
 const SOURCE_COLORS: Record<string, string> = {
   whatsapp_share: "#25D366",
@@ -62,18 +60,156 @@ function createClusterIcon(cluster: { getChildCount: () => number }) {
   });
 }
 
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // metres
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c;
+}
+
+function createVerificationIcon(index: number) {
+  return divIcon({
+    html: `<div style="background-color: #10b981; border: 2px solid white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+      ${index + 1}
+    </div>`,
+    className: "verification-icon",
+    iconSize: point(24, 24),
+  });
+}
+
+function VerificationVisualizer({ problem }: { problem: Problem }) {
+  if (!problem.verifications || problem.verifications.length === 0) return null;
+
+  const positions: [number, number][] = problem.verifications.map(v => [v.latitude, v.longitude]);
+  
+  // Calculate max distance to determine accuracy
+  let maxDistance = 0;
+  for (let i = 0; i < positions.length; i++) {
+    for (let j = i + 1; j < positions.length; j++) {
+      const dist = calculateDistance(positions[i][0], positions[i][1], positions[j][0], positions[j][1]);
+      if (dist > maxDistance) maxDistance = dist;
+    }
+  }
+
+  // Also verify against reported location if available
+  // Also verify against reported location if available
+  if (problem.latitude && problem.longitude) {
+    for (const pos of positions) {
+      const dist = calculateDistance(problem.latitude, problem.longitude, pos[0], pos[1]);
+      if (dist > maxDistance) maxDistance = dist;
+    }
+  }
+
+  const isAccurate = maxDistance < 50; // 50 meters threshold
+  const accuracyColor = isAccurate ? "#10b981" : "#f59e0b"; // Green if accurate, amber if spread out
+
+  return (
+    <>
+      {problem.verifications.map((v, i) => (
+        <Marker
+          key={`ver-${v.id}`}
+          position={[v.latitude, v.longitude]}
+          icon={createVerificationIcon(i)}
+          zIndexOffset={2000}
+        >
+          <Popup>
+            <div className="p-1">
+              <p className="font-medium text-xs text-gray-900 mb-1">
+                Verification #{i + 1}
+              </p>
+              <p className="text-[10px] text-gray-500">
+                {new Date(v.createdAt).toLocaleDateString()}
+              </p>
+              <div className="mt-1">
+                 {v.imageUrls.length > 0 && (
+                    <img 
+                      src={v.imageUrls[0]} 
+                      className="w-full h-16 object-cover rounded border border-gray-200" 
+                      alt="Verification" 
+                    />
+                 )}
+              </div>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+
+      {/* Lines connecting verifications */}
+      <Polyline
+        positions={[...positions, positions[0]]} // Close the loop if > 2 points, otherwise just a line
+        pathOptions={{ color: accuracyColor, weight: 2, dashArray: '5, 5' }}
+      />
+      
+      {/* Line to original reported location if available */}
+      {problem.latitude && problem.longitude && (
+        positions.map((pos, i) => (
+          <Polyline
+            key={`line-to-origin-${i}`}
+            positions={[[problem.latitude!, problem.longitude!], pos]}
+            pathOptions={{ color: '#6b7280', weight: 1, opacity: 0.5 }}
+          />
+        ))
+      )}
+      
+      {/* Accuracy Label - positioned at centroid */}
+      {positions.length > 1 && (
+        <Popup position={[
+          positions.reduce((sum, p) => sum + p[0], 0) / positions.length,
+          positions.reduce((sum, p) => sum + p[1], 0) / positions.length
+        ]} closeButton={false} autoClose={false} closeOnClick={false}>
+           <div className="text-center">
+             <span className={`text-xs font-bold ${isAccurate ? 'text-green-600' : 'text-amber-600'}`}>
+               {isAccurate ? 'Accurate' : 'Spread out'}
+             </span>
+             <br/>
+             <span className="text-[9px] text-gray-500">
+               Max spread: {Math.round(maxDistance)}m
+             </span>
+           </div>
+        </Popup>
+      )}
+    </>
+  );
+}
+
 interface MapCenterControllerProps {
   centerOnProblem?: Problem | null;
+}
+
+// Helper function to get position for a problem (either primary or verification centroid)
+function getProblemPosition(problem: Problem): [number, number] | null {
+  if (problem.latitude !== null && problem.longitude !== null) {
+    return [problem.latitude, problem.longitude];
+  }
+  
+  if (problem.verifications && problem.verifications.length > 0) {
+    const avgLat = problem.verifications.reduce((sum, v) => sum + v.latitude, 0) / problem.verifications.length;
+    const avgLon = problem.verifications.reduce((sum, v) => sum + v.longitude, 0) / problem.verifications.length;
+    return [avgLat, avgLon];
+  }
+  
+  return null;
 }
 
 function MapCenterController({ centerOnProblem }: MapCenterControllerProps) {
   const map = useMap();
 
   useEffect(() => {
-    if (centerOnProblem && centerOnProblem.latitude && centerOnProblem.longitude) {
-      map.flyTo([centerOnProblem.latitude, centerOnProblem.longitude], 16, {
-        duration: 0.8,
-      });
+    if (centerOnProblem) {
+      const position = getProblemPosition(centerOnProblem);
+      if (position) {
+        map.flyTo(position, 16, {
+          duration: 0.8,
+        });
+      }
     }
   }, [centerOnProblem, map]);
 
@@ -93,14 +229,19 @@ export default function MapClient({
   selectedProblemId,
   centerOnProblem,
 }: MapClientProps) {
-  const validProblems = problems.filter(
-    (p) => p.latitude !== null && p.longitude !== null
-  );
+  // Get all problems that have coordinates (either primary or from verifications)
+  const problemsWithPositions = problems
+    .map(p => ({ problem: p, position: getProblemPosition(p) }))
+    .filter(({ position }) => position !== null) as Array<{ problem: Problem; position: [number, number] }>;
 
   const defaultCenter: LatLngExpression =
-    validProblems.length > 0
-      ? [validProblems[0].latitude!, validProblems[0].longitude!]
+    problemsWithPositions.length > 0
+      ? problemsWithPositions[0].position
       : [8.7128, -11.006];
+
+  const selectedProblemWithVerifications = problems.find(
+    p => p.id === selectedProblemId && p.verifications && p.verifications.length > 0
+  );
 
   return (
     <MapContainer
@@ -123,12 +264,12 @@ export default function MapClient({
         showCoverageOnHover={false}
         zoomToBoundsOnClick
       >
-        {validProblems.map((problem) => {
+        {problemsWithPositions.map(({ problem, position }) => {
           const isSelected = selectedProblemId === problem.id;
           return (
             <Marker
               key={problem.id}
-              position={[problem.latitude!, problem.longitude!]}
+              position={position}
               icon={createMarkerIcon(
                 problem.locationSource,
                 problem.locationVerified,
@@ -158,12 +299,24 @@ export default function MapClient({
                       />
                     </div>
                   )}
+                  {problem.verificationCount > 0 && (
+                     <div className="mt-2 pt-2 border-t border-gray-100">
+                       <p className="text-xs text-green-600 font-medium flex items-center gap-1">
+                         <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                         {problem.verificationCount} verifications
+                       </p>
+                     </div>
+                  )}
                 </div>
               </Popup>
             </Marker>
           );
         })}
       </MarkerClusterGroup>
+      
+      {selectedProblemWithVerifications && (
+        <VerificationVisualizer problem={selectedProblemWithVerifications} />
+      )}
     </MapContainer>
   );
 }

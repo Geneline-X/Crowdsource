@@ -4,6 +4,7 @@ import type { ToolDefinition, ToolHandler } from "./types";
 import fs from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
+import { uploadToUploadThing } from "../services/uploadthing-service";
 
 type NationalCategory =
   | "Water & Sanitation"
@@ -196,28 +197,25 @@ const NATIONAL_TAXONOMY: CategoryDefinition[] = [
 
 async function saveImageFromBase64(base64Data: string, mimeType: string): Promise<{ url: string; mimeType: string; size: number }> {
   try {
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    await fs.mkdir(uploadsDir, { recursive: true });
-    
     // Generate unique filename
     const extension = mimeType.split('/')[1] || 'bin';
-    const filename = `${uuidv4()}.${extension}`;
-    const filePath = path.join(uploadsDir, filename);
+    const filename = `problem_${uuidv4()}.${extension}`;
     
-    // Convert base64 to buffer and save
+    // Upload to UploadThing
+    const result = await uploadToUploadThing(base64Data, filename, mimeType);
+    
+    if (!result.success || !result.url) {
+      throw new Error(result.error || 'Upload failed');
+    }
+    
     const buffer = Buffer.from(base64Data, 'base64');
-    await fs.writeFile(filePath, buffer);
-    
-    // Return the full URL pointing to the server
-    const serverUrl = process.env.SERVER_URL || 'http://localhost:3800';
     return {
-      url: `${serverUrl}/uploads/${filename}`,
+      url: result.url,
       mimeType,
       size: buffer.length
     };
   } catch (error) {
-    logger.error({ error }, "Error saving image from base64");
+    logger.error({ error }, "Error saving image via UploadThing");
     throw error;
   }
 }
