@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 
 import { Problem } from "@/lib/types";
 
@@ -15,21 +16,30 @@ function getStartOfCurrentWeek() {
   return start;
 }
 
-function getWeeklyProblems(problems: Problem[]) {
-  const startOfWeek = getStartOfCurrentWeek();
+function getWeekOptions(count = 12) {
+  const options = [];
+  const startOfCurrentWeek = getStartOfCurrentWeek();
+  
+  for (let i = 0; i < count; i++) {
+    const date = new Date(startOfCurrentWeek);
+    date.setDate(date.getDate() - (i * 7));
+    options.push(date);
+  }
+  return options;
+}
 
-  const weeklyProblems = problems.filter((p) => {
-    const createdAt = new Date((p as any).createdAt as any);
-    return createdAt >= startOfWeek;
-  });
-
-  return [...weeklyProblems].sort((a, b) => b.upvoteCount - a.upvoteCount);
+function formatWeekRange(startDate: Date) {
+  const end = new Date(startDate);
+  end.setDate(end.getDate() + 6);
+  return `${startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
 }
 
 export default function WeeklyBlogPage() {
   const [problems, setProblems] = useState<Problem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'weekly' | 'overall'>('weekly');
+  const [selectedDate, setSelectedDate] = useState<Date>(getStartOfCurrentWeek());
 
   useEffect(() => {
     async function fetchProblems() {
@@ -49,22 +59,111 @@ export default function WeeklyBlogPage() {
     fetchProblems();
   }, []);
 
-  const weeklyProblems = getWeeklyProblems(problems);
-  const weeklyTopThree = weeklyProblems.slice(0, 3);
-  const weeklyVotes = weeklyProblems.reduce((sum, p) => sum + p.upvoteCount, 0);
+  const weekOptions = getWeekOptions();
+
+  const filteredProblems = problems.filter((p) => {
+    if (viewMode === 'overall') return true;
+    
+    const createdAt = new Date((p as any).createdAt as any);
+    const endOfWeek = new Date(selectedDate);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
+    
+    return createdAt >= selectedDate && createdAt < endOfWeek;
+  });
+
+  const sortedProblems = [...filteredProblems].sort((a, b) => b.upvoteCount - a.upvoteCount);
+  
+  const topThree = sortedProblems.slice(0, 3);
+  const totalVotes = sortedProblems.reduce((sum, p) => sum + p.upvoteCount, 0);
+
+  const handlePrevWeek = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 7);
+    setSelectedDate(newDate);
+  };
+
+  const handleNextWeek = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 7);
+    if (newDate <= getStartOfCurrentWeek()) {
+      setSelectedDate(newDate);
+    }
+  };
+
+  const isCurrentWeek = selectedDate.getTime() === getStartOfCurrentWeek().getTime();
 
   return (
     <main className="max-w-screen-xl mx-auto px-3 md:px-4 py-4 md:py-8">
-      <header className="mb-4 md:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-1">Weekly Leaderboard</h1>
-          <p className="geist-text-body text-sm md:text-base text-[var(--ds-gray-800)]">
-            Ranking of this week's most upvoted community problems.
-          </p>
+      <header className="mb-4 md:mb-8 flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-1">
+              {viewMode === 'weekly' ? 'Weekly Leaderboard' : 'Overall Pressing Problems'}
+            </h1>
+            <p className="geist-text-body text-sm md:text-base text-[var(--ds-gray-800)]">
+              {viewMode === 'weekly' 
+                ? "Ranking of the most upvoted community problems for the selected week."
+                : "All-time ranking of the most pressing community problems."}
+            </p>
+          </div>
+          <Link href="/" className="geist-button geist-button-secondary text-sm w-full sm:w-auto text-center">
+            Back to main view
+          </Link>
         </div>
-        <Link href="/" className="geist-button geist-button-secondary text-sm w-full sm:w-auto text-center">
-          Back to main view
-        </Link>
+
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-b border-[var(--ds-gray-200)] pb-4">
+            <div className="flex bg-[var(--ds-gray-100)] p-1 rounded-lg">
+                <button
+                    onClick={() => setViewMode('weekly')}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                        viewMode === 'weekly' 
+                        ? 'bg-white shadow-sm text-black' 
+                        : 'text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)]'
+                    }`}
+                >
+                    Weekly View
+                </button>
+                <button
+                    onClick={() => setViewMode('overall')}
+                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                        viewMode === 'overall' 
+                        ? 'bg-white shadow-sm text-black' 
+                        : 'text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)]'
+                    }`}
+                >
+                    Overall View
+                </button>
+            </div>
+
+            {viewMode === 'weekly' && (
+                <div className="flex items-center gap-2 bg-[var(--ds-gray-100)] p-1 rounded-lg">
+                    <button 
+                        onClick={handlePrevWeek}
+                        className="p-1.5 hover:bg-white rounded-md text-gray-600 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={selectedDate.getTime() <= weekOptions[weekOptions.length - 1].getTime()}
+                    >
+                        <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <div className="flex items-center gap-2 px-3 py-1 min-w-[140px] justify-center bg-gray-900 rounded-md mx-1">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm font-medium tabular-nums text-white">
+                            {formatWeekRange(selectedDate)}
+                        </span>
+                    </div>
+                    <button 
+                        onClick={handleNextWeek}
+                        className={`p-1.5 rounded-md transition-colors ${
+                            isCurrentWeek 
+                            ? 'text-gray-300 cursor-not-allowed' 
+                            : 'hover:bg-white text-gray-600 hover:text-black'
+                        }`}
+                        disabled={isCurrentWeek}
+                    >
+                        <ChevronRight className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+        </div>
       </header>
 
       {isLoading ? (
@@ -77,36 +176,42 @@ export default function WeeklyBlogPage() {
           <p className="geist-text-subtitle mb-1 text-base md:text-lg">Failed to load leaderboard</p>
           <p className="geist-text-small text-xs md:text-sm">{error}</p>
         </div>
-      ) : weeklyProblems.length === 0 ? (
+      ) : sortedProblems.length === 0 ? (
         <div className="geist-card p-3 md:p-4">
           <p className="geist-text-small text-xs md:text-sm">
-            No problems have enough activity this week yet. Check back later for the weekly leaderboard.
+            {viewMode === 'weekly' 
+              ? "No problems have enough activity this week yet. Check back later for the weekly leaderboard."
+              : "No problems reported yet."}
           </p>
         </div>
       ) : (
         <>
           <section className="mb-4 md:mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
             <div className="geist-card p-3 md:p-4 flex flex-col justify-between bg-[var(--ds-gray-100)]">
-              <p className="geist-text-label mb-1 text-xs md:text-sm">Weekly Problems</p>
-              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{weeklyProblems.length}</p>
-              <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] mt-1">Reported this week</p>
+              <p className="geist-text-label mb-1 text-xs md:text-sm">{viewMode === 'weekly' ? 'Weekly Problems' : 'Total Problems'}</p>
+              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{sortedProblems.length}</p>
+              <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] mt-1">
+                {viewMode === 'weekly' ? 'Reported this week' : 'Reported all time'}
+              </p>
             </div>
             <div className="geist-card p-3 md:p-4 flex flex-col justify-between bg-[var(--ds-gray-100)]">
-              <p className="geist-text-label mb-1 text-xs md:text-sm">Weekly Votes</p>
-              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{weeklyVotes}</p>
-              <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] mt-1">Total upvotes on weekly problems</p>
+              <p className="geist-text-label mb-1 text-xs md:text-sm">{viewMode === 'weekly' ? 'Weekly Votes' : 'Total Votes'}</p>
+              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{totalVotes}</p>
+              <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] mt-1">
+                {viewMode === 'weekly' ? 'Total upvotes on weekly problems' : 'Total upvotes across all problems'}
+              </p>
             </div>
             <div className="geist-card p-3 md:p-4 flex flex-col justify-between bg-[var(--ds-gray-100)]">
               <p className="geist-text-label mb-1 text-xs md:text-sm">Top Positions</p>
               <p className="text-xl md:text-2xl lg:text-3xl font-semibold">3</p>
               <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] mt-1">
-                Only the top three problems are highlighted this week.
+                Only the top three problems are highlighted.
               </p>
             </div>
           </section>
 
           <section className="mb-6 md:mb-10 grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-3">
-            {weeklyTopThree.map((problem, index) => {
+            {topThree.map((problem, index) => {
               const rank = index + 1;
               const location = (problem as any).locationText || "Unspecified location";
               const rawMessage: string = (problem as any).rawMessage || "";
@@ -158,7 +263,9 @@ export default function WeeklyBlogPage() {
             <div className="mb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <h2 className="text-base md:text-lg font-medium">Ranking</h2>
               <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)]">
-                All problems reported this week, ordered by upvotes.
+                {viewMode === 'weekly' 
+                  ? "All problems reported this week, ordered by upvotes."
+                  : "All problems reported, ordered by upvotes."}
               </p>
             </div>
             <div className="overflow-x-auto -mx-3 md:mx-0">
@@ -173,7 +280,7 @@ export default function WeeklyBlogPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {weeklyProblems.map((problem, index) => {
+                  {sortedProblems.map((problem, index) => {
                     const rank = index + 1;
                     const location = (problem as any).locationText || "Unspecified location";
                     return (

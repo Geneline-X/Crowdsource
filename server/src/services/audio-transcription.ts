@@ -223,7 +223,6 @@ export async function transcribeAudio(
       }
     );
 
-    const krioText = response.data.krio_text;
 
     const krioText = response.data.krio_text;
 
