@@ -26,6 +26,16 @@ export async function GET() {
             size: true,
             createdAt: true
           }
+        },
+        verifications: {
+          select: {
+            id: true,
+            latitude: true,
+            longitude: true,
+            imageUrls: true,
+            createdAt: true,
+            fingerprint: true
+          }
         }
       },
     });

@@ -384,6 +384,32 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                               </span>
                             )}
                           </div>
+
+                          {/* Verification Images */}
+                          {problem.verifications && problem.verifications.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-[var(--ds-gray-200)]">
+                              <p className="text-[10px] font-medium text-[var(--ds-gray-500)] mb-1.5 uppercase tracking-wider">
+                                Community Verifications
+                              </p>
+                              <div className="flex gap-1.5 md:gap-2 overflow-x-auto pb-1">
+                                {problem.verifications.flatMap(v => v.imageUrls).map((url, idx) => (
+                                  <div key={`ver-img-${idx}`} className="relative group shrink-0">
+                                    <Image
+                                      src={url}
+                                      alt="Verification evidence"
+                                      width={60}
+                                      height={60}
+                                      className="w-12 h-12 md:w-14 md:h-14 object-cover rounded-md border border-[var(--ds-gray-200)] cursor-pointer hover:border-[var(--ds-green-500)] transition-colors"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedImage({ url, mimeType: 'image/jpeg' });
+                                      }}
+                                    />
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <div className="geist-progress mt-3">
                             <div
                               className="geist-progress-bar"
@@ -416,7 +442,10 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             </div>
             <div className="geist-card overflow-hidden h-64 md:h-96">
               <MapView
-                problems={problems.filter((p) => p.latitude !== null && p.longitude !== null)}
+                problems={problems.filter((p) => 
+                  (p.latitude !== null && p.longitude !== null) || 
+                  (p.verifications && p.verifications.length > 0)
+                )}
                 onSelectProblem={(id) => setSelectedId(id)}
                 selectedProblemId={selectedId}
                 centerOnProblem={selectedProblem}
@@ -465,7 +494,10 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               </button>
             </div>
             <MapView
-              problems={problems.filter((p) => p.latitude !== null && p.longitude !== null)}
+              problems={problems.filter((p) => 
+                (p.latitude !== null && p.longitude !== null) || 
+                (p.verifications && p.verifications.length > 0)
+              )}
               onSelectProblem={(id) => setSelectedId(id)}
               selectedProblemId={selectedId}
               centerOnProblem={selectedProblem}
@@ -489,7 +521,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-4xl max-h-full w-full"
+              className="relative max-w-4xl max-h-[90vh] h-[90vh] w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <Image
