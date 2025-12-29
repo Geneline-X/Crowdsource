@@ -36,6 +36,7 @@ model Problem {
   images          ProblemImage[]
   media           Media[]
   verifications   ProblemVerification[]
+  responses       ProblemResponse[]
 
   @@map("problems")
 }
@@ -90,3 +91,38 @@ model ProblemVerification {
   @@map("problem_verifications")
 }
 
+enum ResponseStatus {
+  OFFERED
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+model UserStats {
+  id                    Int      @id @default(autoincrement())
+  userPhone             String   @unique @map("user_phone")
+  problemsReported      Int      @default(0) @map("problems_reported")
+  upvotesGiven          Int      @default(0) @map("upvotes_given")
+  verificationsGiven    Int      @default(0) @map("verifications_given")
+  responsesOffered      Int      @default(0) @map("responses_offered")
+  displayInLeaderboard  Boolean  @default(true) @map("display_in_leaderboard")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("user_stats")
+}
+
+model ProblemResponse {
+  id          Int            @id @default(autoincrement())
+  problemId   Int            @map("problem_id")
+  userPhone   String         @map("user_phone")
+  fingerprint String         // Device fingerprint (hashed)
+  message     String?
+  status      ResponseStatus @default(OFFERED)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  
+  problem     Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  @@unique([problemId, fingerprint]) // One response per device per problem
+  @@map("problem_responses")
+}

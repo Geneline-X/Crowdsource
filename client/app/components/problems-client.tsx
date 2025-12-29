@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck, HandHelping } from "lucide-react";
 
 import { Problem } from "@/lib/types";
 import { MapView } from "@/app/components/map-view";
 import { SubmitProblemForm } from "@/app/components/submit-problem-form";
 import { VerifyProblemModal } from "@/app/components/verify-problem-modal";
+import { OfferHelpModal } from "@/app/components/offer-help-modal";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_MAP: Record<string, { label: string; badge: string; dot: string }> = {
@@ -42,6 +43,8 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [votedProblems, setVotedProblems] = useState<Set<number>>(new Set());
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [verifyProblemId, setVerifyProblemId] = useState<number | null>(null);
+  const [offerHelpModalOpen, setOfferHelpModalOpen] = useState(false);
+  const [offerHelpProblemId, setOfferHelpProblemId] = useState<number | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const voterIdRef = useRef<string>("");
 
@@ -376,6 +379,18 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                                 Verify
                               </button>
                             )}
+                            {/* I can fix this Button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOfferHelpProblemId(problem.id);
+                                setOfferHelpModalOpen(true);
+                              }}
+                              className="geist-button geist-button-secondary h-6 px-2 text-[10px] md:text-xs flex items-center gap-1"
+                            >
+                              <HandHelping className="w-3 h-3" />
+                              I can fix this
+                            </button>
                             {/* Verification count badge */}
                             {problem.verificationCount > 0 && (
                               <span className="text-[10px] text-[var(--ds-green-600)] flex items-center gap-0.5">
@@ -563,6 +578,23 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           onClose={() => {
             setVerifyModalOpen(false);
             setVerifyProblemId(null);
+          }}
+          onSuccess={() => {
+            fetchProblems();
+          }}
+          fingerprint={voterIdRef.current}
+        />
+      )}
+
+      {/* Offer Help Modal */}
+      {offerHelpProblemId && (
+        <OfferHelpModal
+          problemId={offerHelpProblemId}
+          problemTitle={problems.find(p => p.id === offerHelpProblemId)?.title || ""}
+          isOpen={offerHelpModalOpen}
+          onClose={() => {
+            setOfferHelpModalOpen(false);
+            setOfferHelpProblemId(null);
           }}
           onSuccess={() => {
             fetchProblems();
