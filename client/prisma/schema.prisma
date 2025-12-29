@@ -30,10 +30,12 @@ model Problem {
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at")
   upvoteCount     Int             @default(0) @map("upvote_count")
+  verificationCount Int           @default(0) @map("verification_count")
 
   upvotes         ProblemUpvote[]
   images          ProblemImage[]
   media           Media[]
+  verifications   ProblemVerification[]
 
   @@map("problems")
 }
@@ -72,3 +74,19 @@ model Media {
 
   @@map("media")
 }
+
+model ProblemVerification {
+  id          Int      @id @default(autoincrement())
+  problemId   Int      @map("problem_id")
+  fingerprint String   // Device fingerprint (hashed)
+  latitude    Float
+  longitude   Float
+  imageUrls   String[] @map("image_urls") // UploadThing URLs
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  
+  @@unique([problemId, fingerprint]) // One verification per device per problem
+  @@map("problem_verifications")
+}
+

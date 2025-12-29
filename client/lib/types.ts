@@ -22,6 +22,7 @@ export interface Problem {
   createdAt: string;
   updatedAt: string;
   upvoteCount: number;
+  verificationCount: number;
   images: ProblemImage[];
 }
 
