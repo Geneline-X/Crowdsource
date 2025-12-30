@@ -1,5 +1,7 @@
 import { UTApi } from "uploadthing/server";
 import { logger } from "../logger";
+// Import File polyfill for Node.js (File API is browser-only)
+import  File  from "undici";
 
 // Initialize UploadThing API
 const utapi = new UTApi({
@@ -25,11 +27,9 @@ export async function uploadToUploadThing(
     // Convert base64 to buffer
     const buffer = Buffer.from(base64Data, "base64");
     
-    // Create a Blob from the buffer
-    const blob = new Blob([buffer], { type: mimeType });
-    
-    // Create a File object
-    const file = new File([blob], filename, { type: mimeType });
+    // Create a File-like object compatible with Node.js
+    // UploadThing's Node.js SDK expects a File object, but we can pass a buffer with the right properties
+    const file = new File([buffer], filename, { type: mimeType });
 
     // Upload to UploadThing
     const response = await utapi.uploadFiles([file]);
@@ -51,11 +51,11 @@ export async function uploadToUploadThing(
       return { success: false, error: "Upload failed - no data returned" };
     }
 
-    logger.info({ url: result.data.ufsUrl, key: result.data.key }, "UploadThing upload successful");
+    logger.info({ url: result.data.url, key: result.data.key }, "UploadThing upload successful");
     
     return {
       success: true,
-      url: result.data.ufsUrl,
+      url: result.data.url,
       key: result.data.key,
     };
   } catch (error) {
