@@ -37,6 +37,8 @@ export interface Problem {
   resolvedAt?: string | null;
   resolutionProof?: string[];
   resolutionNotes?: string | null;
+  averageRating?: number | null;
+  ratingCount?: number;
   images: ProblemImage[];
   verifications?: ProblemVerification[];
 }

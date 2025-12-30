@@ -62,6 +62,13 @@ export default async function HomePage() {
               <span className="sm:hidden">Stats</span>
             </Link>
             <Link
+              href="/leaderboard"
+              className="geist-button geist-button-secondary geist-text-small h-7 px-2 md:px-3"
+            >
+              <span className="hidden sm:inline">Leaderboard</span>
+              <span className="sm:hidden">Board</span>
+            </Link>
+            <Link
               href="/weekly-blog"
               className="geist-button geist-button-secondary geist-text-small h-7 px-2 md:px-3"
             >

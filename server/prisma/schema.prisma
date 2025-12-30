@@ -36,12 +36,16 @@ model Problem {
   resolvedAt        DateTime?       @map("resolved_at")
   resolutionProof   String[]        @default([]) @map("resolution_proof") // Image URLs
   resolutionNotes   String?         @map("resolution_notes")
+  averageRating     Float?          @map("average_rating")
+  ratingCount       Int             @default(0) @map("rating_count")
 
   upvotes         ProblemUpvote[]
   images          ProblemImage[]
   media           Media[]
   verifications   ProblemVerification[]
   responses       ProblemResponse[]
+  ratings         ResolutionRating[]
+  timelineEvents  ProblemTimelineEvent[]
 
   @@map("problems")
 }
@@ -125,6 +129,7 @@ model ProblemResponse {
   message         String?
   status          ResponseStatus @default(OFFERED)
   resolvedProblem Boolean        @default(false) @map("resolved_problem")
+  beforeImages    String[]       @default([]) @map("before_images")
   proofImages     String[]       @default([]) @map("proof_images")
   createdAt       DateTime       @default(now()) @map("created_at")
   
@@ -132,4 +137,32 @@ model ProblemResponse {
 
   @@unique([problemId, fingerprint]) // One response per device per problem
   @@map("problem_responses")
+}
+
+model ResolutionRating {
+  id                Int      @id @default(autoincrement())
+  problemId         Int      @map("problem_id")
+  raterPhone        String   @map("rater_phone")
+  raterFingerprint  String   @map("rater_fingerprint")
+  rating            Int      // 1-5 stars
+  comment           String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  
+  problem           Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  
+  @@unique([problemId, raterFingerprint]) // One rating per device per problem
+  @@map("resolution_ratings")
+}
+
+model ProblemTimelineEvent {
+  id          Int      @id @default(autoincrement())
+  problemId   Int      @map("problem_id")
+  eventType   String   @map("event_type") // REPORTED, UPVOTED, VERIFIED, HELP_OFFERED, RESOLVED
+  actorPhone  String?  @map("actor_phone")
+  metadata    Json?    // Store additional context
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  
+  @@map("problem_timeline_events")
 }

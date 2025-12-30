@@ -631,11 +631,17 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
       {/* Resolution Proof Modal */}
       {selectedResolutionProblem && (
         <ResolutionProofModal
+          problemId={selectedResolutionProblem.id}
           problemTitle={selectedResolutionProblem.title}
           resolutionProof={selectedResolutionProblem.resolutionProof || []}
+          beforeImages={[]} // TODO: Get from problem responses
           resolvedAt={selectedResolutionProblem.resolvedAt || ""}
           resolvedBy={selectedResolutionProblem.resolvedBy || undefined}
           resolutionNotes={selectedResolutionProblem.resolutionNotes || undefined}
+          averageRating={selectedResolutionProblem.averageRating || undefined}
+          ratingCount={selectedResolutionProblem.ratingCount || 0}
+          canRate={votedProblems.has(selectedResolutionProblem.id)}
+          fingerprint={voterIdRef.current}
           isOpen={resolutionProofModalOpen}
           onClose={() => {
             setResolutionProofModalOpen(false);
