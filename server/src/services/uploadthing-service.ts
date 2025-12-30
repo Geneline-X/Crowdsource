@@ -1,5 +1,9 @@
 import { UTApi, UTFile } from "uploadthing/server";
 import { logger } from "../logger";
+import { webcrypto } from "node:crypto";
+
+// Cast to Crypto to avoid type mismatch between Node's implementation and the global Crypto type
+globalThis.crypto = webcrypto as unknown as Crypto;
 
 // Initialize UploadThing API
 const utapi = new UTApi({
