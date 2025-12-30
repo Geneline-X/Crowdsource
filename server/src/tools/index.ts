@@ -42,6 +42,11 @@ import {
   offerHelpHandler,
 } from "./offer-help";
 
+import {
+  getLeaderboardTool,
+  getLeaderboardHandler,
+} from "./get-leaderboard";
+
 export type { ToolContext, ToolDefinition, ToolHandler } from "./types";
 
 export const toolDefinitions: ToolDefinition[] = [
@@ -57,6 +62,7 @@ export const toolDefinitions: ToolDefinition[] = [
   submitResolutionProofTool,
   verifyProblemTool,
   offerHelpTool,
+  getLeaderboardTool,
 ];
 
 export const toolHandlers: Record<string, ToolHandler> = {
@@ -72,4 +78,5 @@ export const toolHandlers: Record<string, ToolHandler> = {
   submit_resolution_proof: submitResolutionProofHandler,
   verify_problem: verifyProblemHandler,
   offer_help: offerHelpHandler,
+  get_leaderboard: getLeaderboardHandler,
 };

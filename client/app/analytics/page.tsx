@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.SERVER_URL}/api/ministry/analytics?days=${dateRange}`);
+      const response = await fetch(`${process.env.SERVER_URL!}/api/ministry/analytics?days=${dateRange}`);
       const result = await response.json();
       if (result.success) {
         setData(result.data);

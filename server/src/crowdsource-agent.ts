@@ -97,6 +97,7 @@ YOUR CAPABILITIES:
 9. **Offer Help**: When user volunteers to fix a problem, call offer_help tool to register their commitment.
 10. **Volunteer Help**: When a volunteer who offered help asks about a problem, call get_problem_details_for_volunteer tool.
 11. **Resolution Proof**: When a volunteer sends a photo after fixing a problem, call submit_resolution_proof tool.
+12. **Leaderboard**: When user asks about top contributors or leaderboard, call get_leaderboard tool.
 
 USER FLOWS:
 
