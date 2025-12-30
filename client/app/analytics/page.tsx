@@ -71,12 +71,15 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const url = process.env.SERVER_URL
-
-      if(!url) {
-        throw new Error('SERVER_URL is not defined');
+      
+      const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || '';
+      
+      const response = await fetch(`${baseUrl}/api/ministry/analytics?days=${dateRange}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      const response = await fetch(`${url}/api/ministry/analytics?days=${dateRange}`);
+      
       const result = await response.json();
       if (result.success) {
         setData(result.data);
@@ -84,7 +87,8 @@ export default function AnalyticsPage() {
         setError('Failed to fetch analytics');
       }
     } catch (err) {
-      setError('Error connecting to server');
+      console.error('Analytics fetch error:', err);
+      setError(err instanceof Error ? err.message : 'Error connecting to server');
     } finally {
       setLoading(false);
     }

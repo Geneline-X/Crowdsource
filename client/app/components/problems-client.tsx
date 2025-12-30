@@ -317,6 +317,64 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           <p className="geist-text-small line-clamp-2 mb-2 text-xs md:text-sm">
                             {problem.rawMessage}
                           </p>
+                          
+                          {/* Timeline */}
+                          <div className="mb-3 p-2 bg-[var(--ds-gray-50)] rounded-md border border-[var(--ds-gray-200)]">
+                            <div className="flex items-start gap-2">
+                              <div className="flex flex-col items-center gap-1 pt-0.5">
+                                <div className="w-2 h-2 rounded-full bg-[var(--ds-blue-500)]" />
+                                {problem.verificationCount > 0 && (
+                                  <>
+                                    <div className="w-0.5 h-3 bg-[var(--ds-gray-300)]" />
+                                    <div className="w-2 h-2 rounded-full bg-[var(--ds-green-500)]" />
+                                  </>
+                                )}
+                                {problem.status === "RESOLVED" && problem.resolvedAt && (
+                                  <>
+                                    <div className="w-0.5 h-3 bg-[var(--ds-gray-300)]" />
+                                    <div className="w-2 h-2 rounded-full bg-[var(--ds-green-600)]" />
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex-1 space-y-2 text-xs">
+                                <div>
+                                  <p className="font-medium text-[var(--ds-gray-900)]">Reported</p>
+                                  <p className="text-[var(--ds-gray-600)]">
+                                    {new Date(problem.createdAt).toLocaleDateString('en-US', { 
+                                      month: 'short', 
+                                      day: 'numeric',
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </p>
+                                </div>
+                                {problem.verificationCount > 0 && (
+                                  <div>
+                                    <p className="font-medium text-[var(--ds-green-700)]">
+                                      {problem.verificationCount} {problem.verificationCount === 1 ? 'Verification' : 'Verifications'}
+                                    </p>
+                                    <p className="text-[var(--ds-gray-600)]">Community verified</p>
+                                  </div>
+                                )}
+                                {problem.status === "RESOLVED" && problem.resolvedAt && (
+                                  <div>
+                                    <p className="font-medium text-[var(--ds-green-700)]">Resolved</p>
+                                    <p className="text-[var(--ds-gray-600)]">
+                                      {new Date(problem.resolvedAt).toLocaleDateString('en-US', { 
+                                        month: 'short', 
+                                        day: 'numeric',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
                           {problem.images && problem.images.length > 0 && (
                             <div className="mb-2">
                               <div className="flex gap-1.5 md:gap-2 mb-1">
