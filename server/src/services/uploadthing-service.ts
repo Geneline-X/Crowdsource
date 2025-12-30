@@ -1,6 +1,5 @@
-import { UTApi } from "uploadthing/server";
-import { logger } from "./../logger";
-
+import { UTApi, UTFile } from "uploadthing/server";
+import { logger } from "../logger";
 
 // Initialize UploadThing API
 const utapi = new UTApi({
@@ -26,10 +25,9 @@ export async function uploadToUploadThing(
     // Convert base64 to buffer
     const buffer = Buffer.from(base64Data, "base64");
     
-    // Create a File-like object compatible with UploadThing
-    // In Node.js, we need to create a Blob-like structure
-    const file = new Blob([buffer], { type: mimeType }) as any;
-    file.name = filename;
+    // Create a UTFile object (UploadThing's server-side File implementation)
+    // This avoids issues with Node.js File/Blob compatibility
+    const file = new UTFile([buffer], filename, { type: mimeType });
     
     // Upload to UploadThing - must pass as array
     const response = await utapi.uploadFiles([file]);
