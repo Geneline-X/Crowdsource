@@ -30,8 +30,12 @@ model Problem {
   status          ProblemStatus   @default(REPORTED)
   createdAt       DateTime        @default(now()) @map("created_at")
   updatedAt       DateTime        @default(now()) @updatedAt @map("updated_at")
-  upvoteCount     Int             @default(0) @map("upvote_count")
-  verificationCount Int           @default(0) @map("verification_count")
+  upvoteCount       Int             @default(0) @map("upvote_count")
+  verificationCount Int             @default(0) @map("verification_count")
+  resolvedBy        String?         @map("resolved_by") // Phone of volunteer who fixed it
+  resolvedAt        DateTime?       @map("resolved_at")
+  resolutionProof   String[]        @default([]) @map("resolution_proof") // Image URLs
+  resolutionNotes   String?         @map("resolution_notes")
 
   upvotes         ProblemUpvote[]
   images          ProblemImage[]
@@ -114,15 +118,17 @@ model UserStats {
 }
 
 model ProblemResponse {
-  id          Int            @id @default(autoincrement())
-  problemId   Int            @map("problem_id")
-  userPhone   String         @map("user_phone")
-  fingerprint String         // Device fingerprint (hashed)
-  message     String?
-  status      ResponseStatus @default(OFFERED)
-  createdAt   DateTime       @default(now()) @map("created_at")
+  id              Int            @id @default(autoincrement())
+  problemId       Int            @map("problem_id")
+  userPhone       String         @map("user_phone")
+  fingerprint     String         // Device fingerprint (hashed)
+  message         String?
+  status          ResponseStatus @default(OFFERED)
+  resolvedProblem Boolean        @default(false) @map("resolved_problem")
+  proofImages     String[]       @default([]) @map("proof_images")
+  createdAt       DateTime       @default(now()) @map("created_at")
   
-  problem     Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problem         Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@unique([problemId, fingerprint]) // One response per device per problem
   @@map("problem_responses")

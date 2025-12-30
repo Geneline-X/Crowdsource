@@ -77,6 +77,32 @@ export async function POST(
       where: { problemId },
     });
 
+    // Send WhatsApp message to the volunteer
+    try {
+      const whatsappServerUrl = process.env.WHATSAPP_SERVER_URL!  
+      const whatsappApiKey = process.env.WHATSAPP_API_KEY!
+
+      const whatsappMessage = `🙏 *Thank you for offering to help!*\n\n*Problem:* ${problem.title}\n\n${problem.locationText ? `*Location:* ${problem.locationText}\n\n` : ""}You can now chat with our assistant to get more details about this problem and coordinate your help effort.\n\nJust reply to this message and I'll guide you through how you can assist! 💪`;
+
+      await fetch(`${whatsappServerUrl}/send-whatsapp`, {
+        method: "POST",
+        headers: {
+          "X-API-Key": whatsappApiKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phoneE164: userPhone,
+          message: whatsappMessage,
+        }),
+      });
+
+
+      console.log("WhatsApp notification sent to volunteer:", userPhone);
+    } catch (whatsappError) {
+      // Log but don't fail the request if WhatsApp fails
+      console.error("Failed to send WhatsApp notification:", whatsappError);
+    }
+
     return NextResponse.json({
       success: true,
       response: {
