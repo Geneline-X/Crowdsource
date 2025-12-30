@@ -251,9 +251,13 @@ When asked for a menu or help, present this exact list:
 
 *MAIN MENU*
 1. 📢 Report a Problem
-2. 📍 Update Location
+2. ⬆️ Upvote a Problem
 3. 🔥 Trending Problems
-4. ℹ️ Help
+4. ✅ Verify Location
+5. 🙋 Offer to Help
+6. 🏆 Leaderboard
+7. ℹ️ Problem Details
+8. 📍 Update Location
 
 Reply with the number or name of the option you want.
 
