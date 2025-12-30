@@ -32,6 +32,21 @@ import {
   submitResolutionProofHandler,
 } from "./submit-resolution-proof";
 
+import {
+  verifyProblemTool,
+  verifyProblemHandler,
+} from "./verify-problem";
+
+import {
+  offerHelpTool,
+  offerHelpHandler,
+} from "./offer-help";
+
+import {
+  getLeaderboardTool,
+  getLeaderboardHandler,
+} from "./get-leaderboard";
+
 export type { ToolContext, ToolDefinition, ToolHandler } from "./types";
 
 export const toolDefinitions: ToolDefinition[] = [
@@ -45,6 +60,9 @@ export const toolDefinitions: ToolDefinition[] = [
   uploadImageTool,
   getProblemDetailsForVolunteerTool,
   submitResolutionProofTool,
+  verifyProblemTool,
+  offerHelpTool,
+  getLeaderboardTool,
 ];
 
 export const toolHandlers: Record<string, ToolHandler> = {
@@ -58,4 +76,7 @@ export const toolHandlers: Record<string, ToolHandler> = {
   upload_image: uploadImageHandler,
   get_problem_details_for_volunteer: getProblemDetailsForVolunteerHandler,
   submit_resolution_proof: submitResolutionProofHandler,
+  verify_problem: verifyProblemHandler,
+  offer_help: offerHelpHandler,
+  get_leaderboard: getLeaderboardHandler,
 };

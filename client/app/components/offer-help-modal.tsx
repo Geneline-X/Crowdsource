@@ -1,8 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, HandHelping, Loader2, Check, AlertCircle } from "lucide-react";
+import { VolunteerList } from "./volunteer-list";
+
+interface Volunteer {
+  userPhone: string;
+  createdAt: string;
+}
 
 interface OfferHelpModalProps {
   problemId: number;
@@ -26,6 +32,30 @@ export function OfferHelpModal({
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [loadingVolunteers, setLoadingVolunteers] = useState(false);
+
+  // Fetch existing volunteers when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchVolunteers();
+    }
+  }, [isOpen, problemId]);
+
+  const fetchVolunteers = async () => {
+    setLoadingVolunteers(true);
+    try {
+      const response = await fetch(`/api/problems/${problemId}/responses`);
+      if (response.ok) {
+        const data = await response.json();
+        setVolunteers(data.volunteers || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch volunteers:", err);
+    } finally {
+      setLoadingVolunteers(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!phoneNumber.trim()) {
@@ -54,6 +84,9 @@ export function OfferHelpModal({
       }
 
       setSuccess(true);
+      // Refresh volunteers list to include this user
+      await fetchVolunteers();
+      
       setTimeout(() => {
         onSuccess();
         onClose();
@@ -175,6 +208,14 @@ export function OfferHelpModal({
                       </>
                     )}
                   </button>
+
+                  {/* Show existing volunteers */}
+                  {!loadingVolunteers && volunteers.length > 0 && (
+                    <VolunteerList 
+                      volunteers={volunteers} 
+                      currentUserPhone={phoneNumber.trim()}
+                    />
+                  )}
                 </div>
               </>
             )}
