@@ -132,30 +132,29 @@ export async function GET(
       return NextResponse.json({ error: "Invalid problem ID" }, { status: 400 });
     }
 
-    const responses = await prisma.problemResponse.findMany({
-      where: { problemId },
+    // Get all volunteers who offered help
+    const volunteers = await prisma.problemResponse.findMany({
+      where: { 
+        problemId,
+        status: "OFFERED"
+      },
       orderBy: { createdAt: "asc" },
       select: {
-        id: true,
         userPhone: true,
-        message: true,
-        status: true,
         createdAt: true,
+        message: true,
       },
     });
 
     return NextResponse.json({
       success: true,
-      responses: responses.map((r) => ({
-        ...r,
-        userPhone: r.userPhone.slice(-4).padStart(r.userPhone.length, "X"),
-      })),
-      count: responses.length,
+      volunteers,
+      count: volunteers.length,
     });
   } catch (error) {
-    console.error("Error fetching responses:", error);
+    console.error("Error fetching volunteers:", error);
     return NextResponse.json(
-      { error: "Failed to fetch responses" },
+      { error: "Failed to fetch volunteers" },
       { status: 500 }
     );
   }

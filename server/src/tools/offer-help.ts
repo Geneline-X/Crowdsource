@@ -93,12 +93,44 @@ export async function offerHelpHandler(args: any): Promise<string> {
 
     logger.info({ problemId, userPhone }, "Help offer registered");
 
+    // Get all volunteers who have offered help (including this user)
+    const allVolunteers = await prisma.problemResponse.findMany({
+      where: {
+        problemId,
+        status: "OFFERED",
+      },
+      select: {
+        userPhone: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    const volunteerCount = allVolunteers.length;
+    const otherVolunteers = allVolunteers.filter(v => v.userPhone !== userPhone);
+
+    // Build volunteer collaboration message with phone numbers
+    let collaborationText = "";
+    if (otherVolunteers.length > 0) {
+      collaborationText = `\n\n*${otherVolunteers.length} ${otherVolunteers.length === 1 ? 'Volunteer Has' : 'Volunteers Have'} Offered to Help*\n\nConsider coordinating together for a bigger impact! 🤝\n\n`;
+      
+      otherVolunteers.forEach((volunteer, index) => {
+        const date = new Date(volunteer.createdAt).toLocaleDateString();
+        collaborationText += `${index + 1}. Community Member\n   📞 ${volunteer.userPhone}\n   📅 ${date}\n\n`;
+      });
+      
+      collaborationText += `💡 *Tip:* Working together makes fixing problems easier and faster!`;
+    }
+
     return `🙌 Thank you for volunteering to help!
 
-**Problem:** "${problem.title}"
-${problem.locationText ? `**Location:** ${problem.locationText}` : ''}
+*Problem:* "${problem.title}"
+${problem.locationText ? `*Location:* ${problem.locationText}` : ''}
+${collaborationText}
 
-**Next Steps:**
+*Next Steps:*
 1. Visit the location when ready
 2. Take BEFORE photos (if not already done)
 3. Fix the problem
