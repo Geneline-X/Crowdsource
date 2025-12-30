@@ -9,7 +9,8 @@ import ministryRoutes from "./routes/ministry";
 import { transcribeAudio, isAudioMimeType } from "./services/audio-transcription";
 
 const app = express();
-app.use(express.json());
+// Increased limit to 10MB to handle base64-encoded images from WhatsApp
+app.use(express.json({ limit: '10mb' }));
 app.use(cors({
   origin: ['http://localhost:3001', 'http://localhost:3000'],
   credentials: true
@@ -259,12 +260,18 @@ app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response)
       }
 
       // Handle text-only messages (after audio processing, so we have transcribed text)
-      if (!processedMessage || !processedMessage.trim()) {
+      // BUT: If there's media, we should still process it even without text
+      if ((!processedMessage || !processedMessage.trim()) && !mediaContext) {
         return res.json({
           answer:
             "Welcome! You can report community problems or upvote existing ones by sending the problem number.\n\nYou can also share your WhatsApp location when reporting a problem.",
           status: "success",
         }) as any;
+      }
+
+      // If we have media but no message, create a descriptive message for the agent
+      if ((!processedMessage || !processedMessage.trim()) && mediaContext) {
+        processedMessage = "[User sent an image]";
       }
 
       // Process message with OpenAI Agent
