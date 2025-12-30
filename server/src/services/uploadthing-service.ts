@@ -18,20 +18,36 @@ export interface UploadResult {
 }
 
 /**
- * Upload a file to UploadThing from base64 data
+ * Upload a file to UploadThing from base64 data or a URL
  */
 export async function uploadToUploadThing(
-  base64Data: string,
+  data: string,
   filename: string,
   mimeType: string = "image/jpeg"
 ): Promise<UploadResult> {
   try {
-    // Convert base64 to buffer
-    const buffer = Buffer.from(base64Data, "base64");
+    let buffer: Buffer;
+
+    // Check if input is a URL
+    if (data.startsWith("http://") || data.startsWith("https://")) {
+      logger.info({ url: data }, "Fetching image from URL for upload");
+      const response = await fetch(data);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image from URL: ${response.statusText}`);
+      }
+      const arrayBuffer = await response.arrayBuffer();
+      buffer = Buffer.from(new Uint8Array(arrayBuffer));
+    } else {
+      // Treat as base64
+      // Remove data URI prefix if present (e.g. "data:image/jpeg;base64,")
+      const base64Data = data.replace(/^data:image\/\w+;base64,/, "");
+      buffer = Buffer.from(base64Data, "base64");
+    }
     
     // Create a UTFile object (UploadThing's server-side File implementation)
     // This avoids issues with Node.js File/Blob compatibility
-    const file = new UTFile([buffer], filename, { type: mimeType });
+    // Casting to any to avoid "Type 'Buffer<ArrayBufferLike>' is not assignable to type 'BlobPart'" error
+    const file = new UTFile([buffer as any], filename, { type: mimeType });
     
     // Upload to UploadThing - must pass as array
     const response = await utapi.uploadFiles([file]);

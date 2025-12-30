@@ -30,6 +30,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "ipzkmsshkt.ufs.sh",
+        port: "",
+        pathname: "/**",
+      },
     ],
     // Device sizes for responsive images
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],

@@ -80,7 +80,7 @@ export function VolunteerRating({
     <div className="space-y-6">
       {/* Average Rating Display */}
       {ratingCount > 0 && (
-        <div className="text-center p-4 bg-gray-50 rounded-lg">
+        <div className="text-center p-4 border border-[var(--ds-gray-200)] rounded-lg">
           <div className="flex items-center justify-center gap-2 mb-2">
             <div className="flex">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -89,7 +89,7 @@ export function VolunteerRating({
                   className={`w-5 h-5 ${
                     star <= Math.round(averageRating)
                       ? "fill-yellow-400 text-yellow-400"
-                      : "text-gray-300"
+                      : "text-[var(--ds-gray-300)]"
                   }`}
                 />
               ))}
@@ -98,7 +98,7 @@ export function VolunteerRating({
               {averageRating.toFixed(1)}
             </span>
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-[var(--ds-gray-600)]">
             Based on {ratingCount} {ratingCount === 1 ? "rating" : "ratings"}
           </p>
         </div>
@@ -106,7 +106,7 @@ export function VolunteerRating({
 
       {/* Rating Form */}
       {canRate && !success && (
-        <div className="p-4 border border-gray-300 rounded-lg">
+        <div className="p-4 border border-[var(--ds-gray-200)] rounded-lg">
           <h4 className="font-semibold mb-3">Rate this resolution:</h4>
 
           {/* Star Rating Input */}
@@ -123,7 +123,7 @@ export function VolunteerRating({
                   className={`w-8 h-8 ${
                     star <= (hoverRating || selectedRating)
                       ? "fill-yellow-400 text-yellow-400"
-                      : "text-gray-300"
+                      : "text-[var(--ds-gray-300)]"
                   }`}
                 />
               </button>
@@ -135,7 +135,7 @@ export function VolunteerRating({
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Share your thoughts (optional)"
-            className="w-full p-2 border border-gray-300 rounded-lg resize-none h-20 text-sm"
+            className="geist-input w-full p-2 border border-[var(--ds-gray-300)] rounded-lg resize-none h-20 text-sm bg-transparent"
             maxLength={500}
           />
 
@@ -149,21 +149,21 @@ export function VolunteerRating({
           </button>
 
           {error && (
-            <p className="text-red-500 text-sm mt-2">{error}</p>
+            <p className="text-[var(--ds-red-500)] text-sm mt-2">{error}</p>
           )}
         </div>
       )}
 
       {success && (
-        <div className="p-4 bg-green-50 border border-green-300 rounded-lg">
-          <p className="text-green-800 font-medium">
+        <div className="p-4 border border-[var(--ds-green-300)] rounded-lg">
+          <p className="text-[var(--ds-green-800)] font-medium">
             ✅ Thank you for rating this resolution!
           </p>
         </div>
       )}
 
       {!canRate && ratingCount === 0 && (
-        <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600 text-sm">
+        <div className="p-4 border border-[var(--ds-gray-200)] rounded-lg text-center text-[var(--ds-gray-600)] text-sm">
           Only upvoters can rate resolutions
         </div>
       )}
@@ -175,7 +175,7 @@ export function VolunteerRating({
           {ratings.map((rating) => (
             <div
               key={rating.id}
-              className="p-3 bg-gray-50 rounded-lg"
+              className="p-3 border border-[var(--ds-gray-200)] rounded-lg"
             >
               <div className="flex items-center gap-2 mb-1">
                 <div className="flex">
@@ -185,17 +185,17 @@ export function VolunteerRating({
                       className={`w-3 h-3 ${
                         star <= rating.rating
                           ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
+                          : "text-[var(--ds-gray-300)]"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-[var(--ds-gray-500)]">
                   {new Date(rating.createdAt).toLocaleDateString()}
                 </span>
               </div>
               {rating.comment && (
-                <p className="text-sm text-gray-700">{rating.comment}</p>
+                <p className="text-sm text-[var(--ds-gray-700)]">{rating.comment}</p>
               )}
             </div>
           ))}

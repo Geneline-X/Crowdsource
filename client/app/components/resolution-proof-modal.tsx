@@ -179,9 +179,9 @@ export function ResolutionProofModal({
                 </div>
               </div>
 
-              {/* Resolution Notes */}
+               {/* Resolution Notes */}
               {resolutionNotes && (
-                <div className="p-4 border border-[var(--ds-gray-200)] rounded-lg bg-[var(--ds-gray-100)]">
+                <div className="p-4 border border-[var(--ds-gray-200)] rounded-lg">
                   <p className="text-sm font-medium mb-1 text-[var(--ds-gray-900)]">Volunteer Notes:</p>
                   <p className="text-sm text-[var(--ds-gray-700)]">{resolutionNotes}</p>
                 </div>
@@ -199,7 +199,7 @@ export function ResolutionProofModal({
                     /* Original Proof Display */
                     resolutionProof && resolutionProof.length > 0 && (
                       <div>
-                        <div className="relative w-full h-[400px] bg-[var(--ds-gray-100)] border border-[var(--ds-gray-200)] rounded-lg overflow-hidden mb-4">
+                        <div className="relative w-full h-[400px] border border-[var(--ds-gray-200)] rounded-lg overflow-hidden mb-4">
                           <Image
                             src={resolutionProof[currentImageIndex]}
                             alt={`Resolution proof ${currentImageIndex + 1}`}
@@ -262,7 +262,7 @@ export function ResolutionProofModal({
 
                {/* Success Indicator at bottom */}
                <div className="mt-6 pt-6 border-t border-[var(--ds-gray-200)] flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[var(--ds-green-100)] flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-full border border-[var(--ds-green-200)] flex items-center justify-center shrink-0">
                     <Check className="w-5 h-5 text-[var(--ds-green-600)]" />
                   </div>
                   <div>
