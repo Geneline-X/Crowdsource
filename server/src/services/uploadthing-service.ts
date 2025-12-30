@@ -31,9 +31,8 @@ export async function uploadToUploadThing(
     const file = new Blob([buffer], { type: mimeType }) as any;
     file.name = filename;
     
-    // Upload to UploadThing using buffer directly
-    // UploadThing's Node.js SDK can handle buffers
-    const response = await utapi.uploadFiles(file);
+    // Upload to UploadThing - must pass as array
+    const response = await utapi.uploadFiles([file]);
     
     if (!response || !Array.isArray(response) || response.length === 0) {
       logger.error("UploadThing returned empty response");
