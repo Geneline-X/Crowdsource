@@ -28,10 +28,17 @@ export interface Problem {
   locationSource: string | null;
   nationalCategory: string | null;
   recommendedOffice: string | null;
+  status: string;
   createdAt: string;
   updatedAt: string;
   upvoteCount: number;
   verificationCount: number;
+  resolvedBy?: string | null;
+  resolvedAt?: string | null;
+  resolutionProof?: string[];
+  resolutionNotes?: string | null;
+  averageRating?: number | null;
+  ratingCount?: number;
   images: ProblemImage[];
   verifications?: ProblemVerification[];
 }

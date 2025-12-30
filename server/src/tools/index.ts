@@ -22,6 +22,16 @@ import {
   uploadImageHandler,
 } from "./upload-image";
 
+import {
+  getProblemDetailsForVolunteerTool,
+  getProblemDetailsForVolunteerHandler,
+} from "./get-problem-for-volunteer";
+
+import {
+  submitResolutionProofTool,
+  submitResolutionProofHandler,
+} from "./submit-resolution-proof";
+
 export type { ToolContext, ToolDefinition, ToolHandler } from "./types";
 
 export const toolDefinitions: ToolDefinition[] = [
@@ -33,6 +43,8 @@ export const toolDefinitions: ToolDefinition[] = [
   getUserRecentProblemsTool,
   updateProblemDescriptionTool,
   uploadImageTool,
+  getProblemDetailsForVolunteerTool,
+  submitResolutionProofTool,
 ];
 
 export const toolHandlers: Record<string, ToolHandler> = {
@@ -44,4 +56,6 @@ export const toolHandlers: Record<string, ToolHandler> = {
   get_user_recent_problems: getUserRecentProblemsHandler,
   update_problem_description: updateProblemDescriptionHandler,
   upload_image: uploadImageHandler,
+  get_problem_details_for_volunteer: getProblemDetailsForVolunteerHandler,
+  submit_resolution_proof: submitResolutionProofHandler,
 };

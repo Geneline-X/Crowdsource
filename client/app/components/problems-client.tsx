@@ -3,12 +3,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck, HandHelping } from "lucide-react";
 
 import { Problem } from "@/lib/types";
 import { MapView } from "@/app/components/map-view";
 import { SubmitProblemForm } from "@/app/components/submit-problem-form";
 import { VerifyProblemModal } from "@/app/components/verify-problem-modal";
+import { OfferHelpModal } from "@/app/components/offer-help-modal";
+import { ResolutionProofModal } from "@/app/components/resolution-proof-modal";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_MAP: Record<string, { label: string; badge: string; dot: string }> = {
@@ -42,6 +44,10 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [votedProblems, setVotedProblems] = useState<Set<number>>(new Set());
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [verifyProblemId, setVerifyProblemId] = useState<number | null>(null);
+  const [offerHelpModalOpen, setOfferHelpModalOpen] = useState(false);
+  const [offerHelpProblemId, setOfferHelpProblemId] = useState<number | null>(null);
+  const [resolutionProofModalOpen, setResolutionProofModalOpen] = useState(false);
+  const [selectedResolutionProblem, setSelectedResolutionProblem] = useState<Problem | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const voterIdRef = useRef<string>("");
 
@@ -362,8 +368,14 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                             <span className={cn("geist-badge text-[10px] md:text-xs", category.badge)}>
                               {problem.locationVerified ? "Verified" : "Pending"}
                             </span>
+                            {/* RESOLVED Badge */}
+                            {problem.status === "RESOLVED" && (
+                              <span className="geist-badge geist-badge-green text-[10px] md:text-xs flex items-center gap-1">
+                                ✅ RESOLVED
+                              </span>
+                            )}
                             {/* Verify Button */}
-                            {!problem.locationVerified && (
+                            {!problem.locationVerified && problem.status !== "RESOLVED" && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -376,8 +388,36 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                                 Verify
                               </button>
                             )}
+                            {/* I can fix this Button - only show if not resolved */}
+                            {problem.status !== "RESOLVED" && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOfferHelpProblemId(problem.id);
+                                  setOfferHelpModalOpen(true);
+                                }}
+                                className="geist-button geist-button-secondary h-6 px-2 text-[10px] md:text-xs flex items-center gap-1"
+                              >
+                                <HandHelping className="w-3 h-3" />
+                                I can fix this
+                              </button>
+                            )}
+                            {/* View Resolution Button - only show if resolved */}
+                            {problem.status === "RESOLVED" && problem.resolutionProof && problem.resolutionProof.length > 0 && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedResolutionProblem(problem);
+                                  setResolutionProofModalOpen(true);
+                                }}
+                                className="geist-button geist-button-primary h-6 px-2 text-[10px] md:text-xs"
+                              >
+                                View Resolution
+                              </button>
+                            )}
                             {/* Verification count badge */}
                             {problem.verificationCount > 0 && (
+
                               <span className="text-[10px] text-[var(--ds-green-600)] flex items-center gap-0.5">
                                 <ShieldCheck className="w-3 h-3" />
                                 {problem.verificationCount}/3
@@ -568,6 +608,45 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             fetchProblems();
           }}
           fingerprint={voterIdRef.current}
+        />
+      )}
+
+      {/* Offer Help Modal */}
+      {offerHelpProblemId && (
+        <OfferHelpModal
+          problemId={offerHelpProblemId}
+          problemTitle={problems.find(p => p.id === offerHelpProblemId)?.title || ""}
+          isOpen={offerHelpModalOpen}
+          onClose={() => {
+            setOfferHelpModalOpen(false);
+            setOfferHelpProblemId(null);
+          }}
+          onSuccess={() => {
+            fetchProblems();
+          }}
+          fingerprint={voterIdRef.current}
+        />
+      )}
+
+      {/* Resolution Proof Modal */}
+      {selectedResolutionProblem && (
+        <ResolutionProofModal
+          problemId={selectedResolutionProblem.id}
+          problemTitle={selectedResolutionProblem.title}
+          resolutionProof={selectedResolutionProblem.resolutionProof || []}
+          beforeImages={[]} // TODO: Get from problem responses
+          resolvedAt={selectedResolutionProblem.resolvedAt || ""}
+          resolvedBy={selectedResolutionProblem.resolvedBy || undefined}
+          resolutionNotes={selectedResolutionProblem.resolutionNotes || undefined}
+          averageRating={selectedResolutionProblem.averageRating || undefined}
+          ratingCount={selectedResolutionProblem.ratingCount || 0}
+          canRate={votedProblems.has(selectedResolutionProblem.id)}
+          fingerprint={voterIdRef.current}
+          isOpen={resolutionProofModalOpen}
+          onClose={() => {
+            setResolutionProofModalOpen(false);
+            setSelectedResolutionProblem(null);
+          }}
         />
       )}
     </>
