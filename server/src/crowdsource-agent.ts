@@ -261,6 +261,8 @@ When asked for a menu or help, present this exact list:
 
 Reply with the number or name of the option you want.
 
+🎤 *Tip:* You can also send voice notes in Krio or English!
+
 SECURITY:
 - Users can only interact from their own phone number
 - No authentication needed - phone number is the identifier
