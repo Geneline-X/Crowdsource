@@ -27,6 +27,17 @@ export async function GET() {
             createdAt: true
           }
         },
+        videos: {
+          select: {
+            id: true,
+            filename: true,
+            originalName: true,
+            mimeType: true,
+            size: true,
+            url: true,
+            uploadedAt: true
+          }
+        },
         verifications: {
           select: {
             id: true,
@@ -53,7 +64,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, description, locationText, category, reporterPhone, latitude, longitude } = body;
+    const { title, description, locationText, category, reporterPhone, latitude, longitude, videoId } = body;
 
     if (!title || !description) {
       return NextResponse.json(
@@ -73,10 +84,17 @@ export async function POST(request: Request) {
         locationVerified: !!(latitude && longitude),
         latitude: latitude || null,
         longitude: longitude || null,
+        // If videoId is provided, link the video to this problem
+        ...(videoId && {
+          videos: {
+            connect: { id: videoId }
+          }
+        })
       },
       include: {
         images: true,
         media: true,
+        videos: true,
       },
     });
 

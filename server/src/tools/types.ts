@@ -6,6 +6,7 @@ export interface MediaContext {
   data: string; // base64 encoded
   filename: string;
   size: number;
+  videoId?: string; // Optional video ID for linking to problems
 }
 
 export interface ToolContext {

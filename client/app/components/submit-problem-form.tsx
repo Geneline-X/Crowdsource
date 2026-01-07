@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, X, MapPin, FileText, Loader2, Hammer, Trash2, ShieldAlert, HelpCircle, Search } from "lucide-react"
+import { Plus, X, MapPin, FileText, Loader2, Hammer, Trash2, ShieldAlert, HelpCircle, Search, Video, Upload } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/app/components/ui/button"
@@ -36,6 +36,11 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
+  // Video upload state
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null)
+  const [videoPreview, setVideoPreview] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  
   // Location Search State
   const [coordinates, setCoordinates] = useState<{ lat: number; lon: number } | null>(null)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
@@ -69,23 +74,100 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
     setSearchResults([])
   }
 
+  // Video handling functions
+  const handleVideoSelect = (file: File) => {
+    const validTypes = ['video/mp4', 'video/webm', 'video/mov', 'video/avi', 'video/3gpp', 'video/x-matroska']
+    const maxSize = 100 * 1024 * 1024 // 100MB
+
+    if (!validTypes.includes(file.type)) {
+      setError('Please select a valid video file (MP4, WebM, MOV, AVI, 3GPP, MKV)')
+      return
+    }
+
+    if (file.size > maxSize) {
+      setError('Video file must be smaller than 100MB')
+      return
+    }
+
+    setSelectedVideo(file)
+    setVideoPreview(URL.createObjectURL(file))
+    setError(null)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    const videoFile = files.find(file => file.type.startsWith('video/'))
+    
+    if (videoFile) {
+      handleVideoSelect(videoFile)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleVideoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleVideoSelect(file)
+    }
+  }
+
+  const removeVideo = () => {
+    setSelectedVideo(null)
+    if (videoPreview) {
+      URL.revokeObjectURL(videoPreview)
+      setVideoPreview(null)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
 
     try {
+      let problemData: any = {
+        title,
+        description,
+        locationText,
+        category: category === "other" ? customCategory : category,
+        latitude: coordinates?.lat,
+        longitude: coordinates?.lon,
+      }
+
+      // If there's a video, upload it first
+      if (selectedVideo) {
+        const formData = new FormData()
+        formData.append('video', selectedVideo)
+        
+        const uploadResponse = await fetch('/api/videos/upload', {
+          method: 'POST',
+          body: formData
+        })
+        
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload video')
+        }
+        
+        const uploadResult = await uploadResponse.json()
+        problemData.videoId = uploadResult.video.id
+      }
+
       const response = await fetch("/api/problems", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          locationText,
-          category: category === "other" ? customCategory : category,
-          latitude: coordinates?.lat,
-          longitude: coordinates?.lon,
-        }),
+        body: JSON.stringify(problemData),
       })
 
       if (!response.ok) {
@@ -99,6 +181,7 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
       setCoordinates(null)
       setCategory("other")
       setCustomCategory("")
+      removeVideo()
 
       if (onSuccess) {
         onSuccess()
@@ -297,6 +380,77 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                         className="geist-textarea focus:shadow-none"
                         required
                       />
+                    </div>
+
+                    {/* Optional Video Upload */}
+                    <div className="space-y-2">
+                      <label className="geist-text-label mb-1 flex items-center gap-2">
+                        <Video className="w-4 h-4 text-[var(--ds-gray-500)]" />
+                        Video Evidence (Optional)
+                      </label>
+                      
+                      {!videoPreview ? (
+                        <div
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                          onDragLeave={handleDragLeave}
+                          className={cn(
+                            "border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer",
+                            isDragging
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-[var(--ds-gray-300)] hover:border-[var(--ds-gray-400)]"
+                          )}
+                        >
+                          <input
+                            type="file"
+                            accept="video/*"
+                            onChange={handleVideoInputChange}
+                            className="hidden"
+                            id="video-upload"
+                          />
+                          <label
+                            htmlFor="video-upload"
+                            className="cursor-pointer"
+                          >
+                            <Upload className="w-8 h-8 mx-auto mb-2 text-[var(--ds-gray-400)]" />
+                            <p className="text-sm text-[var(--ds-gray-600)] mb-1">
+                              Drag and drop a video here, or click to browse
+                            </p>
+                            <p className="text-xs text-[var(--ds-gray-500)]">
+                              MP4, WebM, MOV, AVI, 3GPP, MKV (max 100MB)
+                            </p>
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="relative rounded-lg overflow-hidden bg-black">
+                            <video
+                              src={videoPreview}
+                              controls
+                              className="w-full max-h-48 object-contain"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeVideo}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-[var(--ds-gray-600)]">
+                              {selectedVideo?.name} ({selectedVideo ? (selectedVideo.size / 1024 / 1024).toFixed(1) : '0'} MB)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={removeVideo}
+                              className="text-red-500 hover:text-red-600 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                   <CardFooter className="flex flex-col gap-3 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6 border-t border-[var(--ds-gray-200)] bg-[var(--ds-gray-50)] rounded-b-xl">

@@ -411,10 +411,17 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
               size: 0 // Unknown size for URL
             }]
           }
+        }),
+        // Link video if present in media context
+        ...(currentMediaContext?.videoId && {
+          videos: {
+            connect: { id: currentMediaContext.videoId }
+          }
         })
       },
       include: {
-        images: true
+        images: true,
+        videos: true
       }
     });
 

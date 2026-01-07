@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { ProblemsClient } from "@/app/components/problems-client";
 import { ImpactBanner } from "@/app/components/impact-banner";
+import { VideoGallery } from "@/app/components/video-gallery";
 
 export const dynamic = "force-dynamic";
 async function getProblems() {
@@ -75,6 +76,13 @@ export default async function HomePage() {
               <span className="hidden sm:inline">Weekly blog</span>
               <span className="sm:hidden">Blog</span>
             </Link>
+            <Link
+              href="/gallery"
+              className="geist-button geist-button-secondary geist-text-small h-7 px-2 md:px-3"
+            >
+              <span className="hidden sm:inline">Videos</span>
+              <span className="sm:hidden">Videos</span>
+            </Link>
           </div>
         </div>
       </header>
@@ -91,6 +99,20 @@ export default async function HomePage() {
         <ImpactBanner />
 
         <ProblemsClient initialProblems={problems} />
+
+        {/* Recent Videos Section */}
+        <div className="mt-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">Recent Videos</h2>
+            <Link
+              href="/gallery"
+              className="geist-button geist-button-secondary geist-text-small h-7 px-2 md:px-3"
+            >
+              View All
+            </Link>
+          </div>
+          <VideoGallery />
+        </div>
       </main>
     </>
   );
