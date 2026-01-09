@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ShieldCheck, HandHelping } from "lucide-react";
@@ -30,6 +31,7 @@ interface ProblemsClientProps {
 }
 
 export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
+  const searchParams = useSearchParams();
   const [problems, setProblems] = useState<Problem[]>(initialProblems);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +52,28 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [selectedResolutionProblem, setSelectedResolutionProblem] = useState<Problem | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const voterIdRef = useRef<string>("");
+
+  // Auto-select problem from URL query parameter (?problem=ID)
+  useEffect(() => {
+    const problemIdParam = searchParams.get("problem");
+    if (problemIdParam) {
+      const problemId = parseInt(problemIdParam, 10);
+      if (!isNaN(problemId)) {
+        // Find the problem in the list
+        const problem = initialProblems.find(p => p.id === problemId);
+        if (problem) {
+          setSelectedId(problemId);
+          // Scroll to the problem after a short delay to ensure DOM is ready
+          setTimeout(() => {
+            const element = document.querySelector(`[data-problem-id="${problemId}"]`);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 500);
+        }
+      }
+    }
+  }, [searchParams, initialProblems]);
 
   // Generate a hashed voter ID for this session
   useEffect(() => {
@@ -268,6 +292,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                     return (
                       <motion.div
                         key={problem.id}
+                        data-problem-id={problem.id}
                         layout
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}

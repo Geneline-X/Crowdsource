@@ -9,6 +9,8 @@ interface LocationValidationResult {
   state?: string;
   city?: string;
   details?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface GeocodingResult {
@@ -172,6 +174,7 @@ export class LocationValidator {
     hasSierraLeoneContext: boolean
   ): Promise<LocationValidationResult> {
     try {
+      // Always search within Sierra Leone using country code restriction
       const searchQuery = hasSierraLeoneContext ? locationText : `${locationText}, Sierra Leone`;
 
       const response = await axios.get<GeocodingResult[]>("https://nominatim.openstreetmap.org/search", {
@@ -180,6 +183,8 @@ export class LocationValidator {
           format: "json",
           limit: 1,
           "accept-language": "en",
+          countrycodes: "sl", // Strictly limit to Sierra Leone
+          addressdetails: 1,  // Get address breakdown
         },
         headers: {
           "User-Agent": "CrowdsourceAgent/1.0",
@@ -190,27 +195,40 @@ export class LocationValidator {
       const results = response.data;
 
       if (results.length === 0) {
+        // No results found in Sierra Leone - location might be outside Sierra Leone
+        logger.info({ locationText }, "Location not found in Sierra Leone");
         return {
           isValid: true,
           confidence: "low",
           normalizedName: locationText,
-          details: "Location not found in map database - accepting skeptically",
+          details: "Location not found in Sierra Leone - please provide a more specific address",
         };
       }
 
       const result = results[0];
 
-      // Check if result is in Sierra Leone
+      // Double-check the result is in Sierra Leone (extra safety)
       const isSierraLeone = result.display_name.toLowerCase().includes("sierra leone");
+      
+      if (!isSierraLeone) {
+        logger.warn({ locationText, display_name: result.display_name }, "Geocoding returned non-Sierra Leone result despite country filter");
+        return {
+          isValid: true,
+          confidence: "low",
+          normalizedName: locationText,
+          details: "Location appears to be outside Sierra Leone",
+        };
+      }
 
       return {
         isValid: true,
-        confidence: isSierraLeone ? "high" : "medium",
+        confidence: "high", // We've verified it's in Sierra Leone
         normalizedName: result.display_name,
-        country: result.address.country,
-        state: result.address.state,
-        city: result.address.city || result.address.town || result.address.village,
-        details: isSierraLeone ? undefined : "Location found but outside Sierra Leone",
+        country: result.address?.country,
+        state: result.address?.state,
+        city: result.address?.city || result.address?.town || result.address?.village,
+        latitude: parseFloat(String(result.lat)),
+        longitude: parseFloat(String(result.lon)),
       };
     } catch (error: any) {
       logger.warn({ error: error.message, locationText }, "Nominatim geocoding failed");
@@ -305,6 +323,8 @@ export class LocationValidator {
         ?.long_name,
       city: addressComponents.find((c: any) => c.types.includes("locality"))?.long_name,
       details: isSierraLeone ? undefined : "Location found but outside Sierra Leone",
+      latitude: result.geometry?.location?.lat,
+      longitude: result.geometry?.location?.lng,
     };
   }
 }

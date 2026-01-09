@@ -351,7 +351,7 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
         "Using explicit coordinates from arguments"
       );
     }
-    // Priority 3: Text-based location (validate if real place)
+    // Priority 3: Text-based location (validate and geocode if real place)
     else if (location) {
       locationSource = "text_extracted";
       const validation = await locationValidator.validateTextLocation(location);
@@ -359,10 +359,20 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
       locationText = validation.normalizedName || location;
       validationDetails = validation.details || `Text location verified with ${validation.confidence} confidence`;
       
-      logger.info(
-        { location, confidence: validation.confidence, verified: locationVerified },
-        "Text location validated"
-      );
+      // Use geocoded coordinates if available
+      if (validation.latitude && validation.longitude && !isNaN(validation.latitude) && !isNaN(validation.longitude)) {
+        latitude = validation.latitude;
+        longitude = validation.longitude;
+        logger.info(
+          { location, latitude, longitude, confidence: validation.confidence, verified: locationVerified },
+          "Text location geocoded with coordinates"
+        );
+      } else {
+        logger.info(
+          { location, confidence: validation.confidence, verified: locationVerified },
+          "Text location validated without coordinates"
+        );
+      }
     }
 
     const classification = classifyProblemIntoNationalTaxonomy(title, description);
