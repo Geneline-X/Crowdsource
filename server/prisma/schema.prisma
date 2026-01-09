@@ -39,6 +39,21 @@ model Problem {
   averageRating     Float?          @map("average_rating")
   ratingCount       Int             @default(0) @map("rating_count")
 
+  // AI Categorization & Analysis
+  aiCategory          String?     @map("ai_category")
+  aiCategoryConfidence Float?     @map("ai_category_confidence")
+  imageAnalysis       Json?       @map("image_analysis")  // Stores vision AI results
+
+  // Duplicate Detection
+  embedding           Float[]     @default([])  // Vector embedding for similarity search
+  duplicateOf         Int?        @map("duplicate_of")
+  duplicateOriginal   Problem?    @relation("DuplicateLink", fields: [duplicateOf], references: [id])
+  duplicates          Problem[]   @relation("DuplicateLink")
+
+  // Severity Scoring
+  severityScore       Float       @default(0) @map("severity_score")
+  severityLastUpdated DateTime?   @map("severity_last_updated")
+
   upvotes         ProblemUpvote[]
   images          ProblemImage[]
   media           Media[]

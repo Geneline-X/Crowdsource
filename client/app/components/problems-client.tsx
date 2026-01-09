@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShieldCheck, HandHelping } from "lucide-react";
+import { Search, ShieldCheck, HandHelping, AlertTriangle, Bot } from "lucide-react";
 
 import { Problem } from "@/lib/types";
 import { MapView } from "@/app/components/map-view";
@@ -24,6 +24,19 @@ const CATEGORY_MAP: Record<string, { label: string; badge: string; dot: string }
 function getCategoryConfig(locationSource: string | null) {
   if (!locationSource) return CATEGORY_MAP.default;
   return CATEGORY_MAP[locationSource] || CATEGORY_MAP.default;
+}
+
+// Severity badge config based on score (0-100)
+function getSeverityConfig(score: number | undefined): { level: string; color: string; bgColor: string } {
+  if (!score || score < 25) {
+    return { level: "Low", color: "text-green-600", bgColor: "bg-green-100" };
+  } else if (score < 50) {
+    return { level: "Medium", color: "text-blue-600", bgColor: "bg-blue-100" };
+  } else if (score < 75) {
+    return { level: "High", color: "text-orange-600", bgColor: "bg-orange-100" };
+  } else {
+    return { level: "Critical", color: "text-red-600", bgColor: "bg-red-100" };
+  }
 }
 
 interface ProblemsClientProps {
@@ -400,6 +413,42 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                             </div>
                           </div>
 
+                          {/* AI Insights Section */}
+                          {(problem.aiCategory || (problem.severityScore && problem.severityScore > 0)) && (
+                            <div className="mb-3 p-2 bg-purple-50 rounded-md border border-purple-200">
+                              <div className="flex items-center gap-1.5 mb-1.5">
+                                <Bot className="w-3.5 h-3.5 text-purple-600" />
+                                <p className="text-[10px] font-medium text-purple-700 uppercase tracking-wider">
+                                  AI Analysis
+                                </p>
+                              </div>
+                              <div className="space-y-1 text-xs">
+                                {problem.aiCategory && (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[var(--ds-gray-600)]">Category:</span>
+                                    <span className="font-medium text-purple-700">{problem.aiCategory}</span>
+                                    {problem.aiCategoryConfidence && (
+                                      <span className="text-[10px] text-purple-500">
+                                        ({Math.round(problem.aiCategoryConfidence)}% confidence)
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {problem.severityScore !== undefined && problem.severityScore > 0 && (() => {
+                                  const severity = getSeverityConfig(problem.severityScore);
+                                  return (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[var(--ds-gray-600)]">Priority:</span>
+                                      <span className={cn("font-medium", severity.color)}>
+                                        {severity.level} ({Math.round(problem.severityScore)}/100)
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+                          )}
+
                           {problem.images && problem.images.length > 0 && (
                             <div className="mb-2">
                               <div className="flex gap-1.5 md:gap-2 mb-1">
@@ -451,10 +500,24 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                             <span className={cn("geist-badge text-[10px] md:text-xs", category.badge)}>
                               {problem.locationVerified ? "Verified" : "Pending"}
                             </span>
+                            {/* Severity Badge */}
+                            {problem.severityScore !== undefined && problem.severityScore > 0 && (() => {
+                              const severity = getSeverityConfig(problem.severityScore);
+                              return (
+                                <span className={cn(
+                                  "text-[10px] md:text-xs px-1.5 py-0.5 rounded flex items-center gap-1 font-medium",
+                                  severity.bgColor,
+                                  severity.color
+                                )}>
+                                  <AlertTriangle className="w-3 h-3" />
+                                  {severity.level}
+                                </span>
+                              );
+                            })()}
                             {/* RESOLVED Badge */}
                             {problem.status === "RESOLVED" && (
                               <span className="geist-badge geist-badge-green text-[10px] md:text-xs flex items-center gap-1">
-                                ✅ RESOLVED
+                                RESOLVED
                               </span>
                             )}
                             {/* Verify Button */}

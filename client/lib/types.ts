@@ -41,6 +41,11 @@ export interface Problem {
   ratingCount?: number;
   images: ProblemImage[];
   verifications?: ProblemVerification[];
+  // AI Categorization fields
+  aiCategory?: string | null;
+  aiCategoryConfidence?: number | null;
+  severityScore?: number;
+  severityLastUpdated?: string | null;
 }
 
 export interface ProblemUpvote {
