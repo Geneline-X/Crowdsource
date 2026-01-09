@@ -3,8 +3,6 @@ import { logger } from "../logger";
 import { config } from "../config";
 import { locationValidator } from "../location-validator";
 import type { ToolDefinition, ToolHandler } from "./types";
-import fs from "fs/promises";
-import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { uploadToUploadThing } from "../services/uploadthing-service";
 import { analyzeImage, type ImageAnalysisResult } from "../services/vision-ai-service";
