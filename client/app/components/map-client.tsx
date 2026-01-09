@@ -1,9 +1,14 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
-import { Icon, LatLngExpression, divIcon, point, LatLng } from "leaflet";
+import { Icon, LatLngExpression, divIcon, point } from "leaflet";
 import { Problem } from "@/lib/types";
 import "leaflet/dist/leaflet.css";
-import { useEffect } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { HeatMapLayer } from "./heat-map-layer";
+import { WardBoundaryLayer } from "./ward-boundary-layer";
+import { RouteOverlay } from "./route-overlay";
+import { MapStats } from "./map-stats";
+import { MapFilters, type FilterState } from "./map-filters";
 
 const SOURCE_COLORS: Record<string, string> = {
   whatsapp_share: "#25D366",
@@ -211,7 +216,7 @@ function MapCenterController({ centerOnProblem }: MapCenterControllerProps) {
         });
       }
     }
-  }, [centerOnProblem, map]);
+  }, [centerOnProblem?.id, map]);
 
   return null;
 }
@@ -221,102 +226,334 @@ interface MapClientProps {
   onSelectProblem?: (id: number) => void;
   selectedProblemId?: number | null;
   centerOnProblem?: Problem | null;
+  showControls?: boolean;
 }
+
+type ViewMode = "markers" | "heatmap" | "both";
 
 export default function MapClient({
   problems,
   onSelectProblem,
   selectedProblemId,
   centerOnProblem,
+  showControls = true,
 }: MapClientProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>("markers");
+  const [showBoundaries, setShowBoundaries] = useState(false);
+  const [heatmapData, setHeatmapData] = useState<Array<{ lat: number; lon: number; intensity: number }>>([]);
+  const [routeInfo, setRouteInfo] = useState<{ problemId: number; problemTitle: string; fromLat: number; fromLon: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Filter State
+  const [filters, setFilters] = useState<FilterState>({
+    minSeverity: 0,
+    showVerifiedOnly: false,
+    category: "all",
+  });
+
+  // Filter problems based on active filters
+  const filteredProblems = useMemo(() => {
+    return problems.filter(p => {
+      if (filters.showVerifiedOnly && p.verificationCount === 0) return false;
+      if (filters.minSeverity > 0 && (p.severityScore || 0) < filters.minSeverity) return false;
+      if (filters.category !== "all") {
+        const matchesCategory = p.nationalCategory === filters.category || p.aiCategory === filters.category;
+        if (!matchesCategory) return false;
+      }
+      return true;
+    });
+  }, [problems, filters]);
+
   // Get all problems that have coordinates (either primary or from verifications)
-  const problemsWithPositions = problems
+  const problemsWithPositions = useMemo(() => filteredProblems
     .map(p => ({ problem: p, position: getProblemPosition(p) }))
-    .filter(({ position }) => position !== null) as Array<{ problem: Problem; position: [number, number] }>;
+    .filter(({ position }) => position !== null) as Array<{ problem: Problem; position: [number, number] }>,
+    [filteredProblems]
+  );
 
   const defaultCenter: LatLngExpression =
     problemsWithPositions.length > 0
       ? problemsWithPositions[0].position
-      : [8.7128, -11.006];
+      : [8.4606, -12.2684]; // Freetown, Sierra Leone
 
   const selectedProblemWithVerifications = problems.find(
     p => p.id === selectedProblemId && p.verifications && p.verifications.length > 0
   );
 
-  return (
-    <MapContainer
-      center={defaultCenter}
-      zoom={13}
-      className="w-full h-full"
-      style={{ background: "#0a0a0a" }}
-    >
-      <TileLayer
-        attribution="CARTO"
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      />
-      <MapCenterController centerOnProblem={centerOnProblem} />
+  // Fetch heatmap data when mode requires it
+  useEffect(() => {
+    if (viewMode === "markers") {
+      setHeatmapData([]);
+      return;
+    }
 
-      <MarkerClusterGroup
-        chunkedLoading
-        iconCreateFunction={createClusterIcon}
-        maxClusterRadius={60}
-        spiderfyOnMaxZoom
-        showCoverageOnHover={false}
-        zoomToBoundsOnClick
-      >
-        {problemsWithPositions.map(({ problem, position }) => {
-          const isSelected = selectedProblemId === problem.id;
-          return (
-            <Marker
-              key={problem.id}
-              position={position}
-              icon={createMarkerIcon(
-                problem.locationSource,
-                problem.locationVerified,
-                isSelected
-              )}
-              zIndexOffset={isSelected ? 1000 : 0}
-              eventHandlers={{ click: () => onSelectProblem?.(problem.id) }}
+    const fetchHeatmap = async () => {
+      try {
+        const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001";
+        const response = await fetch(`${serverUrl}/api/geo/heatmap`);
+        
+        // Check if response is OK before parsing
+        if (!response.ok) {
+          console.error("Failed to fetch heatmap data:", response.status);
+          return;
+        }
+        
+        // Check content type
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.error("Heatmap response is not JSON");
+          return;
+        }
+        
+        const result = await response.json();
+        if (result.success) {
+          setHeatmapData(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch heatmap data:", error);
+      }
+    };
+
+    fetchHeatmap();
+  }, [viewMode]);
+
+  // Get user location
+  const getUserLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation([position.coords.latitude, position.coords.longitude]);
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        alert("Unable to get your location");
+      }
+    );
+  }, []);
+
+  // Handle route to problem
+  const handleRouteClick = useCallback((problemId: number, problemTitle: string) => {
+    if (!userLocation) {
+      getUserLocation();
+      return;
+    }
+
+    setRouteInfo({
+      problemId,
+      problemTitle,
+      fromLat: userLocation[0],
+      fromLon: userLocation[1],
+    });
+  }, [userLocation, getUserLocation]);
+
+  const showMarkers = viewMode === "markers" || viewMode === "both";
+  const showHeatmap = viewMode === "heatmap" || viewMode === "both";
+
+  return (
+    <div className="relative w-full h-full">
+      {/* Map Controls */}
+      {showControls && (
+        <div className="absolute top-2 left-2 z-[1000] flex flex-col gap-1.5">
+          <div className="geist-card p-1 flex gap-0.5">
+            <button
+              onClick={() => setViewMode("markers")}
+              className={`px-2.5 py-1.5 text-[11px] font-medium rounded transition-colors ${
+                viewMode === "markers" 
+                  ? "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]" 
+                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]"
+              }`}
             >
-              <Popup>
-                <div className="p-1">
-                  <p className="font-medium text-sm text-gray-900">
-                    {problem.title}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                    {problem.rawMessage}
-                  </p>
-                  <p className="text-xs text-blue-600 mt-1 font-medium">
-                    {problem.upvoteCount} votes
-                  </p>
-                  
-                  {problem.images && problem.images.length > 0 && (
-                    <div className="mt-2">
-                      <img
-                        src={problem.images[0].url}
-                        alt="Problem"
-                        className="w-full h-24 object-cover rounded-md"
-                      />
-                    </div>
-                  )}
-                  {problem.verificationCount > 0 && (
-                     <div className="mt-2 pt-2 border-t border-gray-100">
-                       <p className="text-xs text-green-600 font-medium flex items-center gap-1">
-                         <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                         {problem.verificationCount} verifications
-                       </p>
-                     </div>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          );
-        })}
-      </MarkerClusterGroup>
-      
-      {selectedProblemWithVerifications && (
-        <VerificationVisualizer problem={selectedProblemWithVerifications} />
+              Markers
+            </button>
+            <button
+              onClick={() => setViewMode("heatmap")}
+              className={`px-2.5 py-1.5 text-[11px] font-medium rounded transition-colors ${
+                viewMode === "heatmap" 
+                  ? "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]" 
+                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]"
+              }`}
+            >
+              Heatmap
+            </button>
+            <button
+              onClick={() => setViewMode("both")}
+              className={`px-2.5 py-1.5 text-[11px] font-medium rounded transition-colors ${
+                viewMode === "both" 
+                  ? "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]" 
+                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]"
+              }`}
+            >
+              Both
+            </button>
+          </div>
+          <button
+            onClick={() => setShowBoundaries(!showBoundaries)}
+            className={`geist-card px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+              showBoundaries 
+                ? "bg-[var(--ds-blue-200)] text-[var(--ds-blue-700)] border-[var(--ds-blue-400)]" 
+                : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)]"
+            }`}
+          >
+            {showBoundaries ? "Hide Districts" : "Show Districts"}
+          </button>
+            {/* Existing controls above... */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`geist-card px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                showFilters 
+                  ? "bg-[var(--ds-amber-200)] text-[var(--ds-amber-700)] border-[var(--ds-amber-400)]" 
+                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)]"
+              }`}
+            >
+              {showFilters ? "Hide Insights" : "Show Insights"}
+            </button>
+            <button
+              onClick={getUserLocation}
+              className={`geist-card px-2.5 py-1.5 text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
+                userLocation 
+                  ? "bg-[var(--ds-green-200)] text-[var(--ds-green-700)] border-[var(--ds-green-400)]" 
+                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)]"
+              }`}
+            >
+              <span>📍</span>
+              {userLocation ? "Location Set" : "My Location"}
+            </button>
+
+
+          {/* Filters & Stats Panel */}
+          {showFilters && (
+            <div className="flex flex-col gap-2 mt-1 animate-in fade-in slide-in-from-left-2 duration-200">
+              <MapStats problems={filteredProblems} />
+              <MapFilters activeFilters={filters} onFilterChange={setFilters} />
+            </div>
+          )}
+        </div>
       )}
-    </MapContainer>
+
+      <MapContainer
+        center={defaultCenter}
+        zoom={12}
+        className="w-full h-full"
+        style={{ background: "#0a0a0a" }}
+      >
+        <TileLayer
+          attribution="CARTO"
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        />
+        <MapCenterController centerOnProblem={centerOnProblem} />
+
+        {/* District Boundaries */}
+        <WardBoundaryLayer visible={showBoundaries} />
+
+        {/* Heat Map Layer */}
+        {showHeatmap && heatmapData.length > 0 && (
+          <HeatMapLayer points={heatmapData} radius={30} blur={20} />
+        )}
+
+        {/* Markers */}
+        {showMarkers && (
+          <MarkerClusterGroup
+            chunkedLoading
+            iconCreateFunction={createClusterIcon}
+            maxClusterRadius={60}
+            spiderfyOnMaxZoom
+            showCoverageOnHover={false}
+            zoomToBoundsOnClick
+          >
+            {problemsWithPositions.map(({ problem, position }) => {
+              const isSelected = selectedProblemId === problem.id;
+              return (
+                <Marker
+                  key={problem.id}
+                  position={position}
+                  icon={createMarkerIcon(
+                    problem.locationSource,
+                    problem.locationVerified,
+                    isSelected
+                  )}
+                  zIndexOffset={isSelected ? 1000 : 0}
+                  eventHandlers={{ click: () => onSelectProblem?.(problem.id) }}
+                >
+                  <Popup>
+                    <div className="p-1 min-w-[180px]">
+                      <p className="font-medium text-sm text-gray-900">
+                        {problem.title}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        {problem.rawMessage}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs text-blue-600 font-medium">
+                          {problem.upvoteCount} votes
+                        </span>
+                        {problem.verificationCount > 0 && (
+                          <span className="text-xs text-green-600">
+                            {problem.verificationCount} verified
+                          </span>
+                        )}
+                      </div>
+                      
+                      {problem.images && problem.images.length > 0 && (
+                        <div className="mt-2">
+                          <img
+                            src={problem.images[0].url}
+                            alt="Problem"
+                            className="w-full h-20 object-cover rounded-md"
+                          />
+                        </div>
+                      )}
+
+                      {/* Route button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRouteClick(problem.id, problem.title);
+                        }}
+                        className="mt-2 w-full text-xs bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600"
+                      >
+                        {userLocation ? "Route to Here" : "Set Location & Route"}
+                      </button>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MarkerClusterGroup>
+        )}
+
+        {/* User Location Marker */}
+        {userLocation && (
+          <Marker
+            position={userLocation}
+            icon={divIcon({
+              html: `<div style="background: #3b82f6; border: 3px solid white; border-radius: 50%; width: 16px; height: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+              className: "user-location-marker",
+              iconSize: point(16, 16),
+            })}
+            zIndexOffset={3000}
+          />
+        )}
+
+        {/* Route Overlay */}
+        {routeInfo && (
+          <RouteOverlay
+            fromLat={routeInfo.fromLat}
+            fromLon={routeInfo.fromLon}
+            problemId={routeInfo.problemId}
+            problemTitle={routeInfo.problemTitle}
+            onClose={() => setRouteInfo(null)}
+          />
+        )}
+        
+        {selectedProblemWithVerifications && (
+          <VerificationVisualizer problem={selectedProblemWithVerifications} />
+        )}
+      </MapContainer>
+    </div>
   );
 }
