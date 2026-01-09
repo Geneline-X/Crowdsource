@@ -7,6 +7,16 @@ export interface ProblemImage {
   createdAt: string;
 }
 
+export interface ProblemVideo {
+  id: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  uploadedAt: string;
+}
+
 export interface ProblemVerification {
   id: number;
   latitude: number;
@@ -40,6 +50,7 @@ export interface Problem {
   averageRating?: number | null;
   ratingCount?: number;
   images: ProblemImage[];
+  videos: ProblemVideo[];
   verifications?: ProblemVerification[];
 }
 

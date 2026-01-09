@@ -42,6 +42,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [previousProblemCount, setPreviousProblemCount] = useState<number>(initialProblems.length);
   const [newProblemDetected, setNewProblemDetected] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; mimeType: string } | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<{ url: string; mimeType: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [votedProblems, setVotedProblems] = useState<Set<number>>(new Set());
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
@@ -439,6 +440,54 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                               </div>
                             </div>
                           )}
+
+                          {/* Videos Display */}
+                          {problem.videos && problem.videos.length > 0 && (
+                            <div className="mb-2">
+                              <div className="flex gap-1.5 md:gap-2 mb-1">
+                                {problem.videos.slice(0, 2).map((video, idx) => (
+                                  <div key={idx} className="relative group">
+                                    <div className="w-16 h-16 md:w-20 md:h-20 bg-black rounded-lg border-2 border-[var(--ds-gray-200)] cursor-pointer hover:border-[var(--ds-blue-500)] transition-colors overflow-hidden">
+                                      <video
+                                        src={video.url}
+                                        className="w-full h-full object-cover"
+                                        muted
+                                        onMouseEnter={(e) => {
+                                          const videoElement = e.currentTarget;
+                                          videoElement.currentTime = 0;
+                                          videoElement.play().catch(() => {});
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.currentTarget.pause();
+                                        }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedVideo({ url: video.url, mimeType: video.mimeType });
+                                        }}
+                                      />
+                                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center pointer-events-none">
+                                        <svg className="w-5 h-5 md:w-6 md:h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {problem.videos.length > 2 && (
+                                  <div className="w-16 h-16 md:w-20 md:h-20 bg-[var(--ds-gray-100)] rounded-lg border-2 border-[var(--ds-gray-200)] flex flex-col items-center justify-center text-xs text-[var(--ds-gray-600)]">
+                                    <span className="font-semibold text-xs md:text-sm">+{problem.videos.length - 2}</span>
+                                    <span className="text-[10px] md:text-xs">more</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-[var(--ds-gray-500)]">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+                                </svg>
+                                <span>{problem.videos.length} video{problem.videos.length > 1 ? 's' : ''} attached</span>
+                              </div>
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 md:gap-4 flex-wrap">
                             <span className="geist-text-mono text-[var(--ds-gray-600)] text-xs hidden sm:inline">
                               {problem.title}
@@ -666,6 +715,51 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               <a
                 href={selectedImage.url}
                 download="problem-image"
+                className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-white rounded-full p-1.5 md:p-2 shadow-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </a>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Video Modal */}
+      <AnimatePresence>
+        {selectedVideo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4"
+            onClick={() => setSelectedVideo(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-4xl max-h-[90vh] w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <video
+                src={selectedVideo.url}
+                controls
+                autoPlay
+                className="w-full h-full max-h-[90vh] object-contain rounded-lg"
+              />
+              <button
+                onClick={() => setSelectedVideo(null)}
+                className="absolute top-2 md:top-4 right-2 md:right-4 bg-white rounded-full p-1.5 md:p-2 shadow-lg hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <a
+                href={selectedVideo.url}
+                download="problem-video"
                 className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-white rounded-full p-1.5 md:p-2 shadow-lg hover:bg-gray-100 transition-colors"
               >
                 <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">

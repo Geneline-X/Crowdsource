@@ -6,7 +6,10 @@ import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import path from "path";
 import ministryRoutes from "./routes/ministry";
+import videoRoutes from "./routes/videos";
 import { transcribeAudio, isAudioMimeType } from "./services/audio-transcription";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
 
 const app = express();
 // Increased limit to 10MB to handle base64-encoded images from WhatsApp
@@ -67,6 +70,59 @@ function isBinaryOrBase64(str: string): boolean {
   return nonPrintable / str.length > 0.3;
 }
 
+// Helper to detect video MIME types
+function isVideoMimeType(mimeType: string): boolean {
+  const videoTypes = [
+    'video/mp4',
+    'video/webm', 
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/3gpp',
+    'video/x-matroska'
+  ];
+  return videoTypes.includes(mimeType);
+}
+
+// Helper to save video from WhatsApp
+async function saveWhatsAppVideo(mediaData: any, phone: string): Promise<{ filename: string; videoId: string } | null> {
+  try {
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 9);
+    const videoId = `${timestamp}-${randomString}`;
+    const extension = mediaData.filename?.split('.').pop() || 'mp4';
+    const filename = `${timestamp}-${randomString}.${extension}`;
+    
+    // Create uploads directory if it doesn't exist
+    const uploadsDir = join(process.cwd(), 'uploads', 'videos');
+    await mkdir(uploadsDir, { recursive: true });
+    
+    // Save video file
+    const filepath = join(uploadsDir, filename);
+    const buffer = Buffer.from(mediaData.data, 'base64');
+    await writeFile(filepath, buffer);
+    
+    // Save to database
+    const prisma = new PrismaClient();
+    const video = await prisma.video.create({
+      data: {
+        id: videoId,
+        filename: filename,
+        originalName: mediaData.filename || `whatsapp-video-${phone}`,
+        mimeType: mediaData.mimetype,
+        size: mediaData.size,
+        url: `/uploads/videos/${filename}`,
+        uploadedAt: new Date()
+      }
+    });
+    
+    logger.info({ phone, filename, videoId, size: mediaData.size }, 'WhatsApp video saved successfully');
+    return { filename, videoId };
+  } catch (error) {
+    logger.error({ error, phone }, 'Failed to save WhatsApp video');
+    return null;
+  }
+}
+
 // Initialize agent
 (async () => {
   try {
@@ -101,6 +157,9 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Ministry dashboard routes
 app.use("/api/ministry", ministryRoutes);
+
+// Video routes
+app.use("/api/videos", videoRoutes);
 
 // Health check
 app.get("/health", (req: Request, res: Response) => {
@@ -293,8 +352,50 @@ app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response)
               status: "success",
             }) as any;
           }
+        } else if (isVideoMimeType(media.mimetype)) {
+          // Handle video messages
+          logger.info(
+            { phone, mimeType: media.mimetype, messageType },
+            "Video message received, saving..."
+          );
+          
+          try {
+            const videoResult = await saveWhatsAppVideo(media, phone);
+            if (videoResult) {
+              processedMessage = `[User sent a video: ${media.filename || 'video.mp4'}]`;
+              logger.info(
+                { phone, filename: videoResult.filename, videoId: videoResult.videoId },
+                "Video saved successfully"
+              );
+              
+              // Add video context to media context for agent processing
+              mediaContext = {
+                hasMedia: true,
+                mimeType: media.mimetype,
+                data: media.data,
+                filename: media.filename,
+                size: media.size,
+                videoId: videoResult.videoId // Add video ID for linking to problems
+              };
+            } else {
+              logger.warn({ phone }, "Failed to save video");
+              return res.json({
+                answer: "I received your video but couldn't save it. Please try again.",
+                status: "success",
+              }) as any;
+            }
+          } catch (videoError: any) {
+            logger.error(
+              { error: videoError.message, phone },
+              "Failed to process video"
+            );
+            return res.json({
+              answer: "I received your video but couldn't process it. Please try sending it again.",
+              status: "success",
+            }) as any;
+          }
         } else {
-          // Non-audio media (images, etc.)
+          // Non-audio, non-video media (images, etc.)
           mediaContext = {
             hasMedia: true,
             mimeType: media.mimetype,

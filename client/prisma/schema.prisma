@@ -41,6 +41,7 @@ model Problem {
   upvotes         ProblemUpvote[]
   images          ProblemImage[]
   media           Media[]
+  videos          Video[]
   verifications   ProblemVerification[]
   responses       ProblemResponse[]
   ratings         ResolutionRating[]
@@ -82,6 +83,21 @@ model Media {
   problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@map("media")
+}
+
+model Video {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String   @map("original_name")
+  mimeType     String   @map("mime_type")
+  size         Int
+  url          String
+  uploadedAt   DateTime @default(now()) @map("uploaded_at")
+  problemId    Int?     @map("problem_id")
+  
+  problem      Problem? @relation(fields: [problemId], references: [id], onDelete: SetNull)
+
+  @@map("videos")
 }
 
 model ProblemVerification {
