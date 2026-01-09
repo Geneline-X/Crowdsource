@@ -1,4 +1,4 @@
-
+import { Problem } from "@/lib/types";
 interface MapStatsProps {
   problems: Problem[];
 }
