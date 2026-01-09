@@ -463,6 +463,12 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
       
       console.log(`[message] Extracted text (${text.length} chars): ${text.substring(0, 200)}`);
       
+      // Handle duplicate message detection - agent may return status: "duplicate" when the same message was already processed
+      if (data && data.status === 'duplicate') {
+        console.log(`[message] Duplicate message detected by agent, skipping response`);
+        return; // Don't send any response for duplicate messages
+      }
+      
       if (!text || !text.trim()) {
         console.warn(`[message] Empty or whitespace-only response from API. Full data:`, JSON.stringify(data));
       }

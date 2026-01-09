@@ -191,8 +191,7 @@ app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response)
         logger.info({ phone, messageHash }, "Duplicate message detected, skipping");
         return res.json({
           answer: null,
-          status: "duplicate",
-          message: "Message already processed"
+          status: "duplicate"
         }) as any;
       }
       
