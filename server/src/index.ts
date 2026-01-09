@@ -6,6 +6,7 @@ import { PrismaClient } from "@prisma/client";
 import cors from "cors";
 import path from "path";
 import ministryRoutes from "./routes/ministry";
+import aiRoutes from "./routes/ai-routes";
 import { transcribeAudio, isAudioMimeType } from "./services/audio-transcription";
 
 const app = express();
@@ -101,6 +102,9 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Ministry dashboard routes
 app.use("/api/ministry", ministryRoutes);
+
+// AI categorization routes
+app.use("/api", aiRoutes);
 
 // Health check
 app.get("/health", (req: Request, res: Response) => {

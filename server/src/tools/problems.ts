@@ -1,10 +1,15 @@
+
 import { logger } from "../logger";
+import { config } from "../config";
 import { locationValidator } from "../location-validator";
 import type { ToolDefinition, ToolHandler } from "./types";
 import fs from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { uploadToUploadThing } from "../services/uploadthing-service";
+import { analyzeImage, type ImageAnalysisResult } from "../services/vision-ai-service";
+import { findSimilarProblems, generateEmbedding } from "../services/duplicate-detection-service";
+import { updateProblemSeverity } from "../services/severity-scoring-service";
 
 type NationalCategory =
   | "Water & Sanitation"
@@ -430,6 +435,95 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
 
     logger.info({ problemId: problem.id, phone: currentUserPhone, locationVerified }, "Problem reported successfully");
 
+    // === AI ENHANCEMENT: Run analysis in background (non-blocking) ===
+    let aiAnalysisResult: ImageAnalysisResult | null = null;
+    let duplicateInfo: { found: boolean; similarProblems?: any[] } = { found: false };
+    let finalCategory = classification.category;
+    let finalMinistry = classification.ministry;
+
+    // 1. Image Analysis with Vision AI (if enabled and image present)
+    if (config.ai.enableVisionAnalysis && currentMediaContext?.hasMedia && currentMediaContext.data) {
+      try {
+        logger.info({ problemId: problem.id }, "Starting Vision AI analysis");
+        aiAnalysisResult = await analyzeImage(currentMediaContext.data, currentMediaContext.mimeType);
+        
+        if (aiAnalysisResult.success && aiAnalysisResult.category && aiAnalysisResult.confidence && aiAnalysisResult.confidence > 70) {
+          // Use AI category if confidence is high enough
+          finalCategory = aiAnalysisResult.category;
+          // Find matching ministry
+          const aiCategoryDef = NATIONAL_TAXONOMY.find(cat => cat.name === aiAnalysisResult!.category);
+          if (aiCategoryDef) {
+            finalMinistry = aiCategoryDef.ministry;
+          }
+          
+          // Update problem with AI analysis
+          await prisma.problem.update({
+            where: { id: problem.id },
+            data: {
+              aiCategory: aiAnalysisResult.category,
+              aiCategoryConfidence: aiAnalysisResult.confidence,
+              imageAnalysis: aiAnalysisResult as any,
+              nationalCategory: finalCategory,
+              recommendedOffice: finalMinistry,
+            },
+          });
+          
+          logger.info(
+            { problemId: problem.id, aiCategory: aiAnalysisResult.category, confidence: aiAnalysisResult.confidence },
+            "Vision AI analysis completed and saved"
+          );
+        }
+      } catch (error) {
+        logger.error({ error, problemId: problem.id }, "Vision AI analysis failed (non-blocking)");
+      }
+    }
+
+    // 2. Duplicate Detection (if enabled)
+    if (config.ai.enableDuplicateDetection) {
+      try {
+        logger.info({ problemId: problem.id }, "Starting duplicate detection");
+        
+        // Generate and store embedding for this problem
+        const textForEmbedding = `${title} ${description} ${locationText || ""}`;
+        const embedding = await generateEmbedding(textForEmbedding);
+        
+        // Store embedding
+        await prisma.problem.update({
+          where: { id: problem.id },
+          data: { embedding },
+        });
+        
+        // Check for similar problems
+        const similarProblems = await findSimilarProblems(
+          prisma,
+          textForEmbedding,
+          problem.id,
+          config.ai.similarityThreshold
+        );
+        
+        if (similarProblems.hasPotentialDuplicates) {
+          duplicateInfo = {
+            found: true,
+            similarProblems: similarProblems.duplicates,
+          };
+          logger.info(
+            { problemId: problem.id, similarCount: similarProblems.duplicates.length },
+            "Potential duplicates found"
+          );
+        }
+      } catch (error) {
+        logger.error({ error, problemId: problem.id }, "Duplicate detection failed (non-blocking)");
+      }
+    }
+
+    // 3. Calculate initial severity score
+    try {
+      await updateProblemSeverity(prisma, problem.id);
+    } catch (error) {
+      logger.error({ error, problemId: problem.id }, "Severity calculation failed (non-blocking)");
+    }
+
+    // Build response message
     let message = `Problem reported successfully! Problem number: ${problem.id}.`;
     
     if (locationText) {
@@ -440,20 +534,47 @@ export const reportProblemHandler: ToolHandler = async (args, context) => {
         message += ` (${validationDetails})`;
       }
     }
-    message += `\n\nCategory: ${classification.category}`;
-    message += `\nRecommended office: ${classification.ministry}`;
+    message += `\n\nCategory: ${finalCategory}`;
+    message += `\nRecommended office: ${finalMinistry}`;
 
-    message += "\n\nShare this number with neighbors so they can upvote.";
+    // Add AI insights if available
+    if (aiAnalysisResult?.success && aiAnalysisResult.severity) {
+      message += `\n\n🤖 *AI Analysis:*`;
+      message += `\n• Severity: ${aiAnalysisResult.severity.level.toUpperCase()}`;
+      if (aiAnalysisResult.description) {
+        message += `\n• ${aiAnalysisResult.description}`;
+      }
+    }
+
+    // Add duplicate warning if found
+    if (duplicateInfo.found && duplicateInfo.similarProblems && duplicateInfo.similarProblems.length > 0) {
+      const topDuplicate = duplicateInfo.similarProblems[0];
+      message += `\n\n⚠️ *Similar problem found:*`;
+      message += `\nProblem #${topDuplicate.id}: ${topDuplicate.title}`;
+      message += `\n(${Math.round(topDuplicate.similarity * 100)}% similar)`;
+      message += `\nConsider upvoting that one instead!`;
+    }
+
+    // Add shareable URL
+    const shareUrl = `${config.webAppUrl}?problem=${problem.id}`;
+    message += `\n\n🔗 *Share this problem:* ${shareUrl}`;
+    message += "\n\nShare this link with neighbors so they can view and upvote.";
 
     return {
       success: true,
       problemId: problem.id,
       title: problem.title,
       location: problem.locationText,
-      nationalCategory: classification.category,
-      recommendedOffice: classification.ministry,
+      nationalCategory: finalCategory,
+      recommendedOffice: finalMinistry,
       coordinates: latitude && longitude ? { latitude, longitude } : undefined,
       locationVerified,
+      aiAnalysis: aiAnalysisResult?.success ? {
+        category: aiAnalysisResult.category,
+        confidence: aiAnalysisResult.confidence,
+        severity: aiAnalysisResult.severity,
+      } : undefined,
+      duplicates: duplicateInfo.found ? duplicateInfo.similarProblems : undefined,
       message,
     };
   } catch (error: any) {
@@ -540,6 +661,13 @@ export const upvoteProblemHandler: ToolHandler = async (args, context) => {
         upvoteCount: result.problem.upvoteCount,
         message: `You already upvoted problem ${result.problem.id}: ${result.problem.title}. Current upvotes: ${result.problem.upvoteCount}.`,
       };
+    }
+
+    // Recalculate severity score after upvote
+    try {
+      await updateProblemSeverity(prisma, problemId);
+    } catch (error) {
+      logger.error({ error, problemId }, "Failed to update severity after upvote (non-blocking)");
     }
 
     logger.info({ problemId, upvoteCount: result.problem.upvoteCount }, "Upvote recorded");
