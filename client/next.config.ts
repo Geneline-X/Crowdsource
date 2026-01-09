@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
+import withSerwistInit from "@serwist/next";
+
+// Suppress Serwist warning about Turbopack support
+process.env.SERWIST_SUPPRESS_TURBOPACK_WARNING = "1";
+
+const withSerwist = withSerwistInit({
+  swSrc: "app/sw.ts",
+  swDest: "public/sw.js",
+  disable: process.env.NODE_ENV === "development",
+});
 
 const nextConfig: NextConfig = {
+  // Empty turbopack config to silence Next.js 16 warning about webpack + turbopack
+  turbopack: {},
   images: {
     // Enable modern image formats for better compression
     formats: ["image/avif", "image/webp"],
@@ -43,4 +55,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSerwist(nextConfig);
