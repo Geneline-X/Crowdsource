@@ -5,10 +5,34 @@ export async function GET() {
   try {
     const problems = await prisma.problem.findMany({
       orderBy: { upvoteCount: "desc" },
-      include: {
-        _count: {
-          select: { upvotes: true },
-        },
+      select: {
+        id: true,
+        reporterPhone: true,
+        rawMessage: true,
+        title: true,
+        locationText: true,
+        latitude: true,
+        longitude: true,
+        locationVerified: true,
+        locationSource: true,
+        nationalCategory: true,
+        recommendedOffice: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+        upvoteCount: true,
+        verificationCount: true,
+        resolvedBy: true,
+        resolvedAt: true,
+        resolutionProof: true,
+        resolutionNotes: true,
+        averageRating: true,
+        ratingCount: true,
+        // AI Categorization fields
+        aiCategory: true,
+        aiCategoryConfidence: true,
+        severityScore: true,
+        severityLastUpdated: true,
         images: {
           select: {
             id: true,
