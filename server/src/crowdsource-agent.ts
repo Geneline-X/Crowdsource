@@ -309,6 +309,8 @@ SECURITY:
 
     if (existing) {
       existing.lastActivity = new Date();
+      // Sanitize to fix any corrupted state from previous errors
+      this.sanitizeMessageHistory(existing.messages);
       logger.info({ phoneE164, messageCount: existing.messages.length }, "Reusing existing conversation");
       return existing.messages;
     }
@@ -322,6 +324,71 @@ SECURITY:
 
     logger.info({ phoneE164 }, "Created new conversation for user");
     return messages;
+  }
+
+  /**
+   * Sanitize message history to ensure all tool_calls have corresponding tool responses.
+   * This fixes the error: "An assistant message with 'tool_calls' must be followed by tool messages"
+   */
+  private sanitizeMessageHistory(messages: ChatCompletionMessageParam[]): void {
+    const indicesToRemove: number[] = [];
+
+    for (let i = 0; i < messages.length; i++) {
+      const message = messages[i];
+      
+      // Check if this is an assistant message with tool_calls
+      if (message.role === 'assistant' && 'tool_calls' in message && message.tool_calls && message.tool_calls.length > 0) {
+        const toolCallIds = new Set(message.tool_calls.map(tc => tc.id));
+        const respondedToolCallIds = new Set<string>();
+
+        // Look at the following messages for tool responses
+        for (let j = i + 1; j < messages.length; j++) {
+          const nextMessage = messages[j];
+          // Check if it's a tool response message
+          if ('tool_call_id' in nextMessage) {
+            respondedToolCallIds.add(nextMessage.tool_call_id);
+          } else {
+            // Stop looking once we hit a non-tool message
+            break;
+          }
+        }
+
+        // Check if all tool calls have responses
+        const missingResponses = [...toolCallIds].filter(id => !respondedToolCallIds.has(id));
+        
+        if (missingResponses.length > 0) {
+          logger.warn(
+            { 
+              missingToolCallIds: missingResponses, 
+              messageIndex: i,
+              totalToolCalls: toolCallIds.size,
+              respondedCount: respondedToolCallIds.size
+            }, 
+            "Found assistant message with orphaned tool_calls, marking for removal"
+          );
+
+          // Mark the assistant message and any partial tool responses for removal
+          indicesToRemove.push(i);
+          for (let j = i + 1; j < messages.length; j++) {
+            const nextMessage = messages[j];
+            if ('tool_call_id' in nextMessage && nextMessage.role === 'tool') {
+              indicesToRemove.push(j);
+            } else {
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // Remove marked messages in reverse order to preserve indices
+    if (indicesToRemove.length > 0) {
+      const uniqueIndices = [...new Set(indicesToRemove)].sort((a, b) => b - a);
+      for (const idx of uniqueIndices) {
+        messages.splice(idx, 1);
+      }
+      logger.info({ removedCount: uniqueIndices.length }, "Removed orphaned tool_calls messages from history");
+    }
   }
 
   private async sendWhatsAppMessage(phoneE164: string, message: string): Promise<void> {

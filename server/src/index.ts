@@ -18,6 +18,37 @@ app.use(cors({
 
 let agent: CrowdsourceAgent;
 
+// Message deduplication cache - stores message hashes with timestamps
+const processedMessages = new Map<string, number>();
+const MESSAGE_DEDUP_WINDOW_MS = 10000; // 10 seconds window
+
+// Generate a simple hash for message deduplication
+function generateMessageHash(phone: string, message: string, timestamp?: number): string {
+  // Combine phone + message content for deduplication
+  // If no timestamp, use message content only to catch very close duplicates
+  const content = `${phone}:${message}`;
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return hash.toString();
+}
+
+// Clean up old entries from the deduplication cache
+function cleanupDeduplicationCache(): void {
+  const now = Date.now();
+  for (const [hash, timestamp] of processedMessages.entries()) {
+    if (now - timestamp > MESSAGE_DEDUP_WINDOW_MS) {
+      processedMessages.delete(hash);
+    }
+  }
+}
+
+// Run cleanup every 30 seconds
+setInterval(cleanupDeduplicationCache, 30000);
+
 // Helper to detect if string is base64 or binary data
 function isBinaryOrBase64(str: string): boolean {
   if (!str || str.length < 50) return false;
@@ -151,6 +182,22 @@ app.post("/webhook/whatsapp", requireApiKey, async (req: Request, res: Response)
       if (!phone) {
         return res.status(400).json({ error: "Phone number required" }) as any;
       }
+
+      // Deduplication check - prevent processing the same message twice
+      const messageContent = message || (messageType === "location" ? `location:${location?.latitude}:${location?.longitude}` : "");
+      const messageHash = generateMessageHash(phone, messageContent);
+      
+      if (processedMessages.has(messageHash)) {
+        logger.info({ phone, messageHash }, "Duplicate message detected, skipping");
+        return res.json({
+          answer: null,
+          status: "duplicate",
+          message: "Message already processed"
+        }) as any;
+      }
+      
+      // Mark message as being processed
+      processedMessages.set(messageHash, Date.now());
 
       // Handle location shares from WhatsApp
       let locationContext;
