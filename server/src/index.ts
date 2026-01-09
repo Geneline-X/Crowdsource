@@ -7,6 +7,7 @@ import cors from "cors";
 import path from "path";
 import ministryRoutes from "./routes/ministry";
 import aiRoutes from "./routes/ai-routes";
+import geoRoutes from "./routes/geo-routes";
 import { transcribeAudio, isAudioMimeType } from "./services/audio-transcription";
 
 const app = express();
@@ -105,6 +106,9 @@ app.use("/api/ministry", ministryRoutes);
 
 // AI categorization routes
 app.use("/api", aiRoutes);
+
+// Geographic features routes
+app.use("/api/geo", geoRoutes);
 
 // Health check
 app.get("/health", (req: Request, res: Response) => {
