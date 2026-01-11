@@ -4,7 +4,22 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ShieldCheck, HandHelping, AlertTriangle, Bot } from "lucide-react";
+import { 
+  Search, 
+  ShieldCheck, 
+  HandHelping, 
+  AlertTriangle, 
+  Bot, 
+  MapPin,
+  ChevronUp,
+  Clock,
+  Eye,
+  Maximize2,
+  X,
+  Download,
+  Filter,
+  Activity
+} from "lucide-react";
 
 import { Problem } from "@/lib/types";
 import { MapView } from "@/app/components/map-view";
@@ -14,11 +29,11 @@ import { OfferHelpModal } from "@/app/components/offer-help-modal";
 import { ResolutionProofModal } from "@/app/components/resolution-proof-modal";
 import { cn } from "@/lib/utils";
 
-const CATEGORY_MAP: Record<string, { label: string; badge: string; dot: string }> = {
-  infrastructure: { label: "Infrastructure", badge: "geist-badge-blue", dot: "geist-status-dot-blue" },
-  sanitation: { label: "Sanitation", badge: "geist-badge-green", dot: "geist-status-dot-green" },
-  safety: { label: "Safety", badge: "geist-badge-red", dot: "geist-status-dot-red" },
-  default: { label: "General", badge: "geist-badge-gray", dot: "geist-status-dot-amber" },
+const CATEGORY_MAP: Record<string, { label: string; gradient: string; }> = {
+  infrastructure: { label: "Infrastructure", gradient: "from-blue-500 to-cyan-500" },
+  sanitation: { label: "Sanitation", gradient: "from-emerald-500 to-green-500" },
+  safety: { label: "Safety", gradient: "from-red-500 to-rose-500" },
+  default: { label: "General", gradient: "from-gray-500 to-gray-600" },
 };
 
 function getCategoryConfig(locationSource: string | null) {
@@ -26,16 +41,15 @@ function getCategoryConfig(locationSource: string | null) {
   return CATEGORY_MAP[locationSource] || CATEGORY_MAP.default;
 }
 
-// Severity badge config based on score (0-100)
-function getSeverityConfig(score: number | undefined): { level: string; color: string; bgColor: string } {
+function getSeverityConfig(score: number | undefined): { level: string; color: string; bgColor: string; borderColor: string } {
   if (!score || score < 25) {
-    return { level: "Low", color: "text-green-600", bgColor: "bg-green-100" };
+    return { level: "Low", color: "text-emerald-400", bgColor: "bg-emerald-500/10", borderColor: "border-emerald-500/20" };
   } else if (score < 50) {
-    return { level: "Medium", color: "text-blue-600", bgColor: "bg-blue-100" };
+    return { level: "Medium", color: "text-blue-400", bgColor: "bg-blue-500/10", borderColor: "border-blue-500/20" };
   } else if (score < 75) {
-    return { level: "High", color: "text-orange-600", bgColor: "bg-orange-100" };
+    return { level: "High", color: "text-amber-400", bgColor: "bg-amber-500/10", borderColor: "border-amber-500/20" };
   } else {
-    return { level: "Critical", color: "text-red-600", bgColor: "bg-red-100" };
+    return { level: "Critical", color: "text-red-400", bgColor: "bg-red-500/10", borderColor: "border-red-500/20" };
   }
 }
 
@@ -51,7 +65,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<"all" | "verified" | "pending">("all");
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [previousProblemCount, setPreviousProblemCount] = useState<number>(initialProblems.length);
   const [newProblemDetected, setNewProblemDetected] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; mimeType: string } | null>(null);
@@ -66,17 +80,14 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const voterIdRef = useRef<string>("");
 
-  // Auto-select problem from URL query parameter (?problem=ID)
   useEffect(() => {
     const problemIdParam = searchParams.get("problem");
     if (problemIdParam) {
       const problemId = parseInt(problemIdParam, 10);
       if (!isNaN(problemId)) {
-        // Find the problem in the list
         const problem = initialProblems.find(p => p.id === problemId);
         if (problem) {
           setSelectedId(problemId);
-          // Scroll to the problem after a short delay to ensure DOM is ready
           setTimeout(() => {
             const element = document.querySelector(`[data-problem-id="${problemId}"]`);
             if (element) {
@@ -88,14 +99,12 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
     }
   }, [searchParams, initialProblems]);
 
-  // Generate a hashed voter ID for this session
   useEffect(() => {
     const initVoterId = async () => {
       const storedVoterId = localStorage.getItem("crowdsource_vid");
       if (storedVoterId) {
         voterIdRef.current = storedVoterId;
       } else {
-        // Generate unique fingerprint and hash it
         const fingerprint = `${navigator.userAgent}_${screen.width}x${screen.height}_${new Date().getTimezoneOffset()}_${Date.now()}`;
         const encoder = new TextEncoder();
         const data = encoder.encode(fingerprint);
@@ -133,6 +142,11 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
     }
   }, [previousProblemCount]);
 
+  // Set initial lastUpdated on mount (hydration-safe)
+  useEffect(() => {
+    setLastUpdated(new Date());
+  }, []);
+
   useEffect(() => {
     pollingRef.current = setInterval(() => {
       fetchProblems();
@@ -146,7 +160,6 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   }, [fetchProblems]);
 
   const handleVote = useCallback(async (id: number) => {
-    // Prevent double voting on same problem
     if (votedProblems.has(id)) {
       return;
     }
@@ -162,7 +175,6 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
         setVotedProblems(prev => new Set(prev).add(id));
         fetchProblems();
       } else if (response.status === 409) {
-        // Already voted - track it locally
         setVotedProblems(prev => new Set(prev).add(id));
       }
     } catch (err) {
@@ -202,15 +214,17 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const pendingCount = problems.filter((p) => !p.locationVerified).length;
   
   const maxVotes = Math.max(...problems.map((p) => p.upvoteCount), 1);
-  const totalVotes = problems.reduce((s, p) => s + p.upvoteCount, 0);
   const selectedProblem = selectedId ? problems.find((p) => p.id === selectedId) : null;
 
   if (error) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <div className="geist-card p-8 text-center max-w-md">
-          <p className="geist-text-subtitle mb-2">Failed to load</p>
-          <p className="geist-text-small">{error}</p>
+        <div className="geist-card-glass p-8 text-center max-w-md">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-6 h-6 text-red-400" />
+          </div>
+          <p className="text-lg font-semibold text-white mb-2">Failed to load</p>
+          <p className="text-sm text-gray-500">{error}</p>
         </div>
       </div>
     );
@@ -222,49 +236,45 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
       <AnimatePresence>
         {newProblemDetected && (
           <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2"
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50"
           >
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            <span className="font-medium">New problem reported!</span>
+            <div className="px-5 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30 flex items-center gap-3">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+              <span className="font-medium text-sm">New problem reported!</span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-4 md:mb-8">
-        {[
-          { label: "Active Issues", value: problems.length },
-          { label: "Total Votes", value: totalVotes },
-          { label: "With Location", value: problems.filter((p) => p.latitude && p.longitude).length },
-        ].map((stat) => (
-          <div key={stat.label} className="geist-card p-3 md:p-4">
-            <p className="geist-text-label mb-1 text-xs md:text-sm">{stat.label}</p>
-            <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{stat.value}</p>
+      {/* Immersive Full-Height Layout */}
+      <div className="h-full flex flex-col lg:flex-row">
+        {/* Left Panel - Problems List (Full width on mobile) */}
+        <div className="w-full lg:w-[480px] xl:w-[520px] shrink-0 h-full flex flex-col border-r border-white/[0.06] bg-black lg:bg-black/80 lg:backdrop-blur-xl z-10">
+          {/* Compact Header with Submit */}
+          <div className="shrink-0 p-4 border-b border-white/[0.06]">
+            <SubmitProblemForm onSuccess={fetchProblems} />
           </div>
-        ))}
-      </div>
 
-      <hr className="geist-divider mb-4 md:mb-8" />
-
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
-        <div className="lg:col-span-3 order-2 lg:order-1">
-          <div className="flex flex-col gap-3 mb-3 md:mb-4">
+          {/* Search and Filters */}
+          <div className="shrink-0 p-4 space-y-3 border-b border-white/[0.06]">
+            {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--ds-gray-500)]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
                 type="text"
                 placeholder="Search problems..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="geist-input pl-9 w-full"
+                className="geist-input pl-10 h-10 w-full text-sm"
               />
             </div>
             
+            {/* Filter Tabs */}
             <div className="flex items-center justify-between">
-              <div className="flex gap-1 overflow-x-auto">
+              <div className="flex p-0.5 bg-white/[0.03] rounded-lg border border-white/[0.06]">
                 {[
                   { key: "all", label: "All", count: problems.length },
                   { key: "verified", label: "Verified", count: verifiedCount },
@@ -274,253 +284,205 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                     key={tab.key}
                     onClick={() => setActiveFilter(tab.key as typeof activeFilter)}
                     className={cn(
-                      "px-2 md:px-3 py-1 md:py-1.5 text-xs md:text-sm font-medium rounded-md transition-colors whitespace-nowrap",
+                      "px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
                       activeFilter === tab.key
-                        ? "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]"
-                        : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-100)]"
+                        ? "bg-white text-black shadow-sm"
+                        : "text-gray-500 hover:text-white"
                     )}
                   >
                     {tab.label}
-                    <span className="ml-1 md:ml-1.5 text-xs opacity-60">{tab.count}</span>
+                    <span className={cn(
+                      "ml-1.5",
+                      activeFilter === tab.key ? "text-gray-600" : "text-gray-600"
+                    )}>
+                      {tab.count}
+                    </span>
                   </button>
                 ))}
               </div>
-              <p className="geist-text-small text-xs md:text-sm whitespace-nowrap ml-2">{filteredProblems.length} shown</p>
+              
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <Activity className="w-3 h-3" />
+                <span>{filteredProblems.length}</span>
+              </div>
             </div>
           </div>
 
-          <div className="geist-card overflow-hidden">
+          {/* Problems List - Scrollable */}
+          <div className="flex-1 overflow-y-auto">
             {filteredProblems.length === 0 ? (
-              <div className="p-4 md:p-8 text-center">
-                <p className="geist-text-body text-sm md:text-base">No problems found</p>
+              <div className="h-full flex items-center justify-center p-8">
+                <div className="text-center">
+                  <Filter className="w-10 h-10 text-gray-700 mx-auto mb-3" />
+                  <p className="text-gray-400 font-medium">No problems found</p>
+                  <p className="text-sm text-gray-600 mt-1">Try adjusting your filters</p>
+                </div>
               </div>
             ) : (
-              <div className="h-[600px] overflow-y-auto pr-1">
-                <AnimatePresence mode="popLayout">
-                  {filteredProblems.map((problem, index) => {
-                    const category = getCategoryConfig(problem.locationSource);
-                    const hasLocation = problem.latitude !== null && problem.longitude !== null;
-                    const isSelected = selectedId === problem.id;
+              <AnimatePresence mode="popLayout">
+                {filteredProblems.map((problem, index) => {
+                  const category = getCategoryConfig(problem.locationSource);
+                  const hasLocation = problem.latitude !== null && problem.longitude !== null;
+                  const isSelected = selectedId === problem.id;
+                  const hasVoted = votedProblems.has(problem.id);
 
-                    return (
-                      <motion.div
-                        key={problem.id}
-                        data-problem-id={problem.id}
-                        layout
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2, delay: index * 0.03 }}
-                        onClick={() => {
-                          if (hasLocation) {
-                            handleSelectProblem(problem.id);
-                          } else if (problem.images && problem.images.length > 0) {
-                            setSelectedImage({ url: problem.images[0].url, mimeType: problem.images[0].mimeType });
-                          }
-                        }}
-                        className={cn(
-                          "geist-entity gap-2 md:gap-3 p-3 md:p-4 border-b border-[var(--ds-gray-200)] last:border-0",
-                          (hasLocation || (problem.images && problem.images.length > 0)) && "cursor-pointer",
-                          isSelected && "bg-[var(--ds-blue-100)] border-l-2 border-l-[var(--ds-blue-500)]"
-                        )}
-                      >
+                  return (
+                    <motion.div
+                      key={problem.id}
+                      data-problem-id={problem.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.2, delay: index * 0.02 }}
+                      onClick={() => {
+                        if (hasLocation) {
+                          handleSelectProblem(problem.id);
+                        } else if (problem.images && problem.images.length > 0) {
+                          setSelectedImage({ url: problem.images[0].url, mimeType: problem.images[0].mimeType });
+                        }
+                      }}
+                      className={cn(
+                        "group p-4 border-b border-white/[0.04] transition-all duration-200",
+                        (hasLocation || (problem.images && problem.images.length > 0)) && "cursor-pointer hover:bg-white/[0.02]",
+                        isSelected && "bg-blue-500/10 border-l-2 border-l-blue-500"
+                      )}
+                    >
+                      <div className="flex gap-3">
+                        {/* Vote Button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleVote(problem.id);
                           }}
-                          disabled={votedProblems.has(problem.id)}
+                          disabled={hasVoted}
                           className={cn(
-                            "geist-vote shrink-0 px-2 md:px-3 py-1 md:py-2",
-                            votedProblems.has(problem.id) && "opacity-60 cursor-not-allowed"
+                            "shrink-0 w-12 h-14 flex flex-col items-center justify-center gap-0.5 rounded-lg border transition-all duration-200",
+                            hasVoted 
+                              ? "bg-emerald-500/10 border-emerald-500/30 cursor-default" 
+                              : "bg-white/[0.02] border-white/[0.06] hover:bg-emerald-500/10 hover:border-emerald-500/30"
                           )}
                         >
-                          <div className={cn(
-                            "geist-vote-arrow",
-                            votedProblems.has(problem.id) && "text-green-500"
+                          <ChevronUp className={cn(
+                            "w-4 h-4 transition-colors",
+                            hasVoted ? "text-emerald-400" : "text-gray-500 group-hover:text-emerald-400"
                           )} />
-                          <span className="geist-vote-count text-sm md:text-base">{problem.upvoteCount}</span>
+                          <span className={cn(
+                            "text-base font-bold",
+                            hasVoted ? "text-emerald-400" : "text-white"
+                          )}>
+                            {problem.upvoteCount}
+                          </span>
                         </button>
 
+                        {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1 md:gap-2 mb-1">
-                            <div className={cn("geist-status-dot", category.dot)} />
-                            <h3 className="font-medium truncate text-sm md:text-base">{problem.title}</h3>
-                            {hasLocation && (
-                              <span className="text-[9px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded bg-[var(--ds-gray-200)] text-[var(--ds-gray-700)]">
-                                MAP
-                              </span>
-                            )}
+                          {/* Header */}
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <h3 className="font-medium text-sm text-white truncate">{problem.title}</h3>
+                              {hasLocation && (
+                                <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                                  <MapPin className="w-2.5 h-2.5 inline-block mr-0.5" />
+                                  MAP
+                                </span>
+                              )}
+                            </div>
+                            <span className="shrink-0 text-[10px] text-gray-600">
+                              {new Date(problem.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
                           </div>
-                          <p className="geist-text-small line-clamp-2 mb-2 text-xs md:text-sm">
+                          
+                          {/* Description */}
+                          <p className="text-xs text-gray-500 line-clamp-2 mb-2">
                             {problem.rawMessage}
                           </p>
                           
-                          {/* Timeline */}
-                          <div className="mb-3 p-2 bg-[var(--ds-gray-50)] rounded-md border border-[var(--ds-gray-200)]">
-                            <div className="flex items-start gap-2">
-                              <div className="flex flex-col items-center gap-1 pt-0.5">
-                                <div className="w-2 h-2 rounded-full bg-[var(--ds-blue-500)]" />
-                                {problem.verificationCount > 0 && (
-                                  <>
-                                    <div className="w-0.5 h-3 bg-[var(--ds-gray-300)]" />
-                                    <div className="w-2 h-2 rounded-full bg-[var(--ds-green-500)]" />
-                                  </>
-                                )}
-                                {problem.status === "RESOLVED" && problem.resolvedAt && (
-                                  <>
-                                    <div className="w-0.5 h-3 bg-[var(--ds-gray-300)]" />
-                                    <div className="w-2 h-2 rounded-full bg-[var(--ds-green-600)]" />
-                                  </>
-                                )}
-                              </div>
-                              <div className="flex-1 space-y-2 text-xs">
-                                <div>
-                                  <p className="font-medium text-[var(--ds-gray-900)]">Reported</p>
-                                  <p className="text-[var(--ds-gray-600)]">
-                                    {new Date(problem.createdAt).toLocaleDateString('en-US', { 
-                                      month: 'short', 
-                                      day: 'numeric',
-                                      year: 'numeric',
-                                      hour: '2-digit',
-                                      minute: '2-digit'
-                                    })}
-                                  </p>
-                                </div>
-                                {problem.verificationCount > 0 && (
-                                  <div>
-                                    <p className="font-medium text-[var(--ds-green-700)]">
-                                      {problem.verificationCount} {problem.verificationCount === 1 ? 'Verification' : 'Verifications'}
-                                    </p>
-                                    <p className="text-[var(--ds-gray-600)]">Community verified</p>
-                                  </div>
-                                )}
-                                {problem.status === "RESOLVED" && problem.resolvedAt && (
-                                  <div>
-                                    <p className="font-medium text-[var(--ds-green-700)]">Resolved</p>
-                                    <p className="text-[var(--ds-gray-600)]">
-                                      {new Date(problem.resolvedAt).toLocaleDateString('en-US', { 
-                                        month: 'short', 
-                                        day: 'numeric',
-                                        year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit'
-                                      })}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* AI Insights Section */}
+                          {/* AI Insights - Compact */}
                           {(problem.aiCategory || (problem.severityScore && problem.severityScore > 0)) && (
-                            <div className="mb-3 p-2 bg-purple-50 rounded-md border border-purple-200">
-                              <div className="flex items-center gap-1.5 mb-1.5">
-                                <Bot className="w-3.5 h-3.5 text-purple-600" />
-                                <p className="text-[10px] font-medium text-purple-700 uppercase tracking-wider">
-                                  AI Analysis
-                                </p>
+                            <div className="mb-2 p-2 rounded-lg bg-violet-500/5 border border-violet-500/10">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <Bot className="w-3 h-3 text-violet-400" />
+                                <span className="text-[10px] font-medium text-violet-400 uppercase tracking-wider">AI</span>
                               </div>
-                              <div className="space-y-1 text-xs">
+                              <div className="flex flex-wrap gap-2 text-[11px]">
                                 {problem.aiCategory && (
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[var(--ds-gray-600)]">Category:</span>
-                                    <span className="font-medium text-purple-700">{problem.aiCategory}</span>
-                                    {problem.aiCategoryConfidence && (
-                                      <span className="text-[10px] text-purple-500">
-                                        ({Math.round(problem.aiCategoryConfidence)}% confidence)
-                                      </span>
-                                    )}
-                                  </div>
+                                  <span className="text-gray-400">
+                                    <span className="text-violet-300 font-medium">{problem.aiCategory}</span>
+                                  </span>
                                 )}
                                 {problem.severityScore !== undefined && problem.severityScore > 0 && (() => {
                                   const severity = getSeverityConfig(problem.severityScore);
                                   return (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-[var(--ds-gray-600)]">Priority:</span>
-                                      <span className={cn("font-medium", severity.color)}>
-                                        {severity.level} ({Math.round(problem.severityScore)}/100)
-                                      </span>
-                                    </div>
+                                    <span className={cn("font-medium", severity.color)}>{severity.level}</span>
                                   );
                                 })()}
                               </div>
                             </div>
                           )}
 
+                          {/* Images */}
                           {problem.images && problem.images.length > 0 && (
-                            <div className="mb-2">
-                              <div className="flex gap-1.5 md:gap-2 mb-1">
-                                {problem.images.slice(0, 3).map((image, idx) => (
-                                  <div key={idx} className="relative group">
-                                    <Image
-                                      src={image.url}
-                                      alt="Problem image"
-                                      width={80}
-                                      height={80}
-                                      sizes="(max-width: 768px) 64px, 80px"
-                                      className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg border-2 border-[var(--ds-gray-200)] cursor-pointer hover:border-[var(--ds-blue-500)] transition-colors"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedImage({ url: image.url, mimeType: image.mimeType });
-                                      }}
-                                    />
-                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
-                                      <svg className="w-5 h-5 md:w-6 md:h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                                      </svg>
-                                    </div>
+                            <div className="flex gap-1.5 mb-2">
+                              {problem.images.slice(0, 3).map((image, idx) => (
+                                <div key={idx} className="relative group/img">
+                                  <Image
+                                    src={image.url}
+                                    alt="Problem"
+                                    width={48}
+                                    height={48}
+                                    className="w-12 h-12 object-cover rounded-md border border-white/[0.06] cursor-pointer transition-transform hover:scale-105"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedImage({ url: image.url, mimeType: image.mimeType });
+                                    }}
+                                  />
+                                  <div className="absolute inset-0 rounded-md bg-black/0 group-hover/img:bg-black/30 transition-colors flex items-center justify-center">
+                                    <Eye className="w-3 h-3 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
                                   </div>
-                                ))}
-                                {problem.images.length > 3 && (
-                                  <div className="w-16 h-16 md:w-20 md:h-20 bg-[var(--ds-gray-100)] rounded-lg border-2 border-[var(--ds-gray-200)] flex flex-col items-center justify-center text-xs text-[var(--ds-gray-600)]">
-                                    <span className="font-semibold text-xs md:text-sm">+{problem.images.length - 3}</span>
-                                    <span className="text-[10px] md:text-xs">more</span>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-[var(--ds-gray-500)]">
-                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                                </svg>
-                                <span>{problem.images.length} image{problem.images.length > 1 ? 's' : ''} attached</span>
-                              </div>
+                                </div>
+                              ))}
+                              {problem.images.length > 3 && (
+                                <div className="w-12 h-12 rounded-md bg-white/[0.03] border border-white/[0.06] flex flex-col items-center justify-center">
+                                  <span className="text-xs font-bold text-gray-400">+{problem.images.length - 3}</span>
+                                </div>
+                              )}
                             </div>
                           )}
-                          <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-                            <span className="geist-text-mono text-[var(--ds-gray-600)] text-xs hidden sm:inline">
-                              {problem.title}
-                            </span>
+
+                          {/* Badges & Actions */}
+                          <div className="flex flex-wrap items-center gap-1.5">
                             {problem.nationalCategory && (
-                              <span className="geist-badge geist-badge-blue text-[10px] md:text-xs">
-                                {problem.nationalCategory}
-                              </span>
+                              <span className="geist-badge geist-badge-blue text-[10px] h-5">{problem.nationalCategory}</span>
                             )}
-                            <span className={cn("geist-badge text-[10px] md:text-xs", category.badge)}>
+                            <span className={cn(
+                              "geist-badge text-[10px] h-5",
+                              problem.locationVerified ? "geist-badge-green" : "geist-badge-amber"
+                            )}>
                               {problem.locationVerified ? "Verified" : "Pending"}
                             </span>
-                            {/* Severity Badge */}
+                            
                             {problem.severityScore !== undefined && problem.severityScore > 0 && (() => {
                               const severity = getSeverityConfig(problem.severityScore);
                               return (
                                 <span className={cn(
-                                  "text-[10px] md:text-xs px-1.5 py-0.5 rounded flex items-center gap-1 font-medium",
-                                  severity.bgColor,
-                                  severity.color
+                                  "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium border",
+                                  severity.bgColor, severity.color, severity.borderColor
                                 )}>
-                                  <AlertTriangle className="w-3 h-3" />
+                                  <AlertTriangle className="w-2.5 h-2.5" />
                                   {severity.level}
                                 </span>
                               );
                             })()}
-                            {/* RESOLVED Badge */}
+
                             {problem.status === "RESOLVED" && (
-                              <span className="geist-badge geist-badge-green text-[10px] md:text-xs flex items-center gap-1">
+                              <span className="geist-badge geist-badge-green text-[10px] h-5 flex items-center gap-0.5">
+                                <ShieldCheck className="w-2.5 h-2.5" />
                                 RESOLVED
                               </span>
                             )}
-                            {/* Verify Button */}
+
+                            {/* Actions */}
                             {!problem.locationVerified && problem.status !== "RESOLVED" && (
                               <button
                                 onClick={(e) => {
@@ -528,13 +490,13 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                                   setVerifyProblemId(problem.id);
                                   setVerifyModalOpen(true);
                                 }}
-                                className="geist-button geist-button-secondary h-6 px-2 text-[10px] md:text-xs flex items-center gap-1"
+                                className="geist-button geist-button-secondary h-5 px-2 text-[10px]"
                               >
-                                <ShieldCheck className="w-3 h-3" />
+                                <ShieldCheck className="w-2.5 h-2.5" />
                                 Verify
                               </button>
                             )}
-                            {/* I can fix this Button - only show if not resolved */}
+                            
                             {problem.status !== "RESOLVED" && (
                               <button
                                 onClick={(e) => {
@@ -542,13 +504,13 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                                   setOfferHelpProblemId(problem.id);
                                   setOfferHelpModalOpen(true);
                                 }}
-                                className="geist-button geist-button-secondary h-6 px-2 text-[10px] md:text-xs flex items-center gap-1"
+                                className="geist-button geist-button-secondary h-5 px-2 text-[10px]"
                               >
-                                <HandHelping className="w-3 h-3" />
-                                I can fix this
+                                <HandHelping className="w-2.5 h-2.5" />
+                                Help
                               </button>
                             )}
-                            {/* View Resolution Button - only show if resolved */}
+
                             {problem.status === "RESOLVED" && problem.resolutionProof && problem.resolutionProof.length > 0 && (
                               <button
                                 onClick={(e) => {
@@ -556,100 +518,137 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                                   setSelectedResolutionProblem(problem);
                                   setResolutionProofModalOpen(true);
                                 }}
-                                className="geist-button geist-button-primary h-6 px-2 text-[10px] md:text-xs"
+                                className="geist-button-gradient h-5 px-2 text-[10px] rounded-md font-medium"
                               >
                                 View Resolution
                               </button>
                             )}
-                            {/* Verification count badge */}
-                            {problem.verificationCount > 0 && (
 
-                              <span className="text-[10px] text-[var(--ds-green-600)] flex items-center gap-0.5">
-                                <ShieldCheck className="w-3 h-3" />
+                            {problem.verificationCount > 0 && (
+                              <span className="flex items-center gap-0.5 text-[10px] text-emerald-400">
+                                <ShieldCheck className="w-2.5 h-2.5" />
                                 {problem.verificationCount}/3
                               </span>
                             )}
                           </div>
 
-                          {/* Verification Images */}
-                          {problem.verifications && problem.verifications.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-[var(--ds-gray-200)]">
-                              <p className="text-[10px] font-medium text-[var(--ds-gray-500)] mb-1.5 uppercase tracking-wider">
-                                Community Verifications
-                              </p>
-                              <div className="flex gap-1.5 md:gap-2 overflow-x-auto pb-1">
-                                {problem.verifications.flatMap(v => v.imageUrls).map((url, idx) => (
-                                  <div key={`ver-img-${idx}`} className="relative group shrink-0">
-                                    <Image
-                                      src={url}
-                                      alt="Verification evidence"
-                                      width={60}
-                                      height={60}
-                                      className="w-12 h-12 md:w-14 md:h-14 object-cover rounded-md border border-[var(--ds-gray-200)] cursor-pointer hover:border-[var(--ds-green-500)] transition-colors"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedImage({ url, mimeType: 'image/jpeg' });
-                                      }}
-                                    />
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                          <div className="geist-progress mt-3">
-                            <div
+                          {/* Progress */}
+                          <div className="geist-progress mt-3 h-0.5">
+                            <motion.div
                               className="geist-progress-bar"
-                              style={{ width: `${(problem.upvoteCount / maxVotes) * 100}%` }}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${(problem.upvoteCount / maxVotes) * 100}%` }}
+                              transition={{ duration: 0.5, delay: index * 0.05 }}
                             />
                           </div>
                         </div>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             )}
+          </div>
+
+          {/* Footer - Last Updated + Mobile Map Button */}
+          <div className="shrink-0 p-3 border-t border-white/[0.06]">
+            {/* Mobile Map Button */}
+            <button
+              onClick={() => setIsMapFullscreen(true)}
+              className="lg:hidden w-full mb-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium text-sm shadow-lg shadow-violet-500/30 flex items-center justify-center gap-2"
+            >
+              <MapPin className="w-4 h-4" />
+              View Map
+              <span className="text-xs opacity-75">({problems.filter(p => p.latitude && p.longitude).length} locations)</span>
+            </button>
+            
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-600">
+              <Clock className="w-3 h-3" />
+              <span>Updated {lastUpdated ? lastUpdated.toLocaleTimeString() : '--:--:--'}</span>
+            </div>
           </div>
         </div>
 
-        <div className="lg:col-span-2 order-1 lg:order-2">
-          <div className="lg:sticky lg:top-20 space-y-4">
-            <div>
-              <SubmitProblemForm onSuccess={fetchProblems} />
+        {/* Right Panel - Map View (Hidden on mobile, visible on desktop) */}
+        <div className="hidden lg:block flex-1 relative">
+          {/* Gradient Overlay - Top */}
+          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/60 via-black/20 to-transparent z-10 pointer-events-none" />
+          
+          {/* Map Label - Floating (Right side) */}
+          <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-xl border border-white/10">
+              <MapPin className="w-4 h-4 text-blue-400" />
+              <span className="font-medium text-sm text-white">Geographic View</span>
             </div>
-            <div className="flex items-center justify-between mb-3 md:mb-4">
-              <p className="geist-text-label text-xs md:text-sm">Geographic View</p>
-              <button
-                onClick={() => setIsMapFullscreen(true)}
-                className="geist-button geist-button-secondary text-xs h-6 md:h-7 px-2"
-              >
-                Expand
-              </button>
-            </div>
-            <div className="geist-card overflow-hidden h-64 md:h-96">
-              <MapView
-                problems={problems.filter((p) => 
-                  (p.latitude !== null && p.longitude !== null) || 
-                  (p.verifications && p.verifications.length > 0)
-                )}
-                onSelectProblem={(id) => setSelectedId(id)}
-                selectedProblemId={selectedId}
-                centerOnProblem={selectedProblem}
-              />
-            </div>
-            {selectedProblem && (
-              <div className="mt-2 p-2 md:p-3 geist-card bg-[var(--ds-blue-100)]">
-                <p className="geist-text-small font-medium text-[var(--ds-blue-700)] text-xs md:text-sm">
-                  Selected: {selectedProblem.title}
-                </p>
-                <button
-                  onClick={() => setSelectedId(null)}
-                  className="geist-text-small text-[var(--ds-gray-600)] mt-1 hover:underline text-xs md:text-sm"
-                >
-                  Clear selection
-                </button>
+            <button
+              onClick={() => setIsMapFullscreen(true)}
+              className="p-2 rounded-xl bg-black/60 backdrop-blur-xl border border-white/10 hover:bg-black/80 transition-colors text-gray-400 hover:text-white"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Selected Problem Info - Floating Card */}
+          {selectedProblem && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="absolute bottom-6 left-6 right-6 z-20"
+            >
+              <div className="p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-semibold text-white truncate mb-1">
+                      {selectedProblem.title}
+                    </p>
+                    <p className="text-sm text-gray-400 line-clamp-2">
+                      {selectedProblem.rawMessage}
+                    </p>
+                    <div className="flex items-center gap-3 mt-3">
+                      <span className="flex items-center gap-1.5 text-sm text-emerald-400">
+                        <ChevronUp className="w-4 h-4" />
+                        <span className="font-semibold">{selectedProblem.upvoteCount}</span>
+                        <span className="text-gray-500">votes</span>
+                      </span>
+                      {selectedProblem.nationalCategory && (
+                        <span className="geist-badge geist-badge-blue">{selectedProblem.nationalCategory}</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedId(null)}
+                    className="p-2 rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            )}
+            </motion.div>
+          )}
+
+          {/* Full Map */}
+          <div className="h-full w-full">
+            <MapView
+              problems={problems.filter((p) => 
+                (p.latitude !== null && p.longitude !== null) || 
+                (p.verifications && p.verifications.length > 0)
+              )}
+              onSelectProblem={(id) => setSelectedId(id)}
+              selectedProblemId={selectedId}
+              centerOnProblem={selectedProblem}
+              fullscreen
+            />
+          </div>
+
+          {/* Mobile: Expand Map Button */}
+          <div className="lg:hidden absolute bottom-4 right-4 z-20">
+            <button
+              onClick={() => setIsMapFullscreen(true)}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium text-sm shadow-lg shadow-violet-500/30 flex items-center gap-2"
+            >
+              <Maximize2 className="w-4 h-4" />
+              Expand Map
+            </button>
           </div>
         </div>
       </div>
@@ -661,22 +660,20 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-[var(--ds-background-100)]"
+            className="fixed inset-0 z-50 bg-black"
           >
-            <div className="absolute top-2 md:top-4 right-2 md:right-4 z-10 flex gap-2">
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-3">
               {selectedProblem && (
-                <div className="geist-card p-2 md:p-3 bg-[var(--ds-blue-100)] max-w-[200px] md:max-w-none">
-                  <p className="geist-text-small font-medium text-xs md:text-sm truncate">{selectedProblem.title}</p>
-                  <p className="geist-text-small text-[var(--ds-gray-600)] text-xs">
-                    {selectedProblem.upvoteCount} votes
-                  </p>
+                <div className="px-4 py-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 backdrop-blur-xl">
+                  <p className="text-sm font-medium text-white truncate max-w-[200px]">{selectedProblem.title}</p>
+                  <p className="text-xs text-gray-400">{selectedProblem.upvoteCount} votes</p>
                 </div>
               )}
               <button
                 onClick={() => setIsMapFullscreen(false)}
-                className="geist-button geist-button-primary text-sm md:text-base h-8 md:h-9 px-3 md:px-4"
+                className="p-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-colors"
               >
-                Close
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
             <MapView
@@ -700,40 +697,36 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
             onClick={() => setSelectedImage(null)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="relative max-w-4xl max-h-[90vh] h-[90vh] w-full"
+              className="relative max-w-5xl max-h-[90vh] w-full h-full"
               onClick={(e) => e.stopPropagation()}
             >
               <Image
                 src={selectedImage.url}
                 alt="Problem image"
                 fill
-                sizes="(max-width: 1024px) 100vw, 1024px"
-                className="object-contain rounded-lg"
+                sizes="(max-width: 1280px) 100vw, 1280px"
+                className="object-contain"
                 priority
               />
               <button
                 onClick={() => setSelectedImage(null)}
-                className="absolute top-2 md:top-4 right-2 md:right-4 bg-white rounded-full p-1.5 md:p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                className="absolute top-4 right-4 p-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-colors"
               >
-                <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-5 h-5 text-white" />
               </button>
               <a
                 href={selectedImage.url}
                 download="problem-image"
-                className="absolute bottom-2 md:bottom-4 right-2 md:right-4 bg-white rounded-full p-1.5 md:p-2 shadow-lg hover:bg-gray-100 transition-colors"
+                className="absolute bottom-4 right-4 p-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-colors"
               >
-                <svg className="w-5 h-5 md:w-6 md:h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
+                <Download className="w-5 h-5 text-white" />
               </a>
             </motion.div>
           </motion.div>
@@ -780,7 +773,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           problemId={selectedResolutionProblem.id}
           problemTitle={selectedResolutionProblem.title}
           resolutionProof={selectedResolutionProblem.resolutionProof || []}
-          beforeImages={[]} // TODO: Get from problem responses
+          beforeImages={[]}
           resolvedAt={selectedResolutionProblem.resolvedAt || ""}
           resolvedBy={selectedResolutionProblem.resolvedBy || undefined}
           resolutionNotes={selectedResolutionProblem.resolutionNotes || undefined}
@@ -798,4 +791,3 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
     </>
   );
 }
-

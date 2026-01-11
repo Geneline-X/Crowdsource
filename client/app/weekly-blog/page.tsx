@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight, Calendar, ArrowLeft, Trophy, Flame, TrendingUp } from "lucide-react";
 
 import { Problem } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 function getStartOfCurrentWeek() {
   const now = new Date();
@@ -33,6 +35,12 @@ function formatWeekRange(startDate: Date) {
   end.setDate(end.getDate() + 6);
   return `${startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
 }
+
+const RANK_COLORS = [
+  { border: "border-amber-500/50", bg: "from-amber-500/10 to-transparent", badge: "bg-amber-500", icon: Trophy },
+  { border: "border-gray-400/50", bg: "from-gray-400/10 to-transparent", badge: "bg-gray-400", icon: TrendingUp },
+  { border: "border-amber-700/50", bg: "from-amber-700/10 to-transparent", badge: "bg-amber-700", icon: Flame },
+];
 
 export default function WeeklyBlogPage() {
   const [problems, setProblems] = useState<Problem[]>([]);
@@ -93,230 +101,245 @@ export default function WeeklyBlogPage() {
   const isCurrentWeek = selectedDate.getTime() === getStartOfCurrentWeek().getTime();
 
   return (
-    <main className="max-w-screen-xl mx-auto px-3 md:px-4 py-4 md:py-8">
-      <header className="mb-4 md:mb-8 flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4">
+    <>
+      {/* Header */}
+      <header className="header-glass sticky top-0 z-40">
+        <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="p-2 rounded-xl hover:bg-white/[0.05] transition-colors text-gray-500 hover:text-white">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/20">
+                <Flame className="w-5 h-5 text-violet-400" />
+              </div>
+              <span className="font-semibold text-lg">
+                {viewMode === 'weekly' ? 'Weekly Leaderboard' : 'All-Time Ranking'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-8 md:py-12">
+        {/* Title & Controls */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
           <div>
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-1">
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
               {viewMode === 'weekly' ? 'Weekly Leaderboard' : 'Overall Pressing Problems'}
             </h1>
-            <p className="geist-text-body text-sm md:text-base text-[var(--ds-gray-800)]">
+            <p className="text-gray-500">
               {viewMode === 'weekly' 
                 ? "Ranking of the most upvoted community problems for the selected week."
                 : "All-time ranking of the most pressing community problems."}
             </p>
           </div>
-          <Link href="/" className="geist-button geist-button-secondary text-sm w-full sm:w-auto text-center">
-            Back to main view
-          </Link>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between border-b border-[var(--ds-gray-200)] pb-4">
-            <div className="flex bg-[var(--ds-gray-100)] p-1 rounded-lg">
-                <button
-                    onClick={() => setViewMode('weekly')}
-                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                        viewMode === 'weekly' 
-                        ? 'bg-white shadow-sm text-black' 
-                        : 'text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)]'
-                    }`}
+        {/* View Toggle & Week Selector */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-10 pb-6 border-b border-white/[0.06]">
+          {/* View Toggle */}
+          <div className="flex p-1 bg-white/[0.03] rounded-xl border border-white/[0.06]">
+            <button
+              onClick={() => setViewMode('weekly')}
+              className={cn(
+                "px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                viewMode === 'weekly' 
+                  ? "bg-white text-black shadow-sm" 
+                  : "text-gray-500 hover:text-white"
+              )}
+            >
+              Weekly View
+            </button>
+            <button
+              onClick={() => setViewMode('overall')}
+              className={cn(
+                "px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                viewMode === 'overall' 
+                  ? "bg-white text-black shadow-sm" 
+                  : "text-gray-500 hover:text-white"
+              )}
+            >
+              Overall View
+            </button>
+          </div>
+
+          {/* Week Selector */}
+          {viewMode === 'weekly' && (
+            <div className="flex items-center gap-2 p-1 bg-white/[0.03] rounded-xl border border-white/[0.06]">
+              <button 
+                onClick={handlePrevWeek}
+                className="p-2 rounded-lg hover:bg-white/[0.05] text-gray-500 hover:text-white transition-colors disabled:opacity-40"
+                disabled={selectedDate.getTime() <= weekOptions[weekOptions.length - 1].getTime()}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-2 px-4 py-2 min-w-[160px] justify-center">
+                <Calendar className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium text-white tabular-nums">
+                  {formatWeekRange(selectedDate)}
+                </span>
+              </div>
+              <button 
+                onClick={handleNextWeek}
+                className={cn(
+                  "p-2 rounded-lg transition-colors",
+                  isCurrentWeek 
+                    ? "text-gray-700 cursor-not-allowed" 
+                    : "hover:bg-white/[0.05] text-gray-500 hover:text-white"
+                )}
+                disabled={isCurrentWeek}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="flex items-center gap-3 justify-center py-20">
+            <div className="geist-spinner" />
+            <span className="text-gray-500">Loading leaderboard...</span>
+          </div>
+        ) : error ? (
+          <div className="geist-card-glass p-8 text-center max-w-md mx-auto">
+            <p className="text-red-400 mb-2">Failed to load leaderboard</p>
+            <p className="text-sm text-gray-600">{error}</p>
+          </div>
+        ) : sortedProblems.length === 0 ? (
+          <div className="geist-card-glass p-8 text-center max-w-md mx-auto">
+            <Trophy className="w-10 h-10 text-gray-600 mx-auto mb-4" />
+            <p className="text-gray-400">
+              {viewMode === 'weekly' 
+                ? "No problems reported this week yet."
+                : "No problems reported yet."}
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+              {[
+                { label: viewMode === 'weekly' ? 'Weekly Problems' : 'Total Problems', value: sortedProblems.length, sub: viewMode === 'weekly' ? 'Reported this week' : 'Reported all time' },
+                { label: viewMode === 'weekly' ? 'Weekly Votes' : 'Total Votes', value: totalVotes, sub: viewMode === 'weekly' ? 'Total upvotes this week' : 'Total upvotes all time' },
+                { label: 'Top Positions', value: 3, sub: 'Highlighted problems' },
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="geist-card-glass p-5"
                 >
-                    Weekly View
-                </button>
-                <button
-                    onClick={() => setViewMode('overall')}
-                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                        viewMode === 'overall' 
-                        ? 'bg-white shadow-sm text-black' 
-                        : 'text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)]'
-                    }`}
-                >
-                    Overall View
-                </button>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">{stat.label}</p>
+                  <p className="stat-card-value text-3xl">{stat.value}</p>
+                  <p className="text-xs text-gray-600 mt-1">{stat.sub}</p>
+                </motion.div>
+              ))}
             </div>
 
-            {viewMode === 'weekly' && (
-                <div className="flex items-center gap-2 bg-[var(--ds-gray-100)] p-1 rounded-lg">
-                    <button 
-                        onClick={handlePrevWeek}
-                        className="p-1.5 hover:bg-white rounded-md text-gray-600 hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        disabled={selectedDate.getTime() <= weekOptions[weekOptions.length - 1].getTime()}
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <div className="flex items-center gap-2 px-3 py-1 min-w-[140px] justify-center bg-gray-900 rounded-md mx-1">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-medium tabular-nums text-white">
-                            {formatWeekRange(selectedDate)}
-                        </span>
-                    </div>
-                    <button 
-                        onClick={handleNextWeek}
-                        className={`p-1.5 rounded-md transition-colors ${
-                            isCurrentWeek 
-                            ? 'text-gray-300 cursor-not-allowed' 
-                            : 'hover:bg-white text-gray-600 hover:text-black'
-                        }`}
-                        disabled={isCurrentWeek}
-                    >
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-                </div>
-            )}
-        </div>
-      </header>
+            {/* Top 3 Problems */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+              {topThree.map((problem, index) => {
+                const rank = index + 1;
+                const location = (problem as any).locationText || "Unspecified location";
+                const rawMessage: string = (problem as any).rawMessage || "";
+                const preview = rawMessage.slice(0, 100).trimEnd() + (rawMessage.length > 100 ? "..." : "");
+                const style = RANK_COLORS[index];
+                const RankIcon = style.icon;
 
-      {isLoading ? (
-        <div className="flex items-center gap-3">
-          <div className="geist-spinner" />
-          <span className="geist-text-body text-sm md:text-base">Loading leaderboard…</span>
-        </div>
-      ) : error ? (
-        <div className="geist-card p-3 md:p-4">
-          <p className="geist-text-subtitle mb-1 text-base md:text-lg">Failed to load leaderboard</p>
-          <p className="geist-text-small text-xs md:text-sm">{error}</p>
-        </div>
-      ) : sortedProblems.length === 0 ? (
-        <div className="geist-card p-3 md:p-4">
-          <p className="geist-text-small text-xs md:text-sm">
-            {viewMode === 'weekly' 
-              ? "No problems have enough activity this week yet. Check back later for the weekly leaderboard."
-              : "No problems reported yet."}
-          </p>
-        </div>
-      ) : (
-        <>
-          <section className="mb-4 md:mb-8 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-            <div className="geist-card p-3 md:p-4 flex flex-col justify-between bg-[var(--ds-gray-100)]">
-              <p className="geist-text-label mb-1 text-xs md:text-sm">{viewMode === 'weekly' ? 'Weekly Problems' : 'Total Problems'}</p>
-              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{sortedProblems.length}</p>
-              <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] mt-1">
-                {viewMode === 'weekly' ? 'Reported this week' : 'Reported all time'}
-              </p>
-            </div>
-            <div className="geist-card p-3 md:p-4 flex flex-col justify-between bg-[var(--ds-gray-100)]">
-              <p className="geist-text-label mb-1 text-xs md:text-sm">{viewMode === 'weekly' ? 'Weekly Votes' : 'Total Votes'}</p>
-              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">{totalVotes}</p>
-              <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] mt-1">
-                {viewMode === 'weekly' ? 'Total upvotes on weekly problems' : 'Total upvotes across all problems'}
-              </p>
-            </div>
-            <div className="geist-card p-3 md:p-4 flex flex-col justify-between bg-[var(--ds-gray-100)]">
-              <p className="geist-text-label mb-1 text-xs md:text-sm">Top Positions</p>
-              <p className="text-xl md:text-2xl lg:text-3xl font-semibold">3</p>
-              <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] mt-1">
-                Only the top three problems are highlighted.
-              </p>
-            </div>
-          </section>
-
-          <section className="mb-6 md:mb-10 grid grid-cols-1 gap-3 md:gap-4 md:grid-cols-3">
-            {topThree.map((problem, index) => {
-              const rank = index + 1;
-              const location = (problem as any).locationText || "Unspecified location";
-              const rawMessage: string = (problem as any).rawMessage || "";
-              const preview =
-                rawMessage.slice(0, 120).trimEnd() + (rawMessage && rawMessage.length > 120 ? "..." : "");
-
-              const borderColor =
-                rank === 1
-                  ? "border-yellow-400"
-                  : rank === 2
-                  ? "border-gray-300"
-                  : "border-amber-600";
-
-              return (
-                <div
-                  key={problem.id}
-                  className={`geist-card relative flex flex-col justify-between p-3 md:p-4 border-2 ${borderColor}`}
-                >
-                  <div className="flex items-start justify-between mb-2 md:mb-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 md:gap-2 mb-1">
-                        <span className="inline-flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full bg-[var(--ds-gray-900)] text-[10px] md:text-xs text-[var(--ds-background-100)] shrink-0">
-                          {rank}
-                        </span>
-                        <span className="text-sm md:text-base font-medium truncate">{problem.title}</span>
+                return (
+                  <motion.div
+                    key={problem.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 + index * 0.1 }}
+                    className={cn(
+                      "geist-card-glass p-6 border-2",
+                      style.border
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center",
+                        style.badge
+                      )}>
+                        <span className="text-lg font-bold text-white">{rank}</span>
                       </div>
-                      <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)] truncate">{location}</p>
+                      <div className="text-right">
+                        <p className="stat-card-value text-2xl">{problem.upvoteCount}</p>
+                        <p className="text-[10px] text-gray-600 uppercase">votes</p>
+                      </div>
                     </div>
-                    <div className="text-right shrink-0 ml-2">
-                      <p className="geist-text-label text-[10px] md:text-xs text-[var(--ds-gray-700)]">Votes</p>
-                      <p className="text-lg md:text-xl lg:text-2xl font-semibold">{problem.upvoteCount}</p>
+                    
+                    <h3 className="font-semibold text-white mb-1 line-clamp-1">{problem.title}</h3>
+                    <p className="text-xs text-gray-600 mb-3 truncate">{location}</p>
+                    <p className="text-sm text-gray-500 line-clamp-2 mb-4">{preview}</p>
+                    
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      <span>{new Date((problem as any).createdAt as any).toLocaleDateString()}</span>
+                      <span className="px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.06]">
+                        ID {problem.id}
+                      </span>
                     </div>
-                  </div>
-                  <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-800)] mb-2 md:mb-3 line-clamp-3">{preview}</p>
-                  <div className="flex justify-between items-center text-[10px] md:text-xs text-[var(--ds-gray-700)] gap-2">
-                    <span className="truncate">
-                      Reported on {new Date((problem as any).createdAt as any).toLocaleDateString()}
-                    </span>
-                    <span className="px-1.5 md:px-2 py-0.5 rounded-full bg-[var(--ds-gray-200)] whitespace-nowrap">
-                      ID {problem.id}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </section>
+                  </motion.div>
+                );
+              })}
+            </div>
 
-          <section className="geist-card p-3 md:p-4">
-            <div className="mb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-              <h2 className="text-base md:text-lg font-medium">Ranking</h2>
-              <p className="geist-text-small text-xs md:text-sm text-[var(--ds-gray-700)]">
-                {viewMode === 'weekly' 
-                  ? "All problems reported this week, ordered by upvotes."
-                  : "All problems reported, ordered by upvotes."}
-              </p>
+            {/* Full Ranking Table */}
+            <div className="geist-card-glass overflow-hidden">
+              <div className="p-5 border-b border-white/[0.06]">
+                <h2 className="font-semibold text-white">Complete Ranking</h2>
+                <p className="text-sm text-gray-600">
+                  {viewMode === 'weekly' 
+                    ? "All problems reported this week, ordered by upvotes."
+                    : "All problems reported, ordered by upvotes."}
+                </p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b border-white/[0.06] text-gray-500">
+                    <tr>
+                      <th className="text-left py-4 px-5 font-medium">Rank</th>
+                      <th className="text-left py-4 pr-5 font-medium">Problem</th>
+                      <th className="text-left py-4 pr-5 font-medium hidden md:table-cell">Location</th>
+                      <th className="text-left py-4 pr-5 font-medium hidden lg:table-cell">Reported</th>
+                      <th className="text-right py-4 pr-5 font-medium">Votes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedProblems.map((problem, index) => {
+                      const rank = index + 1;
+                      const location = (problem as any).locationText || "Unspecified";
+                      return (
+                        <tr
+                          key={problem.id}
+                          className={cn(
+                            "border-b border-white/[0.04] last:border-0 transition-colors hover:bg-white/[0.02]",
+                            index % 2 === 1 && "bg-white/[0.01]"
+                          )}
+                        >
+                          <td className="py-4 px-5 text-gray-500">{rank}</td>
+                          <td className="py-4 pr-5">
+                            <p className="font-medium text-white truncate max-w-[200px] lg:max-w-xs">{problem.title}</p>
+                            <p className="text-xs text-gray-600">ID {problem.id}</p>
+                          </td>
+                          <td className="py-4 pr-5 text-gray-500 truncate max-w-[150px] hidden md:table-cell">{location}</td>
+                          <td className="py-4 pr-5 text-gray-500 hidden lg:table-cell">
+                            {new Date((problem as any).createdAt as any).toLocaleDateString()}
+                          </td>
+                          <td className="py-4 pr-5 text-right font-bold text-white">{problem.upvoteCount}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div className="overflow-x-auto -mx-3 md:mx-0">
-              <table className="min-w-full text-left text-xs md:text-sm">
-                <thead className="border-b border-[var(--ds-gray-300)] text-[var(--ds-gray-700)]">
-                  <tr>
-                    <th className="py-2 px-3 md:px-0 md:pr-4">Rank</th>
-                    <th className="py-2 pr-4">Problem</th>
-                    <th className="py-2 pr-4 hidden md:table-cell">Location</th>
-                    <th className="py-2 pr-4 hidden lg:table-cell">Reported</th>
-                    <th className="py-2 pr-4 text-right">Votes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedProblems.map((problem, index) => {
-                    const rank = index + 1;
-                    const location = (problem as any).locationText || "Unspecified location";
-                    return (
-                      <tr
-                        key={problem.id}
-                        className={
-                          index % 2 === 0
-                            ? "border-b border-[var(--ds-gray-200)]"
-                            : "border-b border-[var(--ds-gray-200)] bg-[var(--ds-gray-100)]"
-                        }
-                      >
-                        <td className="py-2 px-3 md:px-0 md:pr-4 text-[var(--ds-gray-800)]">{rank}</td>
-                        <td className="py-2 pr-4">
-                          <div className="flex flex-col">
-                            <span className="text-xs md:text-sm font-medium truncate max-w-[150px] md:max-w-xs">
-                              {problem.title}
-                            </span>
-                            <span className="text-[10px] md:text-[11px] text-[var(--ds-gray-600)]">ID {problem.id}</span>
-                          </div>
-                        </td>
-                        <td className="py-2 pr-4 text-[var(--ds-gray-800)] truncate max-w-xs hidden md:table-cell">{location}</td>
-                        <td className="py-2 pr-4 text-[var(--ds-gray-800)] hidden lg:table-cell">
-                          {new Date((problem as any).createdAt as any).toLocaleDateString()}
-                        </td>
-                        <td className="py-2 pr-4 text-right text-[var(--ds-gray-900)] font-semibold">
-                          {problem.upvoteCount}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </>
-      )}
-    </main>
+          </>
+        )}
+      </main>
+    </>
   );
 }
