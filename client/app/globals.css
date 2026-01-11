@@ -2,16 +2,19 @@
 @import "leaflet/dist/leaflet.css";
 
 /*
- * Vercel Geist Design System Tokens
- * Based on: https://vercel.com/geist/colors
+ * Premium Design System
+ * Inspired by Vercel, Linear, and Stripe
+ * Enhanced with glassmorphism, gradients, and micro-animations
  */
 
 :root {
-  /* Backgrounds */
+  /* === BACKGROUNDS === */
   --ds-background-100: #000000;
   --ds-background-200: #0a0a0a;
+  --ds-background-300: #111111;
 
-  /* Gray Scale */
+  /* === GRAY SCALE === */
+  --ds-gray-50: #0d0d0d;
   --ds-gray-100: #1a1a1a;
   --ds-gray-200: #1f1f1f;
   --ds-gray-300: #292929;
@@ -23,7 +26,7 @@
   --ds-gray-900: #ededed;
   --ds-gray-1000: #ffffff;
 
-  /* Blue Scale */
+  /* === BLUE SCALE === */
   --ds-blue-100: #0d1f3c;
   --ds-blue-200: #0f2d5c;
   --ds-blue-300: #0a3a75;
@@ -35,7 +38,19 @@
   --ds-blue-900: #a8d4ff;
   --ds-blue-1000: #e6f4ff;
 
-  /* Red Scale */
+  /* === VIOLET SCALE (New Premium Accent) === */
+  --ds-violet-100: #1f1333;
+  --ds-violet-200: #2d1a4d;
+  --ds-violet-300: #3d2266;
+  --ds-violet-400: #5a35a3;
+  --ds-violet-500: #8b5cf6;
+  --ds-violet-600: #a78bfa;
+  --ds-violet-700: #c4b5fd;
+  --ds-violet-800: #ddd6fe;
+  --ds-violet-900: #ede9fe;
+  --ds-violet-1000: #f5f3ff;
+
+  /* === RED SCALE === */
   --ds-red-100: #3c1618;
   --ds-red-200: #5c1d1f;
   --ds-red-300: #762022;
@@ -47,7 +62,7 @@
   --ds-red-900: #ffd1d1;
   --ds-red-1000: #fff5f5;
 
-  /* Green Scale */
+  /* === GREEN SCALE === */
   --ds-green-100: #0b2211;
   --ds-green-200: #0f3419;
   --ds-green-300: #11441f;
@@ -59,7 +74,7 @@
   --ds-green-900: #b4f1d6;
   --ds-green-1000: #e6fbef;
 
-  /* Amber Scale */
+  /* === AMBER SCALE === */
   --ds-amber-100: #2a1f00;
   --ds-amber-200: #3d2e00;
   --ds-amber-300: #4d3c09;
@@ -70,8 +85,20 @@
   --ds-amber-800: #ffd97a;
   --ds-amber-900: #ffe7a3;
   --ds-amber-1000: #fff7e0;
+
+  /* === GRADIENT COLORS === */
+  --gradient-start: #0091ff;
+  --gradient-mid: #8b5cf6;
+  --gradient-end: #ec4899;
+  
+  /* === GLOW COLORS === */
+  --glow-blue: rgba(0, 145, 255, 0.5);
+  --glow-violet: rgba(139, 92, 246, 0.5);
+  --glow-green: rgba(48, 164, 108, 0.5);
+  --glow-amber: rgba(245, 166, 35, 0.5);
 }
 
+/* === GLOBAL STYLES === */
 * {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -84,13 +111,24 @@ html {
 body {
   background: var(--ds-background-100);
   color: var(--ds-gray-1000);
-  font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   letter-spacing: -0.006em;
 }
 
-/* Typography - Vercel style */
+/* === TYPOGRAPHY === */
+.geist-text-display {
+  font-size: 48px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  background: linear-gradient(to right, var(--ds-gray-1000), var(--ds-gray-700));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .geist-text-title {
   font-size: 32px;
   font-weight: 600;
@@ -109,7 +147,7 @@ body {
   font-size: 14px;
   font-weight: 400;
   line-height: 1.6;
-  color: var(--ds-gray-900);
+  color: var(--ds-gray-800);
 }
 
 .geist-text-small {
@@ -119,119 +157,218 @@ body {
 }
 
 .geist-text-mono {
-  font-family: "Geist Mono", ui-monospace, monospace;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 13px;
 }
 
 .geist-text-label {
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--ds-gray-700);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ds-gray-600);
 }
 
-/* Vercel Card */
+/* === PREMIUM CARD === */
 .geist-card {
-  background: var(--ds-background-200);
-  border: 1px solid var(--ds-gray-400);
-  border-radius: 8px;
-  transition: border-color 150ms ease;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 30, 30, 0.9) 0%,
+    rgba(20, 20, 20, 0.95) 100%
+  );
+  border: 1px solid var(--ds-gray-300);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.geist-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 50%,
+    transparent 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 .geist-card:hover {
-  border-color: var(--ds-gray-500);
+  border-color: var(--ds-gray-400);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 4px 24px -4px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
-/* Vercel Button - Primary */
+/* === GLASS CARD === */
+.geist-card-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.geist-card-glass:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.4);
+}
+
+/* === BUTTONS === */
 .geist-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 32px;
-  padding: 0 12px;
+  height: 36px;
+  padding: 0 16px;
   font-size: 14px;
   font-weight: 500;
-  border-radius: 6px;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .geist-button-primary {
-  background: var(--ds-gray-1000);
+  background: linear-gradient(135deg, var(--ds-gray-1000) 0%, var(--ds-gray-800) 100%);
   color: var(--ds-background-100);
+  box-shadow: 
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
 }
 
 .geist-button-primary:hover {
-  background: var(--ds-gray-900);
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 12px rgba(255, 255, 255, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+}
+
+.geist-button-primary:active {
+  transform: translateY(0);
+}
+
+/* Shimmer effect on primary button */
+.geist-button-primary::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  transform: rotate(30deg) translateX(-100%);
+  transition: transform 0.6s;
+}
+
+.geist-button-primary:hover::after {
+  transform: rotate(30deg) translateX(100%);
 }
 
 .geist-button-secondary {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--ds-gray-1000);
   border: 1px solid var(--ds-gray-400);
 }
 
 .geist-button-secondary:hover {
-  background: var(--ds-gray-100);
+  background: rgba(255, 255, 255, 0.08);
   border-color: var(--ds-gray-500);
 }
 
-/* Vercel Input */
+.geist-button-gradient {
+  background: linear-gradient(135deg, var(--ds-blue-500) 0%, var(--ds-violet-500) 100%);
+  color: white;
+  border: none;
+  box-shadow: 
+    0 2px 8px rgba(139, 92, 246, 0.3),
+    0 0 0 1px rgba(139, 92, 246, 0.2) inset;
+}
+
+.geist-button-gradient:hover {
+  transform: translateY(-1px);
+  box-shadow: 
+    0 4px 16px rgba(139, 92, 246, 0.4),
+    0 0 0 1px rgba(139, 92, 246, 0.3) inset;
+}
+
+/* === INPUTS === */
 .geist-input {
   width: 100%;
-  height: 40px;
-  padding: 0 12px;
+  height: 44px;
+  padding: 0 14px;
   font-size: 14px;
-  background: var(--ds-background-100);
+  background: var(--ds-background-200);
   border: 1px solid var(--ds-gray-400);
-  border-radius: 6px;
+  border-radius: 10px;
   color: var(--ds-gray-1000);
   outline: none;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .geist-input:focus {
-  border-color: var(--ds-gray-1000);
-  box-shadow: 0 0 0 1px var(--ds-gray-1000);
+  border-color: var(--ds-blue-500);
+  box-shadow: 
+    0 0 0 3px rgba(0, 145, 255, 0.15),
+    0 0 0 1px var(--ds-blue-500);
 }
 
 .geist-input::placeholder {
   color: var(--ds-gray-600);
 }
 
-/* Vercel Textarea */
 .geist-textarea {
   width: 100%;
   min-height: 100px;
-  padding: 12px;
+  padding: 14px;
   font-size: 14px;
   font-family: inherit;
-  background: var(--ds-background-100);
+  background: var(--ds-background-200);
   border: 1px solid var(--ds-gray-400);
-  border-radius: 6px;
+  border-radius: 10px;
   color: var(--ds-gray-1000);
   outline: none;
   resize: vertical;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .geist-textarea:focus {
-  border-color: var(--ds-gray-1000);
-  box-shadow: 0 0 0 1px var(--ds-gray-1000);
+  border-color: var(--ds-blue-500);
+  box-shadow: 
+    0 0 0 3px rgba(0, 145, 255, 0.15),
+    0 0 0 1px var(--ds-blue-500);
 }
 
 .geist-textarea::placeholder {
   color: var(--ds-gray-600);
 }
 
-/* Vercel Badge */
+/* === BADGES === */
 .geist-badge {
   display: inline-flex;
   align-items: center;
   height: 24px;
-  padding: 0 8px;
+  padding: 0 10px;
   font-size: 12px;
   font-weight: 500;
   border-radius: 9999px;
@@ -239,36 +376,42 @@ body {
 }
 
 .geist-badge-gray {
-  background: var(--ds-gray-200);
-  color: var(--ds-gray-900);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ds-gray-800);
   border-color: var(--ds-gray-400);
 }
 
 .geist-badge-blue {
-  background: var(--ds-blue-100);
-  color: var(--ds-blue-700);
-  border-color: var(--ds-blue-300);
+  background: rgba(0, 145, 255, 0.1);
+  color: var(--ds-blue-600);
+  border-color: rgba(0, 145, 255, 0.2);
 }
 
 .geist-badge-red {
-  background: var(--ds-red-100);
-  color: var(--ds-red-700);
-  border-color: var(--ds-red-300);
+  background: rgba(229, 72, 77, 0.1);
+  color: var(--ds-red-600);
+  border-color: rgba(229, 72, 77, 0.2);
 }
 
 .geist-badge-green {
-  background: var(--ds-green-100);
-  color: var(--ds-green-700);
-  border-color: var(--ds-green-300);
+  background: rgba(48, 164, 108, 0.1);
+  color: var(--ds-green-600);
+  border-color: rgba(48, 164, 108, 0.2);
 }
 
 .geist-badge-amber {
-  background: var(--ds-amber-100);
-  color: var(--ds-amber-700);
-  border-color: var(--ds-amber-300);
+  background: rgba(245, 166, 35, 0.1);
+  color: var(--ds-amber-600);
+  border-color: rgba(245, 166, 35, 0.2);
 }
 
-/* Vercel Progress */
+.geist-badge-violet {
+  background: rgba(139, 92, 246, 0.1);
+  color: var(--ds-violet-600);
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+/* === PROGRESS === */
 .geist-progress {
   height: 4px;
   background: var(--ds-gray-300);
@@ -278,26 +421,33 @@ body {
 
 .geist-progress-bar {
   height: 100%;
-  background: var(--ds-gray-1000);
-  transition: width 300ms ease;
+  background: linear-gradient(90deg, var(--ds-blue-500) 0%, var(--ds-violet-500) 100%);
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Vercel Divider */
+/* === DIVIDER === */
 .geist-divider {
   height: 1px;
-  background: var(--ds-gray-400);
+  background: linear-gradient(
+    90deg, 
+    transparent 0%, 
+    var(--ds-gray-400) 20%, 
+    var(--ds-gray-400) 80%, 
+    transparent 100%
+  );
   border: none;
   margin: 0;
 }
 
-/* Vercel Entity List Item */
+/* === ENTITY LIST === */
 .geist-entity {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 16px;
   border-bottom: 1px solid var(--ds-gray-300);
-  transition: background 100ms ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .geist-entity:last-child {
@@ -305,39 +455,41 @@ body {
 }
 
 .geist-entity:hover {
-  background: var(--ds-gray-100);
+  background: rgba(255, 255, 255, 0.02);
 }
 
-/* Vercel Vote Button */
+/* === VOTE BUTTON === */
 .geist-vote {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 8px 12px;
-  background: transparent;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--ds-gray-400);
-  border-radius: 6px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 150ms ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .geist-vote:hover {
-  background: var(--ds-gray-100);
-  border-color: var(--ds-gray-500);
+  background: rgba(48, 164, 108, 0.1);
+  border-color: var(--ds-green-500);
+  transform: scale(1.02);
+}
+
+.geist-vote:hover .geist-vote-arrow {
+  border-bottom-color: var(--ds-green-500);
+  transform: translateY(-2px);
 }
 
 .geist-vote-arrow {
   width: 0;
   height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 8px solid var(--ds-gray-700);
-  transition: border-color 150ms ease;
-}
-
-.geist-vote:hover .geist-vote-arrow {
-  border-bottom-color: var(--ds-gray-1000);
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 9px solid var(--ds-gray-600);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .geist-vote-count {
@@ -346,70 +498,283 @@ body {
   color: var(--ds-gray-1000);
 }
 
-/* Vercel Modal Overlay */
+/* === MODAL === */
 .geist-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-/* Vercel Modal */
 .geist-modal {
-  background: var(--ds-background-200);
+  background: linear-gradient(
+    180deg,
+    rgba(25, 25, 25, 0.98) 0%,
+    rgba(15, 15, 15, 0.99) 100%
+  );
   border: 1px solid var(--ds-gray-400);
-  border-radius: 12px;
-  box-shadow: 0 16px 70px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  box-shadow: 
+    0 24px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
 }
 
-/* Vercel Status Dot */
+/* === STATUS DOTS === */
 .geist-status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  position: relative;
+}
+
+.geist-status-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  opacity: 0.3;
 }
 
 .geist-status-dot-green {
   background: var(--ds-green-500);
-  box-shadow: 0 0 0 2px var(--ds-green-200);
+  box-shadow: 0 0 8px var(--ds-green-500);
+}
+
+.geist-status-dot-green::after {
+  background: var(--ds-green-500);
+  animation: pulse 2s ease-in-out infinite;
 }
 
 .geist-status-dot-blue {
   background: var(--ds-blue-500);
-  box-shadow: 0 0 0 2px var(--ds-blue-200);
+  box-shadow: 0 0 8px var(--ds-blue-500);
 }
 
 .geist-status-dot-red {
   background: var(--ds-red-500);
-  box-shadow: 0 0 0 2px var(--ds-red-200);
+  box-shadow: 0 0 8px var(--ds-red-500);
 }
 
 .geist-status-dot-amber {
   background: var(--ds-amber-500);
-  box-shadow: 0 0 0 2px var(--ds-amber-200);
+  box-shadow: 0 0 8px var(--ds-amber-500);
 }
 
-/* Vercel Spinner */
+.geist-status-dot-violet {
+  background: var(--ds-violet-500);
+  box-shadow: 0 0 8px var(--ds-violet-500);
+}
+
+/* === SPINNER === */
 .geist-spinner {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border: 2px solid var(--ds-gray-400);
   border-top-color: var(--ds-gray-1000);
   border-radius: 50%;
-  animation: spin 0.6s linear infinite;
+  animation: spin 0.7s linear infinite;
 }
 
+/* === GRADIENT BACKGROUNDS === */
+.gradient-mesh {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(0, 145, 255, 0.15), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(139, 92, 246, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 30% at 50% 80%, rgba(236, 72, 153, 0.08), transparent 50%);
+  pointer-events: none;
+}
+
+.gradient-glow {
+  background: linear-gradient(
+    135deg,
+    var(--ds-blue-500) 0%,
+    var(--ds-violet-500) 50%,
+    var(--ds-red-500) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease-in-out infinite;
+}
+
+/* === SHIMMER EFFECT === */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+}
+
+/* === GLOW EFFECTS === */
+.glow-blue {
+  box-shadow: 0 0 20px var(--glow-blue), 0 0 40px rgba(0, 145, 255, 0.2);
+}
+
+.glow-violet {
+  box-shadow: 0 0 20px var(--glow-violet), 0 0 40px rgba(139, 92, 246, 0.2);
+}
+
+.glow-green {
+  box-shadow: 0 0 20px var(--glow-green), 0 0 40px rgba(48, 164, 108, 0.2);
+}
+
+/* === STAT CARD GRADIENT === */
+.stat-card-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stat-card-value {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(to bottom, var(--ds-gray-1000), var(--ds-gray-800));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === HEADER STYLES === */
+.header-glass {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.header-nav-item {
+  position: relative;
+  padding: 8px 12px;
+  color: var(--ds-gray-700);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.header-nav-item:hover {
+  color: var(--ds-gray-1000);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.header-nav-item.active {
+  color: var(--ds-gray-1000);
+}
+
+.header-nav-item.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ds-blue-500), var(--ds-violet-500));
+  border-radius: 1px;
+}
+
+/* === LIVE INDICATOR === */
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(48, 164, 108, 0.1);
+  border: 1px solid rgba(48, 164, 108, 0.2);
+  border-radius: 9999px;
+}
+
+.live-indicator-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--ds-green-500);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--ds-green-500);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* === ANIMATIONS === */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Map container */
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.5); }
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { 
+    opacity: 0; 
+    transform: scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+/* === MAP STYLES === */
 .leaflet-container {
-  border-radius: 6px;
+  border-radius: 12px;
   z-index: 1;
 }
 
-/* Scrollbar - Vercel style */
+/* === SCROLLBAR === */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -428,7 +793,7 @@ body {
   background: var(--ds-gray-500);
 }
 
-/* Map Cluster Icons */
+/* === CLUSTER ICONS === */
 .custom-cluster-icon {
   background: transparent !important;
 }
@@ -441,28 +806,27 @@ body {
   color: white;
   font-weight: 600;
   font-size: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   border: 3px solid rgba(255, 255, 255, 0.9);
-  transition: transform 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cluster-icon:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 .cluster-icon-small {
-  background: #0091ff;
+  background: linear-gradient(135deg, #0091ff 0%, #369eff 100%);
 }
 
 .cluster-icon-medium {
-  background: #7b2dff;
+  background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
 }
 
 .cluster-icon-large {
-  background: #e5484d;
+  background: linear-gradient(135deg, #e5484d 0%, #ff6369 100%);
 }
 
-/* Leaflet cluster overrides */
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
@@ -471,4 +835,62 @@ body {
 
 .marker-cluster div {
   background: transparent !important;
+}
+
+/* === FOCUS VISIBLE === */
+:focus-visible {
+  outline: 2px solid var(--ds-blue-500);
+  outline-offset: 2px;
+}
+
+/* === SELECTION === */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: var(--ds-gray-1000);
+}
+
+/* === UTILITY CLASSES === */
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.glass-border {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, var(--ds-gray-1000), var(--ds-gray-600));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--ds-blue-500), var(--ds-violet-500));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* === HOVER LIFT === */
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
 }

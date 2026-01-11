@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, X, MapPin, FileText, Loader2, Hammer, Trash2, ShieldAlert, HelpCircle, Search } from "lucide-react"
+import { Plus, X, MapPin, FileText, Loader2, Hammer, Trash2, ShieldAlert, HelpCircle, Search, Sparkles } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/app/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/app/components/ui/card"
 import { cn } from "@/lib/utils"
 
 interface SubmitProblemFormProps {
@@ -20,10 +19,10 @@ interface SearchResult {
 }
 
 const categories = [
-  { value: "infrastructure", label: "Infrastructure", icon: Hammer, color: "border-blue-500/50 bg-blue-500/10 hover:bg-blue-500/20" },
-  { value: "sanitation", label: "Sanitation", icon: Trash2, color: "border-green-500/50 bg-green-500/10 hover:bg-green-500/20" },
-  { value: "safety", label: "Safety", icon: ShieldAlert, color: "border-red-500/50 bg-red-500/10 hover:bg-red-500/20" },
-  { value: "other", label: "Other", icon: HelpCircle, color: "border-slate-500/50 bg-slate-500/10 hover:bg-slate-500/20" },
+  { value: "infrastructure", label: "Infrastructure", icon: Hammer, gradient: "from-blue-500 to-cyan-500", ring: "ring-blue-500" },
+  { value: "sanitation", label: "Sanitation", icon: Trash2, gradient: "from-emerald-500 to-green-500", ring: "ring-emerald-500" },
+  { value: "safety", label: "Safety", icon: ShieldAlert, gradient: "from-red-500 to-rose-500", ring: "ring-red-500" },
+  { value: "other", label: "Other", icon: HelpCircle, gradient: "from-gray-500 to-gray-600", ring: "ring-gray-500" },
 ] as const
 
 export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
@@ -36,7 +35,6 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
-  // Location Search State
   const [coordinates, setCoordinates] = useState<{ lat: number; lon: number } | null>(null)
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -112,129 +110,139 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
 
   return (
     <>
-      <Button
+      {/* Trigger Button */}
+      <button
         onClick={() => setIsOpen(true)}
-        className="geist-button geist-button-primary"
+        className="w-full geist-button-gradient h-12 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-violet-500/25"
       >
-        <Plus className="mr-2 h-4 w-4" />
+        <Plus className="w-5 h-5" />
         Report a Problem
-      </Button>
+      </button>
 
+      {/* Modal */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
             />
+            
+            {/* Modal Content */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
               className="relative w-full max-w-lg z-10"
             >
-              <Card className="border-indigo-500/30 shadow-2xl shadow-indigo-500/10 bg-[var(--ds-background-100)]">
-                <CardHeader className="relative px-4 py-4 md:px-6 md:py-6 border-b border-[var(--ds-gray-200)]">
+              <div className="geist-card-glass overflow-hidden">
+                {/* Header */}
+                <div className="relative px-6 py-5 border-b border-white/[0.06]">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="absolute right-4 top-4 p-2 rounded-lg hover:bg-[var(--ds-gray-200)] transition-colors text-[var(--ds-gray-600)]"
+                    className="absolute right-4 top-4 p-2 rounded-xl hover:bg-white/[0.05] transition-colors text-gray-500 hover:text-white"
                   >
                     <X className="w-5 h-5" />
                   </button>
-                  <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                    <div className="p-2 bg-indigo-500/10 rounded-lg">
-                      <FileText className="w-5 h-5 text-indigo-500" />
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/20">
+                      <FileText className="w-5 h-5 text-violet-400" />
                     </div>
-                    Report a Problem
-                  </CardTitle>
-                  <CardDescription>
-                    Help us identify and prioritize issues in your community.
-                  </CardDescription>
-                </CardHeader>
+                    <div>
+                      <h2 className="text-lg font-semibold text-white">Report a Problem</h2>
+                      <p className="text-sm text-gray-500">Help identify issues in your community</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Form */}
                 <form onSubmit={handleSubmit}>
-                  <CardContent className="space-y-4 px-4 py-4 md:px-6 md:py-6 max-h-[70vh] overflow-y-auto">
-                    <div className="space-y-2">
-                      <label htmlFor="title" className="geist-text-label mb-1 block">Problem Title</label>
+                  <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto">
+                    {/* Title */}
+                    <div>
+                      <label htmlFor="title" className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                        Problem Title
+                      </label>
                       <input
                         id="title"
                         placeholder="e.g., Broken Street Light on Main St"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="geist-input focus:shadow-none"
+                        className="geist-input"
                         required
                       />
                     </div>
 
-                    <div className="space-y-3">
-                      <label className="geist-text-label mb-1 block">Category</label>
-                      <div className="grid grid-cols-2 gap-2">
+                    {/* Category */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-3 uppercase tracking-wider">
+                        Category
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
                         {categories.map((cat) => (
                           <button
                             key={cat.value}
                             type="button"
                             onClick={() => setCategory(cat.value)}
                             className={cn(
-                              "flex items-center gap-2 p-3 rounded-xl border-2 transition-all duration-200 text-left",
+                              "flex items-center gap-3 p-4 rounded-xl border transition-all duration-200",
                               category === cat.value
-                                ? cn(cat.color, "border-opacity-100 ring-2 ring-offset-2 ring-offset-slate-900", 
-                                    cat.value === "infrastructure" && "ring-blue-500",
-                                    cat.value === "sanitation" && "ring-green-500",
-                                    cat.value === "safety" && "ring-red-500",
-                                    cat.value === "other" && "ring-slate-500"
-                                  )
-                                : "border-[var(--ds-gray-200)] bg-[var(--ds-gray-100)] hover:border-[var(--ds-gray-300)]"
+                                ? `bg-gradient-to-br ${cat.gradient} border-transparent ring-2 ring-offset-2 ring-offset-black ${cat.ring}`
+                                : "border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.12]"
                             )}
                           >
                             <cat.icon className={cn(
                               "w-5 h-5",
-                              category === cat.value ? "text-white" : "text-[var(--ds-gray-500)]"
+                              category === cat.value ? "text-white" : "text-gray-500"
                             )} />
                             <span className={cn(
                               "text-sm font-medium",
-                              category === cat.value ? "text-white" : "text-[var(--ds-gray-700)]"
+                              category === cat.value ? "text-white" : "text-gray-400"
                             )}>
                               {cat.label}
                             </span>
                           </button>
                         ))}
                       </div>
-                      {category === "other" && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="mt-2"
-                        >
-                          <label htmlFor="custom-category" className="geist-text-label mb-1 block">Specify Category</label>
-                          <input
-                            id="custom-category"
-                            placeholder="e.g., Noise Complaint, Traffic"
-                            value={customCategory}
-                            onChange={(e) => setCustomCategory(e.target.value)}
-                            className="geist-input focus:shadow-none"
-                            required
-                          />
-                        </motion.div>
-                      )}
+                      
+                      <AnimatePresence>
+                        {category === "other" && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-3"
+                          >
+                            <input
+                              placeholder="Specify category..."
+                              value={customCategory}
+                              onChange={(e) => setCustomCategory(e.target.value)}
+                              className="geist-input"
+                              required
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
-                    <div className="space-y-2 relative">
-                      <label htmlFor="location" className="geist-text-label mb-1 flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-[var(--ds-gray-500)]" />
-                        Location / Address(search for exact coordinates)
+                    {/* Location */}
+                    <div className="relative">
+                      <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                        <MapPin className="w-3 h-3 inline-block mr-1" />
+                        Location / Address
                       </label>
                       <div className="relative">
                         <input
-                          id="location"
                           placeholder="e.g., 123 Main St & 5th Ave"
                           value={locationText}
                           onChange={(e) => {
                             setLocationText(e.target.value)
-                            setCoordinates(null) // Reset coordinates on manual edit
+                            setCoordinates(null)
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -242,34 +250,34 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                               handleSearch()
                             }
                           }}
-                          className="geist-input focus:shadow-none w-full pr-10"
+                          className="geist-input pr-12"
                           required
                         />
                         <button
                           type="button"
                           onClick={handleSearch}
                           disabled={isSearching || !locationText.trim()}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-[var(--ds-gray-500)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-500 hover:text-white hover:bg-white/[0.05] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                         </button>
                       </div>
                       
-                      {/* Search Results Dropdown */}
+                      {/* Search Results */}
                       <AnimatePresence>
                         {searchResults.length > 0 && (
                           <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute z-20 left-0 right-0 mt-1 bg-[var(--ds-background-100)] border border-[var(--ds-gray-400)] rounded-lg shadow-xl max-h-48 overflow-y-auto"
+                            className="absolute z-20 left-0 right-0 mt-2 bg-[#1a1a1a] border border-white/[0.08] rounded-xl shadow-2xl max-h-48 overflow-y-auto"
                           >
                             {searchResults.map((result) => (
                               <button
                                 key={result.place_id}
                                 type="button"
                                 onClick={() => selectLocation(result)}
-                                className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--ds-gray-100)] border-b border-[var(--ds-gray-200)] last:border-0 transition-colors"
+                                className="w-full text-left px-4 py-3 text-sm text-gray-400 hover:bg-white/[0.05] hover:text-white border-b border-white/[0.04] last:border-0 transition-colors"
                               >
                                 {result.display_name}
                               </button>
@@ -278,34 +286,40 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                         )}
                       </AnimatePresence>
                       
+                      {/* Coordinates Found */}
                       {coordinates && (
-                        <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          Coordinates found: {coordinates.lat.toFixed(4)}, {coordinates.lon.toFixed(4)}
+                        <p className="flex items-center gap-2 text-xs text-emerald-400 mt-2">
+                          <Sparkles className="w-3 h-3" />
+                          Coordinates: {coordinates.lat.toFixed(4)}, {coordinates.lon.toFixed(4)}
                         </p>
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <label htmlFor="description" className="geist-text-label mb-1 block">Description</label>
+                    {/* Description */}
+                    <div>
+                      <label htmlFor="description" className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                        Description
+                      </label>
                       <textarea
                         id="description"
-                        placeholder="Describe the issue in detail. What's wrong? How long has it been like this?"
+                        placeholder="Describe the issue in detail..."
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         rows={3}
-                        className="geist-textarea focus:shadow-none"
+                        className="geist-textarea"
                         required
                       />
                     </div>
-                  </CardContent>
-                  <CardFooter className="flex flex-col gap-3 px-4 pt-6 pb-4 md:px-6 md:pt-8 md:pb-6 border-t border-[var(--ds-gray-200)] bg-[var(--ds-gray-50)] rounded-b-xl">
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="p-6 border-t border-white/[0.06] bg-white/[0.02]">
                     {error && (
-                      <div className="w-full p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-                        <p className="text-sm text-red-600">{error}</p>
+                      <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                        <p className="text-sm text-red-400">{error}</p>
                       </div>
                     )}
-                    <div className="flex justify-end gap-3 w-full">
+                    <div className="flex justify-end gap-3">
                       <button 
                         type="button" 
                         onClick={() => setIsOpen(false)} 
@@ -317,11 +331,11 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                       <button 
                         type="submit" 
                         disabled={isSubmitting}
-                        className="geist-button geist-button-primary min-w-[120px]"
+                        className="geist-button-gradient px-6 h-10 rounded-xl font-medium flex items-center gap-2"
                       >
                         {isSubmitting ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="w-4 h-4 animate-spin" />
                             Submitting...
                           </>
                         ) : (
@@ -329,9 +343,9 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                         )}
                       </button>
                     </div>
-                  </CardFooter>
+                  </div>
                 </form>
-              </Card>
+              </div>
             </motion.div>
           </div>
         )}
