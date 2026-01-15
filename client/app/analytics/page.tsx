@@ -99,10 +99,10 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center bg-[#F0F1E8]">
         <div className="flex flex-col items-center gap-4">
-          <div className="geist-spinner w-8 h-8" />
-          <p className="text-gray-500">Loading analytics...</p>
+          <div className="w-8 h-8 border-2 border-[#4A7766] border-t-transparent rounded-full animate-spin" />
+          <p className="text-[#525252]">Loading analytics...</p>
         </div>
       </div>
     );
@@ -110,12 +110,12 @@ export default function AnalyticsPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="geist-card-glass p-8 max-w-md text-center">
+      <div className="flex-1 flex items-center justify-center bg-[#F0F1E8]">
+        <div className="bg-white rounded-xl border border-[#E8E6E1] p-8 max-w-md text-center">
           <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-4" />
-          <p className="text-red-400 mb-4">{error || 'Failed to load analytics'}</p>
-          <button onClick={fetchAnalytics} className="geist-button geist-button-secondary">
-            <RefreshCw className="w-4 h-4 mr-2" />
+          <p className="text-red-500 mb-4">{error || 'Failed to load analytics'}</p>
+          <button onClick={fetchAnalytics} className="px-4 py-2 bg-[#2D5A47] text-white rounded-lg hover:bg-[#235242] transition-colors">
+            <RefreshCw className="w-4 h-4 inline mr-2" />
             Retry
           </button>
         </div>
@@ -126,26 +126,21 @@ export default function AnalyticsPage() {
   const { summary, problemsOverTime, categoryBreakdown, statusDistribution, topReporters, locationBreakdown } = data;
 
   return (
-    <>
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#F0F1E8]">
       {/* Header */}
-      <header className="header-glass sticky top-0 z-40">
-        <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="p-2 rounded-xl hover:bg-white/[0.05] transition-colors text-gray-500 hover:text-white">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/20">
-                <BarChart3 className="w-5 h-5 text-blue-400" />
-              </div>
-              <span className="font-semibold text-lg">Analytics</span>
+      <header className="shrink-0 bg-white border-b border-[#E8E6E1] px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-[#5B9BD5]/20 border border-[#5B9BD5]/30">
+              <BarChart3 className="w-5 h-5 text-[#5B9BD5]" />
             </div>
+            <span className="font-semibold text-lg text-[#262626]">Analytics</span>
           </div>
           <div className="flex items-center gap-3">
             <select
               value={dateRange}
               onChange={(e) => setDateRange(Number(e.target.value))}
-              className="geist-input h-10 w-auto text-sm px-4"
+              className="h-10 px-4 text-sm bg-white border border-[#E8E6E1] rounded-lg text-[#525252]"
             >
               <option value={7}>Last 7 days</option>
               <option value={30}>Last 30 days</option>
@@ -153,7 +148,7 @@ export default function AnalyticsPage() {
             </select>
             <button
               onClick={fetchAnalytics}
-              className="p-2.5 rounded-xl hover:bg-white/[0.05] transition-colors text-gray-500 hover:text-white"
+              className="p-2.5 rounded-lg hover:bg-[#E8E6E1] transition-colors text-[#525252]"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -161,11 +156,11 @@ export default function AnalyticsPage() {
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-8 md:py-12">
+      <main className="flex-1 overflow-y-auto p-6">
         {/* Title */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Community Analytics</h1>
-          <p className="text-gray-500">Overview of community problems and resolution metrics.</p>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-[#262626] mb-2">Community Analytics</h1>
+          <p className="text-[#525252]">Overview of community problems and resolution metrics.</p>
         </div>
 
         {/* Summary Cards */}
@@ -203,7 +198,7 @@ export default function AnalyticsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="geist-card-glass p-5"
+              className="bg-white rounded-xl border border-[#E8E6E1] p-5"
             >
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-2.5 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
@@ -216,11 +211,11 @@ export default function AnalyticsPage() {
                   </span>
                 )}
               </div>
-              <p className="stat-card-value text-3xl md:text-4xl">{card.value}</p>
-              <p className="text-sm text-gray-500 mt-1">{card.label}</p>
+              <p className="text-3xl font-bold text-[#262626]">{card.value}</p>
+              <p className="text-sm text-[#525252] mt-1">{card.label}</p>
               {card.progress !== undefined && (
-                <div className="geist-progress mt-3">
-                  <div className="geist-progress-bar" style={{ width: `${card.progress}%` }} />
+                <div className="mt-3 h-1 bg-[#E8E6E1] rounded-full overflow-hidden">
+                  <div className="h-full bg-[#4A7766] rounded-full" style={{ width: `${card.progress}%` }} />
                 </div>
               )}
             </motion.div>
@@ -397,7 +392,7 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.9 }}
-          className="geist-card-glass p-8 border-emerald-500/20"
+          className="bg-white rounded-xl border border-[#E8E6E1] p-8"
         >
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
@@ -405,14 +400,14 @@ export default function AnalyticsPage() {
                 <Sparkles className="w-6 h-6 text-emerald-400" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">Resolution Rate</h3>
-                <p className="text-gray-500">Percentage of problems successfully resolved</p>
+                <h3 className="text-xl font-bold text-[#262626]">Resolution Rate</h3>
+                <p className="text-[#525252]">Percentage of problems successfully resolved</p>
               </div>
             </div>
             <div className="flex items-center gap-8">
               <div className="relative w-24 h-24">
                 <svg className="w-24 h-24 transform -rotate-90">
-                  <circle cx="48" cy="48" r="40" stroke="#2a2a2a" strokeWidth="8" fill="none" />
+                  <circle cx="48" cy="48" r="40" stroke="#E8E6E1" strokeWidth="8" fill="none" />
                   <circle
                     cx="48"
                     cy="48"
@@ -431,17 +426,17 @@ export default function AnalyticsPage() {
                   </defs>
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-2xl font-bold text-white">{summary.resolutionRate}%</span>
+                  <span className="text-2xl font-bold text-[#262626]">{summary.resolutionRate}%</span>
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-bold text-emerald-400">{summary.resolvedProblems}</p>
-                <p className="text-sm text-gray-500">of {summary.totalProblems} problems</p>
+                <p className="text-3xl font-bold text-[#4A7766]">{summary.resolvedProblems}</p>
+                <p className="text-sm text-[#525252]">of {summary.totalProblems} problems</p>
               </div>
             </div>
           </div>
         </motion.div>
       </main>
-    </>
+    </div>
   );
 }

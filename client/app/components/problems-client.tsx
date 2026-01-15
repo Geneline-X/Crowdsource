@@ -18,10 +18,15 @@ import {
   X,
   Download,
   Filter,
-  Activity
+  Activity,
+  CheckCircle,
+  Users,
+  ThumbsUp,
+  TrendingUp
 } from "lucide-react";
 
 import { Problem } from "@/lib/types";
+import { AiChatbot } from "@/app/components/ai-chatbot";
 import { MapView } from "@/app/components/map-view";
 import { SubmitProblemForm } from "@/app/components/submit-problem-form";
 import { VerifyProblemModal } from "@/app/components/verify-problem-modal";
@@ -77,6 +82,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [offerHelpProblemId, setOfferHelpProblemId] = useState<number | null>(null);
   const [resolutionProofModalOpen, setResolutionProofModalOpen] = useState(false);
   const [selectedResolutionProblem, setSelectedResolutionProblem] = useState<Problem | null>(null);
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const voterIdRef = useRef<string>("");
 
@@ -212,18 +218,21 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
 
   const verifiedCount = problems.filter((p) => p.locationVerified).length;
   const pendingCount = problems.filter((p) => !p.locationVerified).length;
+  const resolvedCount = problems.filter((p) => p.status === "RESOLVED").length;
+  const totalVotes = problems.reduce((sum, p) => sum + p.upvoteCount, 0);
   
   const maxVotes = Math.max(...problems.map((p) => p.upvoteCount), 1);
   const selectedProblem = selectedId ? problems.find((p) => p.id === selectedId) : null;
+  const anyModalOpen = verifyModalOpen || offerHelpModalOpen || resolutionProofModalOpen || showSubmitForm || !!selectedImage;
 
   if (error) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="geist-card-glass p-8 text-center max-w-md">
-          <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
-            <AlertTriangle className="w-6 h-6 text-red-400" />
+          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-6 h-6 text-red-500" />
           </div>
-          <p className="text-lg font-semibold text-white mb-2">Failed to load</p>
+          <p className="text-lg font-semibold text-gray-900 mb-2">Failed to load</p>
           <p className="text-sm text-gray-500">{error}</p>
         </div>
       </div>
@@ -249,17 +258,67 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
         )}
       </AnimatePresence>
 
-      {/* Immersive Full-Height Layout */}
-      <div className="h-full flex flex-col lg:flex-row">
-        {/* Left Panel - Problems List (Full width on mobile) */}
-        <div className="w-full lg:w-[480px] xl:w-[520px] shrink-0 h-full flex flex-col border-r border-white/[0.06] bg-black lg:bg-black/80 lg:backdrop-blur-xl z-10">
-          {/* Compact Header with Submit */}
-          <div className="shrink-0 p-4 border-b border-white/[0.06]">
-            <SubmitProblemForm onSuccess={fetchProblems} />
+      {/* Content Header */}
+      <div className="content-header">
+        <div className="content-header-tabs">
+          <button className="content-header-tab">Active</button>
+          <button className="content-header-tab">Mapped</button>
+          <button className="content-header-tab">Votes</button>
+          <button className="content-header-tab">Resolved</button>
+        </div>
+        <button className="report-btn" onClick={() => setShowSubmitForm(true)}>
+          Report a problem
+        </button>
+      </div>
+
+      {/* Impact Banner */}
+      <div className="impact-banner">
+        <div className="impact-banner-header">
+          <div className="impact-banner-title-section">
+            <h2 className="impact-banner-title">Community Impact</h2>
+            <p className="impact-banner-subtitle">Real-time metrics showing our collective progress</p>
           </div>
+          <div className="impact-banner-metrics">
+            <div className="impact-metric">
+              <span className="impact-metric-value">{resolvedCount}</span>
+              <span className="impact-metric-label">
+                <CheckCircle className="impact-metric-icon text-green-600" />
+                Resolved this month
+              </span>
+            </div>
+            <div className="impact-metric">
+              <span className="impact-metric-value">{problems.length}</span>
+              <span className="impact-metric-label">
+                <Users className="impact-metric-icon text-violet-600" />
+                Citizens engaged
+              </span>
+            </div>
+            <div className="impact-metric">
+              <span className="impact-metric-value">{totalVotes}</span>
+              <span className="impact-metric-label">
+                <ThumbsUp className="impact-metric-icon text-amber-600" />
+                Upvoted collected
+              </span>
+            </div>
+            <div className="impact-metric">
+              <span className="impact-metric-value">{problems.length > 0 ? Math.round((resolvedCount / problems.length) * 100) : 0}%</span>
+              <span className="impact-metric-label">
+                <TrendingUp className="impact-metric-icon text-emerald-600" />
+                Resolution Rate
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area - Full height with fixed sidebar */}
+      <div className="flex-1 flex px-6 pb-6 gap-6 min-h-0">
+        
+        {/* Left Panel - Problem List (Scrollable) */}
+        <div className="w-full lg:w-[500px] xl:w-[550px] shrink-0 flex flex-col bg-white rounded-xl border border-[var(--ds-card-border)] overflow-hidden max-h-full">
 
           {/* Search and Filters */}
-          <div className="shrink-0 p-4 space-y-3 border-b border-white/[0.06]">
+          <div className="shrink-0 p-4 space-y-3 border-b border-[var(--ds-card-border)]">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -274,7 +333,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             
             {/* Filter Tabs */}
             <div className="flex items-center justify-between">
-              <div className="flex p-0.5 bg-white/[0.03] rounded-lg border border-white/[0.06]">
+              <div className="flex gap-1 p-1 bg-[#F5F3EE] rounded-lg border border-[#E8E6E1]">
                 {[
                   { key: "all", label: "All", count: problems.length },
                   { key: "verified", label: "Verified", count: verifiedCount },
@@ -286,14 +345,14 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                     className={cn(
                       "px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
                       activeFilter === tab.key
-                        ? "bg-white text-black shadow-sm"
-                        : "text-gray-500 hover:text-white"
+                        ? "bg-[#2D5A47] text-white shadow-sm"
+                        : "text-[#525252] hover:bg-[#E8E6E1]"
                     )}
                   >
                     {tab.label}
                     <span className={cn(
                       "ml-1.5",
-                      activeFilter === tab.key ? "text-gray-600" : "text-gray-600"
+                      activeFilter === tab.key ? "text-white/80" : "text-[#737373]"
                     )}>
                       {tab.count}
                     </span>
@@ -301,7 +360,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                 ))}
               </div>
               
-              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+              <div className="flex items-center gap-1.5 text-xs text-[#525252]">
                 <Activity className="w-3 h-3" />
                 <span>{filteredProblems.length}</span>
               </div>
@@ -343,9 +402,9 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                         }
                       }}
                       className={cn(
-                        "group p-4 border-b border-white/[0.04] transition-all duration-200",
-                        (hasLocation || (problem.images && problem.images.length > 0)) && "cursor-pointer hover:bg-white/[0.02]",
-                        isSelected && "bg-blue-500/10 border-l-2 border-l-blue-500"
+                        "group p-4 border-b border-[#E8E6E1] transition-all duration-200",
+                        (hasLocation || (problem.images && problem.images.length > 0)) && "cursor-pointer hover:bg-[#F5F3EE]",
+                        isSelected && "bg-[#4A776610] border-l-4 border-l-[#4A7766]"
                       )}
                     >
                       <div className="flex gap-3">
@@ -359,17 +418,17 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           className={cn(
                             "shrink-0 w-12 h-14 flex flex-col items-center justify-center gap-0.5 rounded-lg border transition-all duration-200",
                             hasVoted 
-                              ? "bg-emerald-500/10 border-emerald-500/30 cursor-default" 
-                              : "bg-white/[0.02] border-white/[0.06] hover:bg-emerald-500/10 hover:border-emerald-500/30"
+                              ? "bg-[#4A776620] border-[#4A776650] cursor-default" 
+                              : "bg-[#F5F3EE] border-[#E8E6E1] hover:bg-[#4A776620] hover:border-[#4A776650]"
                           )}
                         >
                           <ChevronUp className={cn(
                             "w-4 h-4 transition-colors",
-                            hasVoted ? "text-emerald-400" : "text-gray-500 group-hover:text-emerald-400"
+                            hasVoted ? "text-[#4A7766]" : "text-[#737373] group-hover:text-[#4A7766]"
                           )} />
                           <span className={cn(
                             "text-base font-bold",
-                            hasVoted ? "text-emerald-400" : "text-white"
+                            hasVoted ? "text-[#4A7766]" : "text-[#262626]"
                           )}>
                             {problem.upvoteCount}
                           </span>
@@ -380,7 +439,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           {/* Header */}
                           <div className="flex items-start justify-between gap-2 mb-1.5">
                             <div className="flex items-center gap-2 min-w-0">
-                              <h3 className="font-medium text-sm text-white truncate">{problem.title}</h3>
+                              <h3 className="font-semibold text-sm text-[#262626] truncate">{problem.title}</h3>
                               {hasLocation && (
                                 <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
                                   <MapPin className="w-2.5 h-2.5 inline-block mr-0.5" />
@@ -394,7 +453,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           </div>
                           
                           {/* Description */}
-                          <p className="text-xs text-gray-500 line-clamp-2 mb-2">
+                          <p className="text-xs text-[#525252] line-clamp-2 mb-2">
                             {problem.rawMessage}
                           </p>
                           
@@ -453,11 +512,13 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           {/* Badges & Actions */}
                           <div className="flex flex-wrap items-center gap-1.5">
                             {problem.nationalCategory && (
-                              <span className="geist-badge geist-badge-blue text-[10px] h-5">{problem.nationalCategory}</span>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-[#E0D9F6] text-[#5B21B6] border border-[#D4C8F0]">{problem.nationalCategory}</span>
                             )}
                             <span className={cn(
-                              "geist-badge text-[10px] h-5",
-                              problem.locationVerified ? "geist-badge-green" : "geist-badge-amber"
+                              "px-2 py-0.5 rounded text-[10px] font-medium border",
+                              problem.locationVerified 
+                                ? "bg-[#4A776633] text-[#4A7766] border-[#4A776650]" 
+                                : "bg-amber-100 text-amber-700 border-amber-200"
                             )}>
                               {problem.locationVerified ? "Verified" : "Pending"}
                             </span>
@@ -476,9 +537,9 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                             })()}
 
                             {problem.status === "RESOLVED" && (
-                              <span className="geist-badge geist-badge-green text-[10px] h-5 flex items-center gap-0.5">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-[#4A776666] text-[#304F44] border border-[#4A776680] flex items-center gap-0.5">
                                 <ShieldCheck className="w-2.5 h-2.5" />
-                                RESOLVED
+                                Resolved
                               </span>
                             )}
 
@@ -518,7 +579,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                                   setSelectedResolutionProblem(problem);
                                   setResolutionProofModalOpen(true);
                                 }}
-                                className="geist-button-gradient h-5 px-2 text-[10px] rounded-md font-medium"
+                                className="px-2 py-0.5 rounded text-[10px] font-medium bg-[#5B9BD5] text-white hover:bg-[#4A8BC4] transition-colors"
                               >
                                 View Resolution
                               </button>
@@ -533,9 +594,9 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           </div>
 
                           {/* Progress */}
-                          <div className="geist-progress mt-3 h-0.5">
+                          <div className="mt-3 h-1 bg-[#E8E6E1] rounded-full overflow-hidden">
                             <motion.div
-                              className="geist-progress-bar"
+                              className="h-full rounded-full bg-[#5B9BD5]"
                               initial={{ width: 0 }}
                               animate={{ width: `${(problem.upvoteCount / maxVotes) * 100}%` }}
                               transition={{ duration: 0.5, delay: index * 0.05 }}
@@ -551,7 +612,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           </div>
 
           {/* Footer - Last Updated + Mobile Map Button */}
-          <div className="shrink-0 p-3 border-t border-white/[0.06]">
+          <div className="shrink-0 p-3 border-t border-[var(--ds-card-border)]">
             {/* Mobile Map Button */}
             <button
               onClick={() => setIsMapFullscreen(true)}
@@ -569,24 +630,19 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           </div>
         </div>
 
-        {/* Right Panel - Map View (Hidden on mobile, visible on desktop) */}
-        <div className="hidden lg:block flex-1 relative">
-          {/* Gradient Overlay - Top */}
-          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/60 via-black/20 to-transparent z-10 pointer-events-none" />
-          
-          {/* Map Label - Floating (Right side) */}
-          <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-black/60 backdrop-blur-xl border border-white/10">
-              <MapPin className="w-4 h-4 text-blue-400" />
-              <span className="font-medium text-sm text-white">Geographic View</span>
+        {/* Right Panel - Map View & Chatbot (Hidden on mobile, visible on desktop) */}
+        <div className="hidden lg:flex flex-1 flex-col gap-4 overflow-hidden">
+          {/* Map View - Top Section (Constrained height) */}
+          <div className="relative bg-white rounded-xl border border-[var(--ds-card-border)] overflow-hidden" style={{ flex: '3 1 0', minHeight: '300px' }}>
+            {/* Map Header */}
+            <div className="absolute top-4 right-4 z-20">
+              <button
+                onClick={() => setIsMapFullscreen(true)}
+                className="px-4 py-2 rounded-lg bg-[#937251] text-white text-sm font-medium hover:bg-[#7D6245] transition-colors shadow-sm"
+              >
+                Expand
+              </button>
             </div>
-            <button
-              onClick={() => setIsMapFullscreen(true)}
-              className="p-2 rounded-xl bg-black/60 backdrop-blur-xl border border-white/10 hover:bg-black/80 transition-colors text-gray-400 hover:text-white"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </button>
-          </div>
 
           {/* Selected Problem Info - Floating Card */}
           {selectedProblem && (
@@ -637,6 +693,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               selectedProblemId={selectedId}
               centerOnProblem={selectedProblem}
               fullscreen
+              showControls={!anyModalOpen && !isMapFullscreen}
             />
           </div>
 
@@ -649,6 +706,12 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               <Maximize2 className="w-4 h-4" />
               Expand Map
             </button>
+          </div>
+          </div>
+
+          {/* Chatbot - Bottom Section */}
+          <div className="flex-1 min-h-[300px]">
+            <AiChatbot />
           </div>
         </div>
       </div>
@@ -685,6 +748,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               selectedProblemId={selectedId}
               centerOnProblem={selectedProblem}
               fullscreen
+              showControls={!anyModalOpen}
             />
           </motion.div>
         )}
@@ -787,6 +851,26 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             setSelectedResolutionProblem(null);
           }}
         />
+      )}
+
+      {/* Submit Problem Form Modal */}
+      {showSubmitForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowSubmitForm(false)}
+          />
+          <div className="relative z-10">
+            <SubmitProblemForm 
+              isOpen={showSubmitForm}
+              onClose={() => setShowSubmitForm(false)}
+              onSuccess={() => {
+                fetchProblems();
+                setShowSubmitForm(false);
+              }} 
+            />
+          </div>
+        </div>
       )}
     </>
   );

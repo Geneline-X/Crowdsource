@@ -21,6 +21,7 @@ interface MapViewProps {
   selectedProblemId?: number | null;
   centerOnProblem?: Problem | null;
   fullscreen?: boolean;
+  showControls?: boolean;
 }
 
 export function MapView({
@@ -29,6 +30,7 @@ export function MapView({
   selectedProblemId,
   centerOnProblem,
   fullscreen = false,
+  showControls,
 }: MapViewProps) {
   return (
     <div className={fullscreen ? "w-full h-full" : "w-full h-[380px]"}>
@@ -37,6 +39,7 @@ export function MapView({
         onSelectProblem={onSelectProblem}
         selectedProblemId={selectedProblemId}
         centerOnProblem={centerOnProblem}
+        showControls={showControls}
       />
     </div>
   );

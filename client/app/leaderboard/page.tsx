@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import {
   Trophy,
   Crown,
@@ -10,7 +9,6 @@ import {
   Award,
   Shield,
   User,
-  ArrowLeft,
   RefreshCw,
   Sparkles,
 } from "lucide-react";
@@ -73,50 +71,45 @@ export default function LeaderboardPage() {
   }, []);
 
   return (
-    <>
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#F0F1E8]">
       {/* Header */}
-      <header className="header-glass sticky top-0 z-40">
-        <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="p-2 rounded-xl hover:bg-white/[0.05] transition-colors text-gray-500 hover:text-white">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-yellow-600/20 border border-amber-500/20">
-                <Trophy className="w-5 h-5 text-amber-400" />
-              </div>
-              <span className="font-semibold text-lg">Leaderboard</span>
+      <header className="shrink-0 bg-white border-b border-[#E8E6E1] px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/20 border border-amber-500/30">
+              <Trophy className="w-5 h-5 text-amber-500" />
             </div>
+            <span className="font-semibold text-lg text-[#262626]">Leaderboard</span>
           </div>
           <button
             onClick={fetchLeaderboard}
-            className="p-2.5 rounded-xl hover:bg-white/[0.05] transition-colors text-gray-500 hover:text-white"
+            className="p-2.5 rounded-lg hover:bg-[#E8E6E1] transition-colors text-[#525252]"
           >
             <RefreshCw className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-8 md:py-12">
+      <main className="flex-1 overflow-y-auto p-6">
         {/* Title */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl md:text-4xl font-bold text-white">Top Contributors</h1>
-            <Sparkles className="w-6 h-6 text-amber-400 animate-float" />
+            <h1 className="text-2xl font-bold text-[#262626]">Top Contributors</h1>
+            <Sparkles className="w-5 h-5 text-amber-500" />
           </div>
-          <p className="text-gray-500">Celebrating our most active community members making a difference.</p>
+          <p className="text-[#525252]">Celebrating our most active community members making a difference.</p>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="geist-spinner w-8 h-8" />
+            <div className="w-8 h-8 border-2 border-[#4A7766] border-t-transparent rounded-full animate-spin" />
           </div>
         ) : error ? (
-          <div className="geist-card-glass p-8 text-center max-w-md mx-auto">
-            <Trophy className="w-10 h-10 text-gray-600 mx-auto mb-4" />
-            <p className="text-red-400 mb-4">{error}</p>
-            <button onClick={fetchLeaderboard} className="geist-button geist-button-secondary">
-              <RefreshCw className="w-4 h-4 mr-2" />
+          <div className="bg-white rounded-xl border border-[#E8E6E1] p-8 text-center max-w-md mx-auto">
+            <Trophy className="w-10 h-10 text-[#737373] mx-auto mb-4" />
+            <p className="text-red-500 mb-4">{error}</p>
+            <button onClick={fetchLeaderboard} className="px-4 py-2 bg-[#2D5A47] text-white rounded-lg hover:bg-[#235242] transition-colors">
+              <RefreshCw className="w-4 h-4 inline mr-2" />
               Retry
             </button>
           </div>
@@ -133,14 +126,14 @@ export default function LeaderboardPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`geist-card-glass p-5 ${isTopThree ? `ring-2 ${rankStyle.ring}` : ""}`}
+                  className={`bg-white rounded-xl border border-[#E8E6E1] p-5 ${isTopThree ? `ring-2 ${rankStyle.ring}` : ""}`}
                 >
                   <div className="flex items-center gap-4 md:gap-6">
                     {/* Rank */}
                     <div className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg ${
                       isTopThree 
                         ? `bg-gradient-to-br ${rankStyle.bg} text-white ${rankStyle.shadow}` 
-                        : "bg-gray-800 text-gray-400"
+                        : "bg-[#F5F3EE] text-[#525252]"
                     }`}>
                       {entry.rank}
                     </div>
@@ -158,7 +151,7 @@ export default function LeaderboardPage() {
 
                     {/* User Info */}
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono text-sm text-white truncate">{entry.userPhone}</p>
+                      <p className="font-mono text-sm text-[#262626] truncate">{entry.userPhone}</p>
                       <p className="text-xs font-medium" style={{ color: entry.badge.color }}>
                         {entry.badge.name}
                       </p>
@@ -167,39 +160,39 @@ export default function LeaderboardPage() {
                     {/* Stats - Desktop */}
                     <div className="hidden md:flex items-center gap-6 text-sm">
                       <div className="text-center min-w-[60px]">
-                        <p className="font-bold text-white">{entry.problemsReported}</p>
-                        <p className="text-xs text-gray-600">Reports</p>
+                        <p className="font-bold text-[#262626]">{entry.problemsReported}</p>
+                        <p className="text-xs text-[#737373]">Reports</p>
                       </div>
                       <div className="text-center min-w-[80px]">
-                        <p className="font-bold text-white">{entry.verificationsGiven}</p>
-                        <p className="text-xs text-gray-600">Verifications</p>
+                        <p className="font-bold text-[#262626]">{entry.verificationsGiven}</p>
+                        <p className="text-xs text-[#737373]">Verifications</p>
                       </div>
                       <div className="text-center min-w-[70px]">
-                        <p className="font-bold text-white">{entry.responsesOffered}</p>
-                        <p className="text-xs text-gray-600">Help Offered</p>
+                        <p className="font-bold text-[#262626]">{entry.responsesOffered}</p>
+                        <p className="text-xs text-[#737373]">Help Offered</p>
                       </div>
                     </div>
 
                     {/* Score */}
                     <div className="shrink-0 text-right">
-                      <p className="stat-card-value text-2xl md:text-3xl">{entry.score}</p>
-                      <p className="text-[10px] text-gray-600 uppercase tracking-wider">points</p>
+                      <p className="text-2xl md:text-3xl font-bold text-[#4A7766]">{entry.score}</p>
+                      <p className="text-[10px] text-[#737373] uppercase tracking-wider">points</p>
                     </div>
                   </div>
 
                   {/* Mobile Stats */}
-                  <div className="md:hidden grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-white/[0.06]">
+                  <div className="md:hidden grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-[#E8E6E1]">
                     <div className="text-center">
-                      <p className="font-bold text-white">{entry.problemsReported}</p>
-                      <p className="text-[10px] text-gray-600">Reports</p>
+                      <p className="font-bold text-[#262626]">{entry.problemsReported}</p>
+                      <p className="text-[10px] text-[#737373]">Reports</p>
                     </div>
                     <div className="text-center">
-                      <p className="font-bold text-white">{entry.verificationsGiven}</p>
-                      <p className="text-[10px] text-gray-600">Verifications</p>
+                      <p className="font-bold text-[#262626]">{entry.verificationsGiven}</p>
+                      <p className="text-[10px] text-[#737373]">Verifications</p>
                     </div>
                     <div className="text-center">
-                      <p className="font-bold text-white">{entry.responsesOffered}</p>
-                      <p className="text-[10px] text-gray-600">Help Offered</p>
+                      <p className="font-bold text-[#262626]">{entry.responsesOffered}</p>
+                      <p className="text-[10px] text-[#737373]">Help Offered</p>
                     </div>
                   </div>
                 </motion.div>
@@ -208,6 +201,7 @@ export default function LeaderboardPage() {
           </div>
         )}
       </main>
-    </>
+    </div>
   );
 }
+
