@@ -94,32 +94,32 @@ export function ResolutionProofModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 geist-overlay flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
         onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="geist-modal w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-xl border border-[#E8E6E1] shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-[var(--ds-gray-400)]">
+          <div className="flex items-center justify-between p-4 border-b border-[#E8E6E1]">
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-[var(--ds-green-600)]" />
-              <h3 className="font-semibold">Problem Resolved</h3>
+              <CheckCircle className="w-5 h-5 text-green-600" />
+              <h3 className="font-semibold text-[#262626]">Problem Resolved</h3>
               {averageRating > 0 && (
-                <div className="flex items-center gap-1 ml-2 px-2 py-0.5 bg-[var(--ds-gray-200)] rounded-full">
+                <div className="flex items-center gap-1 ml-2 px-2 py-0.5 bg-[#F5F3EE] rounded-full">
                   <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                  <span className="text-xs font-medium">{averageRating.toFixed(1)}</span>
-                  <span className="text-xs text-[var(--ds-gray-500)]">({ratingCount})</span>
+                  <span className="text-xs font-medium text-[#262626]">{averageRating.toFixed(1)}</span>
+                  <span className="text-xs text-[#525252]">({ratingCount})</span>
                 </div>
               )}
             </div>
             <button
               onClick={onClose}
-              className="p-1 hover:bg-[var(--ds-gray-200)] rounded transition-colors"
+              className="p-1 hover:bg-[#F5F3EE] rounded transition-colors text-[#525252]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -127,13 +127,13 @@ export function ResolutionProofModal({
 
           <div className="p-0">
              {/* Tabs */}
-            <div className="flex border-b border-[var(--ds-gray-200)] px-4">
+            <div className="flex border-b border-[#E8E6E1] px-4">
               <button
                 onClick={() => setActiveTab("proof")}
                 className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === "proof"
-                    ? "border-[var(--ds-blue-500)] text-[var(--ds-blue-600)]"
-                    : "border-transparent text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)]"
+                    ? "border-[#2D5A47] text-[#2D5A47]"
+                    : "border-transparent text-[#525252] hover:text-[#262626]"
                 }`}
               >
                 {hasBeforeAfter ? "Before & After" : "Proof"}
@@ -142,8 +142,8 @@ export function ResolutionProofModal({
                 onClick={() => setActiveTab("timeline")}
                 className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === "timeline"
-                    ? "border-[var(--ds-blue-500)] text-[var(--ds-blue-600)]"
-                    : "border-transparent text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)]"
+                    ? "border-[#2D5A47] text-[#2D5A47]"
+                    : "border-transparent text-[#525252] hover:text-[#262626]"
                 }`}
               >
                 Timeline
@@ -152,8 +152,8 @@ export function ResolutionProofModal({
                 onClick={() => setActiveTab("rating")}
                 className={`px-4 py-3 font-medium text-sm border-b-2 transition-colors ${
                   activeTab === "rating"
-                    ? "border-[var(--ds-blue-500)] text-[var(--ds-blue-600)]"
-                    : "border-transparent text-[var(--ds-gray-600)] hover:text-[var(--ds-gray-900)]"
+                    ? "border-[#2D5A47] text-[#2D5A47]"
+                    : "border-transparent text-[#525252] hover:text-[#262626]"
                 }`}
               >
                 Rating
@@ -164,8 +164,8 @@ export function ResolutionProofModal({
             <div className="p-6 space-y-6">
               {/* Problem Title */}
               <div>
-                <h4 className="text-lg font-semibold mb-2">{problemTitle}</h4>
-                <div className="flex flex-wrap gap-4 text-sm text-[var(--ds-gray-600)]">
+                <h4 className="text-lg font-semibold mb-2 text-[#262626]">{problemTitle}</h4>
+                <div className="flex flex-wrap gap-4 text-sm text-[#525252]">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
                     <span>Resolved: {new Date(resolvedAt).toLocaleDateString()}</span>
@@ -181,9 +181,9 @@ export function ResolutionProofModal({
 
                {/* Resolution Notes */}
               {resolutionNotes && (
-                <div className="p-4 border border-[var(--ds-gray-200)] rounded-lg">
-                  <p className="text-sm font-medium mb-1 text-[var(--ds-gray-900)]">Volunteer Notes:</p>
-                  <p className="text-sm text-[var(--ds-gray-700)]">{resolutionNotes}</p>
+                <div className="p-4 border border-[#E8E6E1] rounded-lg bg-[#F9F8F5]">
+                  <p className="text-sm font-medium mb-1 text-[#262626]">Volunteer Notes:</p>
+                  <p className="text-sm text-[#525252]">{resolutionNotes}</p>
                 </div>
               )}
 
@@ -199,7 +199,7 @@ export function ResolutionProofModal({
                     /* Original Proof Display */
                     resolutionProof && resolutionProof.length > 0 && (
                       <div>
-                        <div className="relative w-full h-[400px] border border-[var(--ds-gray-200)] rounded-lg overflow-hidden mb-4">
+                        <div className="relative w-full h-[400px] border border-[#E8E6E1] rounded-lg overflow-hidden mb-4">
                           <Image
                             src={resolutionProof[currentImageIndex]}
                             alt={`Resolution proof ${currentImageIndex + 1}`}
@@ -215,8 +215,8 @@ export function ResolutionProofModal({
                                 onClick={() => setCurrentImageIndex(index)}
                                 className={`relative shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${
                                   index === currentImageIndex
-                                    ? "border-[var(--ds-blue-500)]"
-                                    : "border-[var(--ds-gray-200)] hover:border-[var(--ds-gray-300)]"
+                                    ? "border-[#2D5A47]"
+                                    : "border-[#E8E6E1] hover:border-[#D0CEC9]"
                                 }`}
                               >
                                 <Image
@@ -238,8 +238,7 @@ export function ResolutionProofModal({
               {activeTab === "timeline" && (
                 <div>
                   {loading ? (
-                    <div className="flex flex-col items-center py-8 text-[var(--ds-gray-500)]">
-                       {/* You might want to import Loader2 here if desired, or just use text */}
+                    <div className="flex flex-col items-center py-8 text-[#525252]">
                        Loading timeline...
                     </div>
                   ) : (
@@ -261,13 +260,13 @@ export function ResolutionProofModal({
               )}
 
                {/* Success Indicator at bottom */}
-               <div className="mt-6 pt-6 border-t border-[var(--ds-gray-200)] flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full border border-[var(--ds-green-200)] flex items-center justify-center shrink-0">
-                    <Check className="w-5 h-5 text-[var(--ds-green-600)]" />
+               <div className="mt-6 pt-6 border-t border-[#E8E6E1] flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full border border-green-200 bg-green-50 flex items-center justify-center shrink-0">
+                    <Check className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-[var(--ds-gray-900)]">Problem Successfully Resolved</p>
-                    <p className="text-xs text-[var(--ds-gray-500)]">Thank you for helping to improve our community.</p>
+                    <p className="text-sm font-medium text-[#262626]">Problem Successfully Resolved</p>
+                    <p className="text-xs text-[#525252]">Thank you for helping to improve our community.</p>
                   </div>
                </div>
             </div>

@@ -129,7 +129,7 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             />
             
             {/* Modal Content */}
@@ -140,22 +140,22 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
               transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
               className="relative w-full max-w-lg z-10"
             >
-              <div className="geist-card-glass overflow-hidden">
+              <div className="bg-white rounded-xl border border-[#E8E6E1] shadow-xl overflow-hidden">
                 {/* Header */}
-                <div className="relative px-6 py-5 border-b border-white/[0.06]">
+                <div className="relative px-6 py-5 border-b border-[#E8E6E1]">
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="absolute right-4 top-4 p-2 rounded-xl hover:bg-white/[0.05] transition-colors text-gray-500 hover:text-white"
+                    className="absolute right-4 top-4 p-2 rounded-xl hover:bg-[#F5F3EE] transition-colors text-[#525252] hover:text-[#262626]"
                   >
                     <X className="w-5 h-5" />
                   </button>
                   <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/20">
-                      <FileText className="w-5 h-5 text-violet-400" />
+                    <div className="p-2.5 rounded-xl bg-[#2D5A47]/10 border border-[#2D5A47]/20">
+                      <FileText className="w-5 h-5 text-[#2D5A47]" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-white">Report a Problem</h2>
-                      <p className="text-sm text-gray-500">Help identify issues in your community</p>
+                      <h2 className="text-lg font-semibold text-[#262626]">Report a Problem</h2>
+                      <p className="text-sm text-[#525252]">Help identify issues in your community</p>
                     </div>
                   </div>
                 </div>
@@ -165,7 +165,7 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                   <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto">
                     {/* Title */}
                     <div>
-                      <label htmlFor="title" className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wider">
+                      <label htmlFor="title" className="block text-xs font-medium text-[#525252] mb-2 uppercase tracking-wider">
                         Problem Title
                       </label>
                       <input
@@ -180,7 +180,7 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
 
                     {/* Category */}
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-3 uppercase tracking-wider">
+                      <label className="block text-xs font-medium text-[#525252] mb-3 uppercase tracking-wider">
                         Category
                       </label>
                       <div className="grid grid-cols-2 gap-3">
@@ -192,17 +192,17 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                             className={cn(
                               "flex items-center gap-3 p-4 rounded-xl border transition-all duration-200",
                               category === cat.value
-                                ? `bg-gradient-to-br ${cat.gradient} border-transparent ring-2 ring-offset-2 ring-offset-black ${cat.ring}`
-                                : "border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.12]"
+                                ? `bg-gradient-to-br ${cat.gradient} border-transparent ring-2 ring-offset-2 ring-offset-white ${cat.ring}`
+                                : "border-[#E8E6E1] bg-white hover:bg-[#F5F3EE] hover:border-[#D0CEC9]"
                             )}
                           >
                             <cat.icon className={cn(
                               "w-5 h-5",
-                              category === cat.value ? "text-white" : "text-gray-500"
+                              category === cat.value ? "text-white" : "text-[#525252]"
                             )} />
                             <span className={cn(
                               "text-sm font-medium",
-                              category === cat.value ? "text-white" : "text-gray-400"
+                              category === cat.value ? "text-white" : "text-[#262626]"
                             )}>
                               {cat.label}
                             </span>

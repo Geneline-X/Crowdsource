@@ -122,27 +122,27 @@ export function VerifyProblemModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 geist-overlay flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
         onClick={handleClose}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="geist-modal w-full max-w-md max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-xl border border-[#E8E6E1] shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-[var(--ds-gray-400)]">
-            <h3 className="font-semibold">Verify Problem</h3>
-            <button onClick={handleClose} className="p-1 hover:bg-[var(--ds-gray-200)] rounded">
+          <div className="flex items-center justify-between p-4 border-b border-[#E8E6E1]">
+            <h3 className="font-semibold text-[#262626]">Verify Problem</h3>
+            <button onClick={handleClose} className="p-1 hover:bg-[#F5F3EE] rounded text-[#525252]">
               <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Content */}
           <div className="p-4">
-            <p className="geist-text-small mb-4 line-clamp-2">{problemTitle}</p>
+            <p className="text-sm text-[#525252] mb-4 line-clamp-2">{problemTitle}</p>
 
             {/* Step: Location */}
             {step === "location" && (

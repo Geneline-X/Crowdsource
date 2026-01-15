@@ -101,34 +101,29 @@ export default function WeeklyBlogPage() {
   const isCurrentWeek = selectedDate.getTime() === getStartOfCurrentWeek().getTime();
 
   return (
-    <>
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#F0F1E8]">
       {/* Header */}
-      <header className="header-glass sticky top-0 z-40">
-        <div className="max-w-screen-xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="p-2 rounded-xl hover:bg-white/[0.05] transition-colors text-gray-500 hover:text-white">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/20">
-                <Flame className="w-5 h-5 text-violet-400" />
-              </div>
-              <span className="font-semibold text-lg">
-                {viewMode === 'weekly' ? 'Weekly Leaderboard' : 'All-Time Ranking'}
-              </span>
+      <header className="shrink-0 bg-white border-b border-[#E8E6E1] px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-[#5B21B6]/20 border border-[#5B21B6]/30">
+              <Flame className="w-5 h-5 text-[#5B21B6]" />
             </div>
+            <span className="font-semibold text-lg text-[#262626]">
+              {viewMode === 'weekly' ? 'Weekly Leaderboard' : 'All-Time Ranking'}
+            </span>
           </div>
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 md:px-6 py-8 md:py-12">
+      <main className="flex-1 overflow-y-auto p-6">
         {/* Title & Controls */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+            <h1 className="text-2xl font-bold text-[#262626] mb-2">
               {viewMode === 'weekly' ? 'Weekly Leaderboard' : 'Overall Pressing Problems'}
             </h1>
-            <p className="text-gray-500">
+            <p className="text-[#525252]">
               {viewMode === 'weekly' 
                 ? "Ranking of the most upvoted community problems for the selected week."
                 : "All-time ranking of the most pressing community problems."}
@@ -137,16 +132,16 @@ export default function WeeklyBlogPage() {
         </div>
 
         {/* View Toggle & Week Selector */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-10 pb-6 border-b border-white/[0.06]">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-8 pb-6 border-b border-[#E8E6E1]">
           {/* View Toggle */}
-          <div className="flex p-1 bg-white/[0.03] rounded-xl border border-white/[0.06]">
+          <div className="flex p-1 bg-[#F5F3EE] rounded-xl border border-[#E8E6E1]">
             <button
               onClick={() => setViewMode('weekly')}
               className={cn(
                 "px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
                 viewMode === 'weekly' 
-                  ? "bg-white text-black shadow-sm" 
-                  : "text-gray-500 hover:text-white"
+                  ? "bg-[#2D5A47] text-white shadow-sm" 
+                  : "text-[#525252] hover:text-[#262626]"
               )}
             >
               Weekly View
@@ -156,8 +151,8 @@ export default function WeeklyBlogPage() {
               className={cn(
                 "px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
                 viewMode === 'overall' 
-                  ? "bg-white text-black shadow-sm" 
-                  : "text-gray-500 hover:text-white"
+                  ? "bg-[#2D5A47] text-white shadow-sm" 
+                  : "text-[#525252] hover:text-[#262626]"
               )}
             >
               Overall View
@@ -166,17 +161,17 @@ export default function WeeklyBlogPage() {
 
           {/* Week Selector */}
           {viewMode === 'weekly' && (
-            <div className="flex items-center gap-2 p-1 bg-white/[0.03] rounded-xl border border-white/[0.06]">
+            <div className="flex items-center gap-2 p-1 bg-[#F5F3EE] rounded-xl border border-[#E8E6E1]">
               <button 
                 onClick={handlePrevWeek}
-                className="p-2 rounded-lg hover:bg-white/[0.05] text-gray-500 hover:text-white transition-colors disabled:opacity-40"
+                className="p-2 rounded-lg hover:bg-[#E8E6E1] text-[#525252] hover:text-[#262626] transition-colors disabled:opacity-40"
                 disabled={selectedDate.getTime() <= weekOptions[weekOptions.length - 1].getTime()}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <div className="flex items-center gap-2 px-4 py-2 min-w-[160px] justify-center">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-white tabular-nums">
+                <Calendar className="w-4 h-4 text-[#525252]" />
+                <span className="text-sm font-medium text-[#262626] tabular-nums">
                   {formatWeekRange(selectedDate)}
                 </span>
               </div>
@@ -185,8 +180,8 @@ export default function WeeklyBlogPage() {
                 className={cn(
                   "p-2 rounded-lg transition-colors",
                   isCurrentWeek 
-                    ? "text-gray-700 cursor-not-allowed" 
-                    : "hover:bg-white/[0.05] text-gray-500 hover:text-white"
+                    ? "text-[#A3A3A3] cursor-not-allowed" 
+                    : "hover:bg-[#E8E6E1] text-[#525252] hover:text-[#262626]"
                 )}
                 disabled={isCurrentWeek}
               >
@@ -198,18 +193,18 @@ export default function WeeklyBlogPage() {
 
         {isLoading ? (
           <div className="flex items-center gap-3 justify-center py-20">
-            <div className="geist-spinner" />
-            <span className="text-gray-500">Loading leaderboard...</span>
+            <div className="w-6 h-6 border-2 border-[#4A7766] border-t-transparent rounded-full animate-spin" />
+            <span className="text-[#525252]">Loading leaderboard...</span>
           </div>
         ) : error ? (
-          <div className="geist-card-glass p-8 text-center max-w-md mx-auto">
-            <p className="text-red-400 mb-2">Failed to load leaderboard</p>
-            <p className="text-sm text-gray-600">{error}</p>
+          <div className="bg-white rounded-xl border border-[#E8E6E1] p-8 text-center max-w-md mx-auto">
+            <p className="text-red-500 mb-2">Failed to load leaderboard</p>
+            <p className="text-sm text-[#737373]">{error}</p>
           </div>
         ) : sortedProblems.length === 0 ? (
-          <div className="geist-card-glass p-8 text-center max-w-md mx-auto">
-            <Trophy className="w-10 h-10 text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-400">
+          <div className="bg-white rounded-xl border border-[#E8E6E1] p-8 text-center max-w-md mx-auto">
+            <Trophy className="w-10 h-10 text-[#737373] mx-auto mb-4" />
+            <p className="text-[#525252]">
               {viewMode === 'weekly' 
                 ? "No problems reported this week yet."
                 : "No problems reported yet."}
@@ -229,11 +224,11 @@ export default function WeeklyBlogPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="geist-card-glass p-5"
+                  className="bg-white rounded-xl border border-[#E8E6E1] p-5"
                 >
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">{stat.label}</p>
-                  <p className="stat-card-value text-3xl">{stat.value}</p>
-                  <p className="text-xs text-gray-600 mt-1">{stat.sub}</p>
+                  <p className="text-xs font-medium text-[#525252] uppercase tracking-wider mb-2">{stat.label}</p>
+                  <p className="text-3xl font-bold text-[#262626]">{stat.value}</p>
+                  <p className="text-xs text-[#737373] mt-1">{stat.sub}</p>
                 </motion.div>
               ))}
             </div>
@@ -255,7 +250,7 @@ export default function WeeklyBlogPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 + index * 0.1 }}
                     className={cn(
-                      "geist-card-glass p-6 border-2",
+                      "bg-white rounded-xl p-6 border-2",
                       style.border
                     )}
                   >
@@ -267,18 +262,18 @@ export default function WeeklyBlogPage() {
                         <span className="text-lg font-bold text-white">{rank}</span>
                       </div>
                       <div className="text-right">
-                        <p className="stat-card-value text-2xl">{problem.upvoteCount}</p>
-                        <p className="text-[10px] text-gray-600 uppercase">votes</p>
+                        <p className="text-2xl font-bold text-[#4A7766]">{problem.upvoteCount}</p>
+                        <p className="text-[10px] text-[#737373] uppercase">votes</p>
                       </div>
                     </div>
                     
-                    <h3 className="font-semibold text-white mb-1 line-clamp-1">{problem.title}</h3>
-                    <p className="text-xs text-gray-600 mb-3 truncate">{location}</p>
-                    <p className="text-sm text-gray-500 line-clamp-2 mb-4">{preview}</p>
+                    <h3 className="font-semibold text-[#262626] mb-1 line-clamp-1">{problem.title}</h3>
+                    <p className="text-xs text-[#737373] mb-3 truncate">{location}</p>
+                    <p className="text-sm text-[#525252] line-clamp-2 mb-4">{preview}</p>
                     
-                    <div className="flex items-center justify-between text-xs text-gray-600">
+                    <div className="flex items-center justify-between text-xs text-[#737373]">
                       <span>{new Date((problem as any).createdAt as any).toLocaleDateString()}</span>
-                      <span className="px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.06]">
+                      <span className="px-2 py-1 rounded-md bg-[#F5F3EE] border border-[#E8E6E1]">
                         ID {problem.id}
                       </span>
                     </div>
@@ -288,10 +283,10 @@ export default function WeeklyBlogPage() {
             </div>
 
             {/* Full Ranking Table */}
-            <div className="geist-card-glass overflow-hidden">
-              <div className="p-5 border-b border-white/[0.06]">
-                <h2 className="font-semibold text-white">Complete Ranking</h2>
-                <p className="text-sm text-gray-600">
+            <div className="bg-white rounded-xl border border-[#E8E6E1] overflow-hidden">
+              <div className="p-5 border-b border-[#E8E6E1]">
+                <h2 className="font-semibold text-[#262626]">Complete Ranking</h2>
+                <p className="text-sm text-[#525252]">
                   {viewMode === 'weekly' 
                     ? "All problems reported this week, ordered by upvotes."
                     : "All problems reported, ordered by upvotes."}
@@ -299,7 +294,7 @@ export default function WeeklyBlogPage() {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="border-b border-white/[0.06] text-gray-500">
+                  <thead className="border-b border-[#E8E6E1] text-[#525252]">
                     <tr>
                       <th className="text-left py-4 px-5 font-medium">Rank</th>
                       <th className="text-left py-4 pr-5 font-medium">Problem</th>
@@ -316,20 +311,20 @@ export default function WeeklyBlogPage() {
                         <tr
                           key={problem.id}
                           className={cn(
-                            "border-b border-white/[0.04] last:border-0 transition-colors hover:bg-white/[0.02]",
-                            index % 2 === 1 && "bg-white/[0.01]"
+                            "border-b border-[#E8E6E1] last:border-0 transition-colors hover:bg-[#F5F3EE]",
+                            index % 2 === 1 && "bg-[#F9F8F5]"
                           )}
                         >
-                          <td className="py-4 px-5 text-gray-500">{rank}</td>
+                          <td className="py-4 px-5 text-[#525252]">{rank}</td>
                           <td className="py-4 pr-5">
-                            <p className="font-medium text-white truncate max-w-[200px] lg:max-w-xs">{problem.title}</p>
-                            <p className="text-xs text-gray-600">ID {problem.id}</p>
+                            <p className="font-medium text-[#262626] truncate max-w-[200px] lg:max-w-xs">{problem.title}</p>
+                            <p className="text-xs text-[#737373]">ID {problem.id}</p>
                           </td>
-                          <td className="py-4 pr-5 text-gray-500 truncate max-w-[150px] hidden md:table-cell">{location}</td>
-                          <td className="py-4 pr-5 text-gray-500 hidden lg:table-cell">
+                          <td className="py-4 pr-5 text-[#525252] truncate max-w-[150px] hidden md:table-cell">{location}</td>
+                          <td className="py-4 pr-5 text-[#525252] hidden lg:table-cell">
                             {new Date((problem as any).createdAt as any).toLocaleDateString()}
                           </td>
-                          <td className="py-4 pr-5 text-right font-bold text-white">{problem.upvoteCount}</td>
+                          <td className="py-4 pr-5 text-right font-bold text-[#4A7766]">{problem.upvoteCount}</td>
                         </tr>
                       );
                     })}
@@ -340,6 +335,6 @@ export default function WeeklyBlogPage() {
           </>
         )}
       </main>
-    </>
+    </div>
   );
 }

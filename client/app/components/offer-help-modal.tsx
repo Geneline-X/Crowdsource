@@ -119,23 +119,23 @@ export function OfferHelpModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 geist-overlay flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
         onClick={handleClose}
       >
         <motion.div
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
-          className="geist-modal w-full max-w-md"
+          className="bg-white rounded-xl border border-[#E8E6E1] shadow-xl w-full max-w-md"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-[var(--ds-gray-400)]">
+          <div className="flex items-center justify-between p-4 border-b border-[#E8E6E1]">
             <div className="flex items-center gap-2">
-              <HandHelping className="w-5 h-5 text-[var(--ds-blue-500)]" />
-              <h3 className="font-semibold">Offer to Help</h3>
+              <HandHelping className="w-5 h-5 text-[#2D5A47]" />
+              <h3 className="font-semibold text-[#262626]">Offer to Help</h3>
             </div>
-            <button onClick={handleClose} className="p-1 hover:bg-[var(--ds-gray-200)] rounded">
+            <button onClick={handleClose} className="p-1 hover:bg-[#F5F3EE] rounded text-[#525252]">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -144,22 +144,22 @@ export function OfferHelpModal({
           <div className="p-4">
             {success ? (
               <div className="flex flex-col items-center py-8">
-                <div className="w-12 h-12 rounded-full bg-[var(--ds-green-100)] flex items-center justify-center">
-                  <Check className="w-6 h-6 text-[var(--ds-green-600)]" />
+                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <Check className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="mt-4 text-sm font-medium">Thank you for offering to help!</p>
-                <p className="text-xs text-[var(--ds-gray-600)] mt-1 text-center">
+                <p className="mt-4 text-sm font-medium text-[#262626]">Thank you for offering to help!</p>
+                <p className="text-xs text-[#525252] mt-1 text-center">
                   The community appreciates your willingness to contribute.
                 </p>
               </div>
             ) : (
               <>
-                <p className="geist-text-small mb-4 line-clamp-2">{problemTitle}</p>
+                <p className="text-sm text-[#525252] mb-4 line-clamp-2">{problemTitle}</p>
 
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium block mb-2">
-                      Phone Number <span className="text-[var(--ds-red-500)]">*</span>
+                    <label className="text-sm font-medium block mb-2 text-[#262626]">
+                      Phone Number <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -172,7 +172,7 @@ export function OfferHelpModal({
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium block mb-2">
+                    <label className="text-sm font-medium block mb-2 text-[#262626]">
                       Message (Optional)
                     </label>
                     <textarea
@@ -185,7 +185,7 @@ export function OfferHelpModal({
                   </div>
 
                   {error && (
-                    <div className="flex items-center gap-2 text-[var(--ds-red-600)] bg-[var(--ds-red-100)] p-3 rounded-md">
+                    <div className="flex items-center gap-2 text-red-600 bg-red-50 p-3 rounded-md">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <p className="text-xs">{error}</p>
                     </div>
@@ -194,7 +194,7 @@ export function OfferHelpModal({
                   <button
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="geist-button geist-button-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-3 bg-[#2D5A47] text-white rounded-lg font-medium hover:bg-[#235242] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   >
                     {submitting ? (
                       <>
