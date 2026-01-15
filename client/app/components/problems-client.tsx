@@ -9,7 +9,6 @@ import {
   ShieldCheck, 
   HandHelping, 
   AlertTriangle, 
-  Bot, 
   MapPin,
   ChevronUp,
   Clock,
@@ -26,13 +25,16 @@ import {
 } from "lucide-react";
 
 import { Problem } from "@/lib/types";
-import { AiChatbot } from "@/app/components/ai-chatbot";
+import { useProblems, useUpvote } from "@/lib/hooks/use-problems";
+import { useAppStore } from "@/lib/stores/app-store";
 import { MapView } from "@/app/components/map-view";
 import { SubmitProblemForm } from "@/app/components/submit-problem-form";
 import { VerifyProblemModal } from "@/app/components/verify-problem-modal";
 import { OfferHelpModal } from "@/app/components/offer-help-modal";
 import { ResolutionProofModal } from "@/app/components/resolution-proof-modal";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-client";
 
 const CATEGORY_MAP: Record<string, { label: string; gradient: string; }> = {
   infrastructure: { label: "Infrastructure", gradient: "from-blue-500 to-cyan-500" },
@@ -64,18 +66,27 @@ interface ProblemsClientProps {
 
 export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const searchParams = useSearchParams();
-  const [problems, setProblems] = useState<Problem[]>(initialProblems);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  
+  // React Query hooks for data fetching with optimistic updates
+  const { data: problems = initialProblems, isLoading, error: queryError, dataUpdatedAt, refetch } = useProblems({ pollingInterval: 5000 });
+  const upvoteMutation = useUpvote();
+  
+  // Zustand store for persisted voted problems
+  const { addVotedProblem, hasVoted: storeHasVoted } = useAppStore();
+  
+  // Refetch function to replace the old fetchProblems
+  const refetchProblems = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.problems.list() });
+  }, [queryClient]);
+  
+  // Local UI state
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<"all" | "verified" | "pending">("all");
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [previousProblemCount, setPreviousProblemCount] = useState<number>(initialProblems.length);
   const [newProblemDetected, setNewProblemDetected] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; mimeType: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [votedProblems, setVotedProblems] = useState<Set<number>>(new Set());
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [verifyProblemId, setVerifyProblemId] = useState<number | null>(null);
   const [offerHelpModalOpen, setOfferHelpModalOpen] = useState(false);
@@ -83,15 +94,25 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [resolutionProofModalOpen, setResolutionProofModalOpen] = useState(false);
   const [selectedResolutionProblem, setSelectedResolutionProblem] = useState<Problem | null>(null);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const [headerTab, setHeaderTab] = useState<"active" | "mapped" | "votes" | "resolved">("active");
   const voterIdRef = useRef<string>("");
+  const previousCountRef = useRef<number>(initialProblems.length);
+
+  // Detect new problems
+  useEffect(() => {
+    if (problems.length > previousCountRef.current && previousCountRef.current > 0) {
+      setNewProblemDetected(true);
+      setTimeout(() => setNewProblemDetected(false), 3000);
+    }
+    previousCountRef.current = problems.length;
+  }, [problems.length]);
 
   useEffect(() => {
     const problemIdParam = searchParams.get("problem");
     if (problemIdParam) {
       const problemId = parseInt(problemIdParam, 10);
       if (!isNaN(problemId)) {
-        const problem = initialProblems.find(p => p.id === problemId);
+        const problem = problems.find(p => p.id === problemId);
         if (problem) {
           setSelectedId(problemId);
           setTimeout(() => {
@@ -103,7 +124,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
         }
       }
     }
-  }, [searchParams, initialProblems]);
+  }, [searchParams, problems]);
 
   useEffect(() => {
     const initVoterId = async () => {
@@ -124,69 +145,15 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
     initVoterId();
   }, []);
 
-  const fetchProblems = useCallback(async () => {
-    try {
-      const response = await fetch("/api/problems");
-      if (!response.ok) {
-        throw new Error("Failed to fetch problems");
-      }
-      const data = await response.json();
-      
-      if (data.length > previousProblemCount && previousProblemCount > 0) {
-        setNewProblemDetected(true);
-        setTimeout(() => setNewProblemDetected(false), 3000);
-      }
-      
-      setProblems(data);
-      setPreviousProblemCount(data.length);
-      setLastUpdated(new Date());
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [previousProblemCount]);
-
-  // Set initial lastUpdated on mount (hydration-safe)
-  useEffect(() => {
-    setLastUpdated(new Date());
-  }, []);
-
-  useEffect(() => {
-    pollingRef.current = setInterval(() => {
-      fetchProblems();
-    }, 5000);
-
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
-    };
-  }, [fetchProblems]);
-
-  const handleVote = useCallback(async (id: number) => {
-    if (votedProblems.has(id)) {
-      return;
-    }
+  // Optimistic upvote handler - instant feedback!
+  const handleVote = useCallback((id: number) => {
+    if (storeHasVoted(id)) return;
     
-    try {
-      const response = await fetch(`/api/problems/${id}/upvote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voterPhone: voterIdRef.current || "anonymous" }),
-      });
-
-      if (response.ok) {
-        setVotedProblems(prev => new Set(prev).add(id));
-        fetchProblems();
-      } else if (response.status === 409) {
-        setVotedProblems(prev => new Set(prev).add(id));
-      }
-    } catch (err) {
-      console.error("Failed to upvote problem:", err);
-    }
-  }, [fetchProblems, votedProblems]);
+    upvoteMutation.mutate({
+      id,
+      voterPhone: voterIdRef.current || "anonymous",
+    });
+  }, [storeHasVoted, upvoteMutation]);
 
   const handleSelectProblem = useCallback((id: number) => {
     const problem = problems.find((p) => p.id === id);
@@ -197,7 +164,23 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
 
   const sorted = [...problems].sort((a, b) => b.upvoteCount - a.upvoteCount);
   
-  const filteredProblems = sorted.filter((p) => {
+  // Apply header tab filter first
+  const headerFiltered = sorted.filter((p) => {
+    switch (headerTab) {
+      case "active":
+        return p.status !== "RESOLVED";
+      case "mapped":
+        return (p.latitude !== null && p.longitude !== null) || (p.verifications && p.verifications.length > 0);
+      case "votes":
+        return p.upvoteCount > 0;
+      case "resolved":
+        return p.status === "RESOLVED";
+      default:
+        return true;
+    }
+  });
+  
+  const filteredProblems = headerFiltered.filter((p) => {
     const matchesFilter = 
       activeFilter === "all" ? true :
       activeFilter === "verified" ? p.locationVerified :
@@ -225,7 +208,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const selectedProblem = selectedId ? problems.find((p) => p.id === selectedId) : null;
   const anyModalOpen = verifyModalOpen || offerHelpModalOpen || resolutionProofModalOpen || showSubmitForm || !!selectedImage;
 
-  if (error) {
+  if (queryError) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="geist-card-glass p-8 text-center max-w-md">
@@ -233,7 +216,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             <AlertTriangle className="w-6 h-6 text-red-500" />
           </div>
           <p className="text-lg font-semibold text-gray-900 mb-2">Failed to load</p>
-          <p className="text-sm text-gray-500">{error}</p>
+          <p className="text-sm text-gray-500">{queryError.message}</p>
         </div>
       </div>
     );
@@ -261,10 +244,23 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
       {/* Content Header */}
       <div className="content-header">
         <div className="content-header-tabs">
-          <button className="content-header-tab">Active</button>
-          <button className="content-header-tab">Mapped</button>
-          <button className="content-header-tab">Votes</button>
-          <button className="content-header-tab">Resolved</button>
+          {[
+            { key: "active", label: "Active" },
+            { key: "mapped", label: "Mapped" },
+            { key: "votes", label: "Votes" },
+            { key: "resolved", label: "Resolved" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setHeaderTab(tab.key as typeof headerTab)}
+              className={cn(
+                "content-header-tab",
+                headerTab === tab.key && "content-header-tab-active"
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
         <button className="report-btn" onClick={() => setShowSubmitForm(true)}>
           Report a problem
@@ -383,7 +379,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                   const category = getCategoryConfig(problem.locationSource);
                   const hasLocation = problem.latitude !== null && problem.longitude !== null;
                   const isSelected = selectedId === problem.id;
-                  const hasVoted = votedProblems.has(problem.id);
+                  const hasVoted = storeHasVoted(problem.id);
 
                   return (
                     <motion.div
@@ -461,7 +457,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           {(problem.aiCategory || (problem.severityScore && problem.severityScore > 0)) && (
                             <div className="mb-2 p-2 rounded-lg bg-violet-500/5 border border-violet-500/10">
                               <div className="flex items-center gap-1.5 mb-1">
-                                <Bot className="w-3 h-3 text-violet-400" />
+                                <Activity className="w-3 h-3 text-violet-400" />
                                 <span className="text-[10px] font-medium text-violet-400 uppercase tracking-wider">AI</span>
                               </div>
                               <div className="flex flex-wrap gap-2 text-[11px]">
@@ -625,7 +621,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             
             <div className="flex items-center justify-center gap-2 text-xs text-gray-600">
               <Clock className="w-3 h-3" />
-              <span>Updated {lastUpdated ? lastUpdated.toLocaleTimeString() : '--:--:--'}</span>
+              <span>Updated {dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : '--:--:--'}</span>
             </div>
           </div>
         </div>
@@ -709,9 +705,44 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           </div>
           </div>
 
-          {/* Chatbot - Bottom Section */}
-          <div className="flex-1 min-h-[300px]">
-            <AiChatbot />
+          {/* Activity Feed - Bottom Section */}
+          <div className="flex-1 min-h-[300px] bg-white rounded-xl border border-[var(--ds-card-border)] overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-[#E8E6E1]">
+              <h3 className="text-sm font-semibold text-[#262626]">Recent Activity</h3>
+              <p className="text-xs text-[#525252]">Live updates from the community</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {problems.slice(0, 10).map((problem) => (
+                <div 
+                  key={problem.id} 
+                  className="p-3 rounded-lg bg-[#F5F3EE] border border-[#E8E6E1] hover:bg-[#E8E6E1] transition-colors cursor-pointer"
+                  onClick={() => handleSelectProblem(problem.id)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0",
+                      problem.status === "RESOLVED" ? "bg-emerald-500" :
+                      problem.verificationCount > 0 ? "bg-blue-500" : "bg-amber-500"
+                    )}>
+                      {problem.status === "RESOLVED" ? <CheckCircle className="w-4 h-4" /> :
+                       problem.verificationCount > 0 ? <ShieldCheck className="w-4 h-4" /> :
+                       <AlertTriangle className="w-4 h-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#262626] truncate">{problem.title}</p>
+                      <p className="text-xs text-[#525252]">
+                        {problem.status === "RESOLVED" ? "Resolved" :
+                         problem.verificationCount > 0 ? `${problem.verificationCount} verifications` :
+                         "Pending verification"}
+                        <span className="mx-1">-</span>
+                        {new Date(problem.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-[#4A7766]">{problem.upvoteCount} votes</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -808,7 +839,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             setVerifyProblemId(null);
           }}
           onSuccess={() => {
-            fetchProblems();
+            refetchProblems();
           }}
           fingerprint={voterIdRef.current}
         />
@@ -825,7 +856,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             setOfferHelpProblemId(null);
           }}
           onSuccess={() => {
-            fetchProblems();
+            refetchProblems();
           }}
           fingerprint={voterIdRef.current}
         />
@@ -843,7 +874,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           resolutionNotes={selectedResolutionProblem.resolutionNotes || undefined}
           averageRating={selectedResolutionProblem.averageRating || undefined}
           ratingCount={selectedResolutionProblem.ratingCount || 0}
-          canRate={votedProblems.has(selectedResolutionProblem.id)}
+          canRate={storeHasVoted(selectedResolutionProblem.id)}
           fingerprint={voterIdRef.current}
           isOpen={resolutionProofModalOpen}
           onClose={() => {
@@ -865,7 +896,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               isOpen={showSubmitForm}
               onClose={() => setShowSubmitForm(false)}
               onSuccess={() => {
-                fetchProblems();
+                refetchProblems();
                 setShowSubmitForm(false);
               }} 
             />

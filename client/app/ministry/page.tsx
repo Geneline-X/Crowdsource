@@ -1,46 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMinistryProblems, useUpdateStatus, MinistryProblem } from "@/lib/hooks/use-ministry";
+import { MinistrySkeleton } from "@/app/components/ui/skeleton";
 
-interface ProblemImage {
-  id: number;
-  url: string;
-  mimeType: string;
-  size: number;
-}
-
-interface Problem {
-  id: number;
-  reporterPhone: string;
-  rawMessage: string;
-  title: string;
-  locationText?: string;
-  latitude?: number;
-  longitude?: number;
-  locationVerified: boolean;
-  locationSource?: string;
-  nationalCategory?: string;
-  recommendedOffice?: string;
-  status: 'REPORTED' | 'IN_REVIEW' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
-  createdAt: string;
-  updatedAt: string;
-  upvoteCount: number;
-  images: ProblemImage[];
-}
-
-interface PaginatedResponse {
-  success: boolean;
-  data: Problem[];
-  pagination: {
-    total: number;
-    page: number;
-    totalPages: number;
-    limit: number;
-  };
-}
-
-const statusColors = {
+const statusColors: Record<string, string> = {
   REPORTED: 'bg-yellow-100 text-yellow-800',
   IN_REVIEW: 'bg-blue-100 text-blue-800',
   IN_PROGRESS: 'bg-purple-100 text-purple-800',
@@ -49,80 +14,45 @@ const statusColors = {
 };
 
 export default function MinistryDashboard() {
-  const [problems, setProblems] = useState<Problem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProblem, setSelectedProblem] = useState<Problem | null>(null);
+  const [selectedProblem, setSelectedProblem] = useState<MinistryProblem | null>(null);
 
-  const fetchProblems = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: '10',
-        ...(statusFilter && { status: statusFilter }),
-        ...(searchTerm && { search: searchTerm }),
-      });
+  const { data, isLoading, error, refetch } = useMinistryProblems({
+    page,
+    limit: 10,
+    status: statusFilter,
+    search: searchTerm
+  });
 
-      const response = await fetch(`http://localhost:3800/api/ministry/problems?${params}`);
-      const data: PaginatedResponse = await response.json();
-
-      if (data.success) {
-        setProblems(data.data);
-        setTotalPages(data.pagination.totalPages);
-      } else {
-        setError('Failed to fetch problems');
-      }
-    } catch (err) {
-      setError('Error fetching problems');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProblemStatus = async (problemId: number, newStatus: string) => {
-    try {
-      const response = await fetch(`http://localhost:3800/api/ministry/problems/${problemId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (response.ok) {
-        fetchProblems();
-        if (selectedProblem?.id === problemId) {
-          setSelectedProblem(null);
-        }
-      }
-    } catch (err) {
-      console.error('Error updating problem status:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchProblems();
-  }, [page, statusFilter, searchTerm]);
+  const updateStatus = useUpdateStatus();
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 md:mb-8 gap-3">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Ministry Dashboard</h1>
-          <a
-            href="/ministry/analytics"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-indigo-700 transition-colors shadow-lg shadow-purple-500/25"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            View Analytics
-          </a>
+          <div className="flex gap-2">
+            <button
+               onClick={() => refetch()} 
+               className="p-2 bg-white text-gray-600 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors"
+               title="Refresh data"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+            <a
+              href="/ministry/analytics"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-indigo-700 transition-colors shadow-lg shadow-purple-500/25"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              View Analytics
+            </a>
+          </div>
         </div>
 
         {/* Filters */}
@@ -169,17 +99,21 @@ export default function MinistryDashboard() {
         </div>
 
         {/* Problems List */}
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
+        {isLoading ? (
+          <MinistrySkeleton />
         ) : error ? (
           <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-            <p className="text-red-800">{error}</p>
+            <p className="text-red-800">{(error as Error).message || "Failed to fetch problems"}</p>
+            <button 
+              onClick={() => refetch()}
+              className="mt-2 text-sm font-medium text-red-600 hover:text-red-500 hover:underline"
+            >
+              Try again
+            </button>
           </div>
         ) : (
           <div className="space-y-4">
-            {problems.map((problem) => (
+            {data?.data.map((problem) => (
               <motion.div
                 key={problem.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -224,8 +158,9 @@ export default function MinistryDashboard() {
                   <div className="flex gap-2 w-full sm:w-auto">
                     <select
                       value={problem.status}
-                      onChange={(e) => updateProblemStatus(problem.id, e.target.value)}
-                      className="flex-1 sm:flex-initial px-2 md:px-3 py-1 border border-gray-300 rounded-md text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onChange={(e) => updateStatus.mutate({ id: problem.id, status: e.target.value })}
+                      disabled={updateStatus.isPending && updateStatus.variables?.id === problem.id}
+                      className="flex-1 sm:flex-initial px-2 md:px-3 py-1 border border-gray-300 rounded-md text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                     >
                       <option value="REPORTED">Reported</option>
                       <option value="IN_REVIEW">In Review</option>
@@ -246,8 +181,8 @@ export default function MinistryDashboard() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
+        {/* Pagination */
+        data?.pagination && data.pagination.totalPages > 1 && (
           <div className="flex justify-center mt-4 md:mt-8 gap-2">
             <button
               onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -257,11 +192,11 @@ export default function MinistryDashboard() {
               Previous
             </button>
             <span className="px-2 md:px-4 py-1.5 md:py-2 text-xs md:text-sm">
-              Page {page} of {totalPages}
+              Page {page} of {data.pagination.totalPages}
             </span>
             <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
+              onClick={() => setPage(p => Math.min(data.pagination.totalPages, p + 1))}
+              disabled={page === data.pagination.totalPages}
               className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
             >
               Next
@@ -351,7 +286,9 @@ export default function MinistryDashboard() {
                     <select
                       value={selectedProblem.status}
                       onChange={(e) => {
-                        updateProblemStatus(selectedProblem.id, e.target.value);
+                         updateStatus.mutate({ id: selectedProblem.id, status: e.target.value });
+                         // Also update local state for immediate feedback in modal
+                         setSelectedProblem({ ...selectedProblem, status: e.target.value as MinistryProblem['status'] });
                       }}
                       className="flex-1 sm:flex-initial px-2 md:px-3 py-1.5 md:py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
