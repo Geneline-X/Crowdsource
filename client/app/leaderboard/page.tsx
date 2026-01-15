@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Trophy,
@@ -12,6 +11,8 @@ import {
   RefreshCw,
   Sparkles,
 } from "lucide-react";
+import { useLeaderboard } from "@/lib/hooks/use-leaderboard";
+import { LeaderboardSkeleton } from "@/app/components/ui/skeleton";
 
 interface LeaderboardEntry {
   rank: number;
@@ -45,30 +46,7 @@ const RANK_STYLES = [
 ];
 
 export default function LeaderboardPage() {
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchLeaderboard = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/leaderboard");
-      const data = await response.json();
-      if (data.success) {
-        setLeaderboard(data.leaderboard);
-      } else {
-        setError("Failed to load leaderboard");
-      }
-    } catch (err) {
-      setError("Error connecting to server");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLeaderboard();
-  }, []);
+  const { data: leaderboard, isLoading, error, refetch } = useLeaderboard();
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#F0F1E8]">
@@ -82,7 +60,7 @@ export default function LeaderboardPage() {
             <span className="font-semibold text-lg text-[#262626]">Leaderboard</span>
           </div>
           <button
-            onClick={fetchLeaderboard}
+            onClick={() => refetch()}
             className="p-2.5 rounded-lg hover:bg-[#E8E6E1] transition-colors text-[#525252]"
           >
             <RefreshCw className="w-5 h-5" />
@@ -100,22 +78,20 @@ export default function LeaderboardPage() {
           <p className="text-[#525252]">Celebrating our most active community members making a difference.</p>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-[#4A7766] border-t-transparent rounded-full animate-spin" />
-          </div>
+        {isLoading ? (
+          <LeaderboardSkeleton />
         ) : error ? (
           <div className="bg-white rounded-xl border border-[#E8E6E1] p-8 text-center max-w-md mx-auto">
             <Trophy className="w-10 h-10 text-[#737373] mx-auto mb-4" />
-            <p className="text-red-500 mb-4">{error}</p>
-            <button onClick={fetchLeaderboard} className="px-4 py-2 bg-[#2D5A47] text-white rounded-lg hover:bg-[#235242] transition-colors">
+            <p className="text-red-500 mb-4">{(error as Error).message || "Failed to load leaderboard"}</p>
+            <button onClick={() => refetch()} className="px-4 py-2 bg-[#2D5A47] text-white rounded-lg hover:bg-[#235242] transition-colors">
               <RefreshCw className="w-4 h-4 inline mr-2" />
               Retry
             </button>
           </div>
         ) : (
           <div className="space-y-3">
-            {leaderboard.map((entry, index) => {
+            {leaderboard?.map((entry, index) => {
               const BadgeIcon = BADGE_ICONS[entry.badge.icon] || User;
               const isTopThree = entry.rank <= 3;
               const rankStyle = RANK_STYLES[entry.rank - 1];

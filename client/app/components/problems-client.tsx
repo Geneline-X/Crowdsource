@@ -25,12 +25,16 @@ import {
 } from "lucide-react";
 
 import { Problem } from "@/lib/types";
+import { useProblems, useUpvote } from "@/lib/hooks/use-problems";
+import { useAppStore } from "@/lib/stores/app-store";
 import { MapView } from "@/app/components/map-view";
 import { SubmitProblemForm } from "@/app/components/submit-problem-form";
 import { VerifyProblemModal } from "@/app/components/verify-problem-modal";
 import { OfferHelpModal } from "@/app/components/offer-help-modal";
 import { ResolutionProofModal } from "@/app/components/resolution-proof-modal";
 import { cn } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-client";
 
 const CATEGORY_MAP: Record<string, { label: string; gradient: string; }> = {
   infrastructure: { label: "Infrastructure", gradient: "from-blue-500 to-cyan-500" },
@@ -62,18 +66,27 @@ interface ProblemsClientProps {
 
 export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const searchParams = useSearchParams();
-  const [problems, setProblems] = useState<Problem[]>(initialProblems);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  
+  // React Query hooks for data fetching with optimistic updates
+  const { data: problems = initialProblems, isLoading, error: queryError, dataUpdatedAt, refetch } = useProblems({ pollingInterval: 5000 });
+  const upvoteMutation = useUpvote();
+  
+  // Zustand store for persisted voted problems
+  const { addVotedProblem, hasVoted: storeHasVoted } = useAppStore();
+  
+  // Refetch function to replace the old fetchProblems
+  const refetchProblems = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.problems.list() });
+  }, [queryClient]);
+  
+  // Local UI state
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<"all" | "verified" | "pending">("all");
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [previousProblemCount, setPreviousProblemCount] = useState<number>(initialProblems.length);
   const [newProblemDetected, setNewProblemDetected] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; mimeType: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [votedProblems, setVotedProblems] = useState<Set<number>>(new Set());
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [verifyProblemId, setVerifyProblemId] = useState<number | null>(null);
   const [offerHelpModalOpen, setOfferHelpModalOpen] = useState(false);
@@ -82,15 +95,24 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [selectedResolutionProblem, setSelectedResolutionProblem] = useState<Problem | null>(null);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
   const [headerTab, setHeaderTab] = useState<"active" | "mapped" | "votes" | "resolved">("active");
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const voterIdRef = useRef<string>("");
+  const previousCountRef = useRef<number>(initialProblems.length);
+
+  // Detect new problems
+  useEffect(() => {
+    if (problems.length > previousCountRef.current && previousCountRef.current > 0) {
+      setNewProblemDetected(true);
+      setTimeout(() => setNewProblemDetected(false), 3000);
+    }
+    previousCountRef.current = problems.length;
+  }, [problems.length]);
 
   useEffect(() => {
     const problemIdParam = searchParams.get("problem");
     if (problemIdParam) {
       const problemId = parseInt(problemIdParam, 10);
       if (!isNaN(problemId)) {
-        const problem = initialProblems.find(p => p.id === problemId);
+        const problem = problems.find(p => p.id === problemId);
         if (problem) {
           setSelectedId(problemId);
           setTimeout(() => {
@@ -102,7 +124,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
         }
       }
     }
-  }, [searchParams, initialProblems]);
+  }, [searchParams, problems]);
 
   useEffect(() => {
     const initVoterId = async () => {
@@ -123,69 +145,15 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
     initVoterId();
   }, []);
 
-  const fetchProblems = useCallback(async () => {
-    try {
-      const response = await fetch("/api/problems");
-      if (!response.ok) {
-        throw new Error("Failed to fetch problems");
-      }
-      const data = await response.json();
-      
-      if (data.length > previousProblemCount && previousProblemCount > 0) {
-        setNewProblemDetected(true);
-        setTimeout(() => setNewProblemDetected(false), 3000);
-      }
-      
-      setProblems(data);
-      setPreviousProblemCount(data.length);
-      setLastUpdated(new Date());
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [previousProblemCount]);
-
-  // Set initial lastUpdated on mount (hydration-safe)
-  useEffect(() => {
-    setLastUpdated(new Date());
-  }, []);
-
-  useEffect(() => {
-    pollingRef.current = setInterval(() => {
-      fetchProblems();
-    }, 5000);
-
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
-    };
-  }, [fetchProblems]);
-
-  const handleVote = useCallback(async (id: number) => {
-    if (votedProblems.has(id)) {
-      return;
-    }
+  // Optimistic upvote handler - instant feedback!
+  const handleVote = useCallback((id: number) => {
+    if (storeHasVoted(id)) return;
     
-    try {
-      const response = await fetch(`/api/problems/${id}/upvote`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voterPhone: voterIdRef.current || "anonymous" }),
-      });
-
-      if (response.ok) {
-        setVotedProblems(prev => new Set(prev).add(id));
-        fetchProblems();
-      } else if (response.status === 409) {
-        setVotedProblems(prev => new Set(prev).add(id));
-      }
-    } catch (err) {
-      console.error("Failed to upvote problem:", err);
-    }
-  }, [fetchProblems, votedProblems]);
+    upvoteMutation.mutate({
+      id,
+      voterPhone: voterIdRef.current || "anonymous",
+    });
+  }, [storeHasVoted, upvoteMutation]);
 
   const handleSelectProblem = useCallback((id: number) => {
     const problem = problems.find((p) => p.id === id);
@@ -240,7 +208,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const selectedProblem = selectedId ? problems.find((p) => p.id === selectedId) : null;
   const anyModalOpen = verifyModalOpen || offerHelpModalOpen || resolutionProofModalOpen || showSubmitForm || !!selectedImage;
 
-  if (error) {
+  if (queryError) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="geist-card-glass p-8 text-center max-w-md">
@@ -248,7 +216,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             <AlertTriangle className="w-6 h-6 text-red-500" />
           </div>
           <p className="text-lg font-semibold text-gray-900 mb-2">Failed to load</p>
-          <p className="text-sm text-gray-500">{error}</p>
+          <p className="text-sm text-gray-500">{queryError.message}</p>
         </div>
       </div>
     );
@@ -411,7 +379,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                   const category = getCategoryConfig(problem.locationSource);
                   const hasLocation = problem.latitude !== null && problem.longitude !== null;
                   const isSelected = selectedId === problem.id;
-                  const hasVoted = votedProblems.has(problem.id);
+                  const hasVoted = storeHasVoted(problem.id);
 
                   return (
                     <motion.div
@@ -653,7 +621,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             
             <div className="flex items-center justify-center gap-2 text-xs text-gray-600">
               <Clock className="w-3 h-3" />
-              <span>Updated {lastUpdated ? lastUpdated.toLocaleTimeString() : '--:--:--'}</span>
+              <span>Updated {dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : '--:--:--'}</span>
             </div>
           </div>
         </div>
@@ -871,7 +839,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             setVerifyProblemId(null);
           }}
           onSuccess={() => {
-            fetchProblems();
+            refetchProblems();
           }}
           fingerprint={voterIdRef.current}
         />
@@ -888,7 +856,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             setOfferHelpProblemId(null);
           }}
           onSuccess={() => {
-            fetchProblems();
+            refetchProblems();
           }}
           fingerprint={voterIdRef.current}
         />
@@ -906,7 +874,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           resolutionNotes={selectedResolutionProblem.resolutionNotes || undefined}
           averageRating={selectedResolutionProblem.averageRating || undefined}
           ratingCount={selectedResolutionProblem.ratingCount || 0}
-          canRate={votedProblems.has(selectedResolutionProblem.id)}
+          canRate={storeHasVoted(selectedResolutionProblem.id)}
           fingerprint={voterIdRef.current}
           isOpen={resolutionProofModalOpen}
           onClose={() => {
@@ -928,7 +896,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               isOpen={showSubmitForm}
               onClose={() => setShowSubmitForm(false)}
               onSuccess={() => {
-                fetchProblems();
+                refetchProblems();
                 setShowSubmitForm(false);
               }} 
             />
