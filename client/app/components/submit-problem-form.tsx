@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils"
 
 interface SubmitProblemFormProps {
   onSuccess?: () => void
+  isOpen: boolean
+  onClose: () => void
 }
 
 interface SearchResult {
@@ -25,8 +27,7 @@ const categories = [
   { value: "other", label: "Other", icon: HelpCircle, gradient: "from-gray-500 to-gray-600", ring: "ring-gray-500" },
 ] as const
 
-export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
-  const [isOpen, setIsOpen] = useState(false)
+export function SubmitProblemForm({ onSuccess, isOpen, onClose }: SubmitProblemFormProps) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [locationText, setLocationText] = useState("")
@@ -90,7 +91,7 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
         throw new Error("Failed to submit problem")
       }
 
-      setIsOpen(false)
+      onClose()
       setTitle("")
       setDescription("")
       setLocationText("")
@@ -110,15 +111,6 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
 
   return (
     <>
-      {/* Trigger Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="w-full geist-button-gradient h-12 rounded-xl font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-violet-500/25"
-      >
-        <Plus className="w-5 h-5" />
-        Report a Problem
-      </button>
-
       {/* Modal */}
       <AnimatePresence>
         {isOpen && (
@@ -128,7 +120,7 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
+              onClick={onClose}
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             />
             
@@ -144,7 +136,7 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                 {/* Header */}
                 <div className="relative px-6 py-5 border-b border-[#E8E6E1]">
                   <button
-                    onClick={() => setIsOpen(false)}
+                    onClick={onClose}
                     className="absolute right-4 top-4 p-2 rounded-xl hover:bg-[#F5F3EE] transition-colors text-[#525252] hover:text-[#262626]"
                   >
                     <X className="w-5 h-5" />
@@ -322,7 +314,7 @@ export function SubmitProblemForm({ onSuccess }: SubmitProblemFormProps) {
                     <div className="flex justify-end gap-3">
                       <button 
                         type="button" 
-                        onClick={() => setIsOpen(false)} 
+                        onClick={onClose} 
                         className="geist-button geist-button-secondary"
                         disabled={isSubmitting}
                       >

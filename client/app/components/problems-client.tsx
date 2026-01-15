@@ -223,6 +223,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   
   const maxVotes = Math.max(...problems.map((p) => p.upvoteCount), 1);
   const selectedProblem = selectedId ? problems.find((p) => p.id === selectedId) : null;
+  const anyModalOpen = verifyModalOpen || offerHelpModalOpen || resolutionProofModalOpen || showSubmitForm || !!selectedImage;
 
   if (error) {
     return (
@@ -692,6 +693,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               selectedProblemId={selectedId}
               centerOnProblem={selectedProblem}
               fullscreen
+              showControls={!anyModalOpen && !isMapFullscreen}
             />
           </div>
 
@@ -746,6 +748,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               selectedProblemId={selectedId}
               centerOnProblem={selectedProblem}
               fullscreen
+              showControls={!anyModalOpen}
             />
           </motion.div>
         )}
@@ -858,10 +861,14 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             onClick={() => setShowSubmitForm(false)}
           />
           <div className="relative z-10">
-            <SubmitProblemForm onSuccess={() => {
-              fetchProblems();
-              setShowSubmitForm(false);
-            }} />
+            <SubmitProblemForm 
+              isOpen={showSubmitForm}
+              onClose={() => setShowSubmitForm(false)}
+              onSuccess={() => {
+                fetchProblems();
+                setShowSubmitForm(false);
+              }} 
+            />
           </div>
         </div>
       )}

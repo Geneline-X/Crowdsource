@@ -358,14 +358,14 @@ export default function MapClient({
     <div className="relative w-full h-full">
       {/* Map Controls */}
       {showControls && (
-        <div className="absolute top-2 left-2 z-[1000] flex flex-col gap-1.5">
-          <div className="geist-card p-1 flex gap-0.5">
+        <div className="absolute top-2 left-2 z-[400] flex flex-col gap-1.5">
+          <div className="bg-white rounded-lg border border-[#E8E6E1] shadow-md p-1 flex gap-0.5">
             <button
               onClick={() => setViewMode("markers")}
               className={`px-2.5 py-1.5 text-[11px] font-medium rounded transition-colors ${
                 viewMode === "markers" 
-                  ? "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]" 
-                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]"
+                  ? "bg-[#2D5A47] text-white" 
+                  : "text-[#525252] hover:text-[#262626] hover:bg-[#F5F3EE]"
               }`}
             >
               Markers
@@ -374,8 +374,8 @@ export default function MapClient({
               onClick={() => setViewMode("heatmap")}
               className={`px-2.5 py-1.5 text-[11px] font-medium rounded transition-colors ${
                 viewMode === "heatmap" 
-                  ? "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]" 
-                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]"
+                  ? "bg-[#2D5A47] text-white" 
+                  : "text-[#525252] hover:text-[#262626] hover:bg-[#F5F3EE]"
               }`}
             >
               Heatmap
@@ -384,8 +384,8 @@ export default function MapClient({
               onClick={() => setViewMode("both")}
               className={`px-2.5 py-1.5 text-[11px] font-medium rounded transition-colors ${
                 viewMode === "both" 
-                  ? "bg-[var(--ds-gray-1000)] text-[var(--ds-background-100)]" 
-                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)] hover:bg-[var(--ds-gray-200)]"
+                  ? "bg-[#2D5A47] text-white" 
+                  : "text-[#525252] hover:text-[#262626] hover:bg-[#F5F3EE]"
               }`}
             >
               Both
@@ -393,10 +393,10 @@ export default function MapClient({
           </div>
           <button
             onClick={() => setShowBoundaries(!showBoundaries)}
-            className={`geist-card px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+            className={`bg-white rounded-lg border border-[#E8E6E1] shadow-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
               showBoundaries 
-                ? "bg-[var(--ds-blue-200)] text-[var(--ds-blue-700)] border-[var(--ds-blue-400)]" 
-                : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)]"
+                ? "bg-blue-100 text-blue-700 border-blue-300" 
+                : "text-[#525252] hover:text-[#262626]"
             }`}
           >
             {showBoundaries ? "Hide Districts" : "Show Districts"}
@@ -404,24 +404,23 @@ export default function MapClient({
             {/* Existing controls above... */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`geist-card px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+              className={`bg-white rounded-lg border border-[#E8E6E1] shadow-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
                 showFilters 
-                  ? "bg-[var(--ds-amber-200)] text-[var(--ds-amber-700)] border-[var(--ds-amber-400)]" 
-                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)]"
+                  ? "bg-amber-100 text-amber-700 border-amber-300" 
+                  : "text-[#525252] hover:text-[#262626]"
               }`}
             >
               {showFilters ? "Hide Insights" : "Show Insights"}
             </button>
             <button
               onClick={getUserLocation}
-              className={`geist-card px-2.5 py-1.5 text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
+              className={`bg-white rounded-lg border border-[#E8E6E1] shadow-md px-2.5 py-1.5 text-[11px] font-medium flex items-center gap-1.5 transition-colors ${
                 userLocation 
-                  ? "bg-[var(--ds-green-200)] text-[var(--ds-green-700)] border-[var(--ds-green-400)]" 
-                  : "text-[var(--ds-gray-700)] hover:text-[var(--ds-gray-900)]"
+                  ? "bg-green-100 text-green-700 border-green-300" 
+                  : "text-[#525252] hover:text-[#262626]"
               }`}
             >
-              <span>📍</span>
-              {userLocation ? "Location Set" : "My Location"}
+              <span>My Location</span>
             </button>
 
 
@@ -439,11 +438,11 @@ export default function MapClient({
         center={defaultCenter}
         zoom={12}
         className="w-full h-full"
-        style={{ background: "#0a0a0a" }}
+        style={{ background: "#F0F1E8" }}
       >
         <TileLayer
           attribution="CARTO"
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
         <MapCenterController centerOnProblem={centerOnProblem} />
 
