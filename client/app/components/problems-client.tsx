@@ -9,7 +9,6 @@ import {
   ShieldCheck, 
   HandHelping, 
   AlertTriangle, 
-  Bot, 
   MapPin,
   ChevronUp,
   Clock,
@@ -26,7 +25,6 @@ import {
 } from "lucide-react";
 
 import { Problem } from "@/lib/types";
-import { AiChatbot } from "@/app/components/ai-chatbot";
 import { MapView } from "@/app/components/map-view";
 import { SubmitProblemForm } from "@/app/components/submit-problem-form";
 import { VerifyProblemModal } from "@/app/components/verify-problem-modal";
@@ -83,6 +81,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [resolutionProofModalOpen, setResolutionProofModalOpen] = useState(false);
   const [selectedResolutionProblem, setSelectedResolutionProblem] = useState<Problem | null>(null);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
+  const [headerTab, setHeaderTab] = useState<"active" | "mapped" | "votes" | "resolved">("active");
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
   const voterIdRef = useRef<string>("");
 
@@ -197,7 +196,23 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
 
   const sorted = [...problems].sort((a, b) => b.upvoteCount - a.upvoteCount);
   
-  const filteredProblems = sorted.filter((p) => {
+  // Apply header tab filter first
+  const headerFiltered = sorted.filter((p) => {
+    switch (headerTab) {
+      case "active":
+        return p.status !== "RESOLVED";
+      case "mapped":
+        return (p.latitude !== null && p.longitude !== null) || (p.verifications && p.verifications.length > 0);
+      case "votes":
+        return p.upvoteCount > 0;
+      case "resolved":
+        return p.status === "RESOLVED";
+      default:
+        return true;
+    }
+  });
+  
+  const filteredProblems = headerFiltered.filter((p) => {
     const matchesFilter = 
       activeFilter === "all" ? true :
       activeFilter === "verified" ? p.locationVerified :
@@ -261,10 +276,23 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
       {/* Content Header */}
       <div className="content-header">
         <div className="content-header-tabs">
-          <button className="content-header-tab">Active</button>
-          <button className="content-header-tab">Mapped</button>
-          <button className="content-header-tab">Votes</button>
-          <button className="content-header-tab">Resolved</button>
+          {[
+            { key: "active", label: "Active" },
+            { key: "mapped", label: "Mapped" },
+            { key: "votes", label: "Votes" },
+            { key: "resolved", label: "Resolved" },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setHeaderTab(tab.key as typeof headerTab)}
+              className={cn(
+                "content-header-tab",
+                headerTab === tab.key && "content-header-tab-active"
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
         <button className="report-btn" onClick={() => setShowSubmitForm(true)}>
           Report a problem
@@ -461,7 +489,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           {(problem.aiCategory || (problem.severityScore && problem.severityScore > 0)) && (
                             <div className="mb-2 p-2 rounded-lg bg-violet-500/5 border border-violet-500/10">
                               <div className="flex items-center gap-1.5 mb-1">
-                                <Bot className="w-3 h-3 text-violet-400" />
+                                <Activity className="w-3 h-3 text-violet-400" />
                                 <span className="text-[10px] font-medium text-violet-400 uppercase tracking-wider">AI</span>
                               </div>
                               <div className="flex flex-wrap gap-2 text-[11px]">
@@ -709,9 +737,44 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           </div>
           </div>
 
-          {/* Chatbot - Bottom Section */}
-          <div className="flex-1 min-h-[300px]">
-            <AiChatbot />
+          {/* Activity Feed - Bottom Section */}
+          <div className="flex-1 min-h-[300px] bg-white rounded-xl border border-[var(--ds-card-border)] overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-[#E8E6E1]">
+              <h3 className="text-sm font-semibold text-[#262626]">Recent Activity</h3>
+              <p className="text-xs text-[#525252]">Live updates from the community</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {problems.slice(0, 10).map((problem) => (
+                <div 
+                  key={problem.id} 
+                  className="p-3 rounded-lg bg-[#F5F3EE] border border-[#E8E6E1] hover:bg-[#E8E6E1] transition-colors cursor-pointer"
+                  onClick={() => handleSelectProblem(problem.id)}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0",
+                      problem.status === "RESOLVED" ? "bg-emerald-500" :
+                      problem.verificationCount > 0 ? "bg-blue-500" : "bg-amber-500"
+                    )}>
+                      {problem.status === "RESOLVED" ? <CheckCircle className="w-4 h-4" /> :
+                       problem.verificationCount > 0 ? <ShieldCheck className="w-4 h-4" /> :
+                       <AlertTriangle className="w-4 h-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#262626] truncate">{problem.title}</p>
+                      <p className="text-xs text-[#525252]">
+                        {problem.status === "RESOLVED" ? "Resolved" :
+                         problem.verificationCount > 0 ? `${problem.verificationCount} verifications` :
+                         "Pending verification"}
+                        <span className="mx-1">-</span>
+                        {new Date(problem.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-[#4A7766]">{problem.upvoteCount} votes</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
