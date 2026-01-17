@@ -4,11 +4,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Search, 
-  ShieldCheck, 
-  HandHelping, 
-  AlertTriangle, 
+import {
+  Search,
+  ShieldCheck,
+  HandHelping,
+  AlertTriangle,
   MapPin,
   ChevronUp,
   Clock,
@@ -67,19 +67,19 @@ interface ProblemsClientProps {
 export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  
+
   // React Query hooks for data fetching with optimistic updates
   const { data: problems = initialProblems, isLoading, error: queryError, dataUpdatedAt, refetch } = useProblems({ pollingInterval: 5000 });
   const upvoteMutation = useUpvote();
-  
+
   // Zustand store for persisted voted problems
   const { addVotedProblem, hasVoted: storeHasVoted } = useAppStore();
-  
+
   // Refetch function to replace the old fetchProblems
   const refetchProblems = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.problems.list() });
   }, [queryClient]);
-  
+
   // Local UI state
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
@@ -148,7 +148,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   // Optimistic upvote handler - instant feedback!
   const handleVote = useCallback((id: number) => {
     if (storeHasVoted(id)) return;
-    
+
     upvoteMutation.mutate({
       id,
       voterPhone: voterIdRef.current || "anonymous",
@@ -163,7 +163,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   }, [problems]);
 
   const sorted = [...problems].sort((a, b) => b.upvoteCount - a.upvoteCount);
-  
+
   // Apply header tab filter first
   const headerFiltered = sorted.filter((p) => {
     switch (headerTab) {
@@ -179,12 +179,12 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
         return true;
     }
   });
-  
+
   const filteredProblems = headerFiltered.filter((p) => {
-    const matchesFilter = 
+    const matchesFilter =
       activeFilter === "all" ? true :
-      activeFilter === "verified" ? p.locationVerified :
-      !p.locationVerified;
+        activeFilter === "verified" ? p.locationVerified :
+          !p.locationVerified;
 
     if (!matchesFilter) return false;
 
@@ -203,7 +203,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const pendingCount = problems.filter((p) => !p.locationVerified).length;
   const resolvedCount = problems.filter((p) => p.status === "RESOLVED").length;
   const totalVotes = problems.reduce((sum, p) => sum + p.upvoteCount, 0);
-  
+
   const maxVotes = Math.max(...problems.map((p) => p.upvoteCount), 1);
   const selectedProblem = selectedId ? problems.find((p) => p.id === selectedId) : null;
   const anyModalOpen = verifyModalOpen || offerHelpModalOpen || resolutionProofModalOpen || showSubmitForm || !!selectedImage;
@@ -309,7 +309,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
 
       {/* Main Content Area - Full height with fixed sidebar */}
       <div className="flex-1 flex px-6 pb-6 gap-6 min-h-0">
-        
+
         {/* Left Panel - Problem List (Scrollable) */}
         <div className="w-full lg:w-[500px] xl:w-[550px] shrink-0 flex flex-col bg-white rounded-xl border border-[var(--ds-card-border)] overflow-hidden max-h-full">
 
@@ -326,7 +326,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                 className="geist-input pl-10 h-10 w-full text-sm"
               />
             </div>
-            
+
             {/* Filter Tabs */}
             <div className="flex items-center justify-between">
               <div className="flex gap-1 p-1 bg-[#F5F3EE] rounded-lg border border-[#E8E6E1]">
@@ -355,7 +355,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                   </button>
                 ))}
               </div>
-              
+
               <div className="flex items-center gap-1.5 text-xs text-[#525252]">
                 <Activity className="w-3 h-3" />
                 <span>{filteredProblems.length}</span>
@@ -413,8 +413,8 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                           disabled={hasVoted}
                           className={cn(
                             "shrink-0 w-12 h-14 flex flex-col items-center justify-center gap-0.5 rounded-lg border transition-all duration-200",
-                            hasVoted 
-                              ? "bg-[#4A776620] border-[#4A776650] cursor-default" 
+                            hasVoted
+                              ? "bg-[#4A776620] border-[#4A776650] cursor-default"
                               : "bg-[#F5F3EE] border-[#E8E6E1] hover:bg-[#4A776620] hover:border-[#4A776650]"
                           )}
                         >
@@ -447,12 +447,12 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                               {new Date(problem.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </span>
                           </div>
-                          
+
                           {/* Description */}
                           <p className="text-xs text-[#525252] line-clamp-2 mb-2">
                             {problem.rawMessage}
                           </p>
-                          
+
                           {/* AI Insights - Compact */}
                           {(problem.aiCategory || (problem.severityScore && problem.severityScore > 0)) && (
                             <div className="mb-2 p-2 rounded-lg bg-violet-500/5 border border-violet-500/10">
@@ -512,13 +512,13 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                             )}
                             <span className={cn(
                               "px-2 py-0.5 rounded text-[10px] font-medium border",
-                              problem.locationVerified 
-                                ? "bg-[#4A776633] text-[#4A7766] border-[#4A776650]" 
+                              problem.locationVerified
+                                ? "bg-[#4A776633] text-[#4A7766] border-[#4A776650]"
                                 : "bg-amber-100 text-amber-700 border-amber-200"
                             )}>
                               {problem.locationVerified ? "Verified" : "Pending"}
                             </span>
-                            
+
                             {problem.severityScore !== undefined && problem.severityScore > 0 && (() => {
                               const severity = getSeverityConfig(problem.severityScore);
                               return (
@@ -553,7 +553,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                                 Verify
                               </button>
                             )}
-                            
+
                             {problem.status !== "RESOLVED" && (
                               <button
                                 onClick={(e) => {
@@ -618,7 +618,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               View Map
               <span className="text-xs opacity-75">({problems.filter(p => p.latitude && p.longitude).length} locations)</span>
             </button>
-            
+
             <div className="flex items-center justify-center gap-2 text-xs text-gray-600">
               <Clock className="w-3 h-3" />
               <span>Updated {dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : '--:--:--'}</span>
@@ -640,69 +640,69 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               </button>
             </div>
 
-          {/* Selected Problem Info - Floating Card */}
-          {selectedProblem && (
-            <motion.div 
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              className="absolute bottom-6 left-6 right-6 z-20"
-            >
-              <div className="p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base font-semibold text-white truncate mb-1">
-                      {selectedProblem.title}
-                    </p>
-                    <p className="text-sm text-gray-400 line-clamp-2">
-                      {selectedProblem.rawMessage}
-                    </p>
-                    <div className="flex items-center gap-3 mt-3">
-                      <span className="flex items-center gap-1.5 text-sm text-emerald-400">
-                        <ChevronUp className="w-4 h-4" />
-                        <span className="font-semibold">{selectedProblem.upvoteCount}</span>
-                        <span className="text-gray-500">votes</span>
-                      </span>
-                      {selectedProblem.nationalCategory && (
-                        <span className="geist-badge geist-badge-blue">{selectedProblem.nationalCategory}</span>
-                      )}
+            {/* Selected Problem Info - Floating Card */}
+            {selectedProblem && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="absolute bottom-6 left-6 right-6 z-20"
+              >
+                <div className="p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-2xl">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-base font-semibold text-white truncate mb-1">
+                        {selectedProblem.title}
+                      </p>
+                      <p className="text-sm text-gray-400 line-clamp-2">
+                        {selectedProblem.rawMessage}
+                      </p>
+                      <div className="flex items-center gap-3 mt-3">
+                        <span className="flex items-center gap-1.5 text-sm text-emerald-400">
+                          <ChevronUp className="w-4 h-4" />
+                          <span className="font-semibold">{selectedProblem.upvoteCount}</span>
+                          <span className="text-gray-500">votes</span>
+                        </span>
+                        {selectedProblem.nationalCategory && (
+                          <span className="geist-badge geist-badge-blue">{selectedProblem.nationalCategory}</span>
+                        )}
+                      </div>
                     </div>
+                    <button
+                      onClick={() => setSelectedId(null)}
+                      className="p-2 rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => setSelectedId(null)}
-                    className="p-2 rounded-lg hover:bg-white/10 transition-colors text-gray-400 hover:text-white"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
 
-          {/* Full Map */}
-          <div className="h-full w-full">
-            <MapView
-              problems={problems.filter((p) => 
-                (p.latitude !== null && p.longitude !== null) || 
-                (p.verifications && p.verifications.length > 0)
-              )}
-              onSelectProblem={(id) => setSelectedId(id)}
-              selectedProblemId={selectedId}
-              centerOnProblem={selectedProblem}
-              fullscreen
-              showControls={!anyModalOpen && !isMapFullscreen}
-            />
-          </div>
+            {/* Full Map */}
+            <div className="h-full w-full">
+              <MapView
+                problems={problems.filter((p) =>
+                  (p.latitude !== null && p.longitude !== null) ||
+                  (p.verifications && p.verifications.length > 0)
+                )}
+                onSelectProblem={(id) => setSelectedId(id)}
+                selectedProblemId={selectedId}
+                centerOnProblem={selectedProblem}
+                fullscreen
+                showControls={!anyModalOpen && !isMapFullscreen}
+              />
+            </div>
 
-          {/* Mobile: Expand Map Button */}
-          <div className="lg:hidden absolute bottom-4 right-4 z-20">
-            <button
-              onClick={() => setIsMapFullscreen(true)}
-              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium text-sm shadow-lg shadow-violet-500/30 flex items-center gap-2"
-            >
-              <Maximize2 className="w-4 h-4" />
-              Expand Map
-            </button>
-          </div>
+            {/* Mobile: Expand Map Button */}
+            <div className="lg:hidden absolute bottom-4 right-4 z-20">
+              <button
+                onClick={() => setIsMapFullscreen(true)}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium text-sm shadow-lg shadow-violet-500/30 flex items-center gap-2"
+              >
+                <Maximize2 className="w-4 h-4" />
+                Expand Map
+              </button>
+            </div>
           </div>
 
           {/* Activity Feed - Bottom Section */}
@@ -713,8 +713,8 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {problems.slice(0, 10).map((problem) => (
-                <div 
-                  key={problem.id} 
+                <div
+                  key={problem.id}
                   className="p-3 rounded-lg bg-[#F5F3EE] border border-[#E8E6E1] hover:bg-[#E8E6E1] transition-colors cursor-pointer"
                   onClick={() => handleSelectProblem(problem.id)}
                 >
@@ -722,18 +722,18 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                     <div className={cn(
                       "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0",
                       problem.status === "RESOLVED" ? "bg-emerald-500" :
-                      problem.verificationCount > 0 ? "bg-blue-500" : "bg-amber-500"
+                        problem.verificationCount > 0 ? "bg-blue-500" : "bg-amber-500"
                     )}>
                       {problem.status === "RESOLVED" ? <CheckCircle className="w-4 h-4" /> :
-                       problem.verificationCount > 0 ? <ShieldCheck className="w-4 h-4" /> :
-                       <AlertTriangle className="w-4 h-4" />}
+                        problem.verificationCount > 0 ? <ShieldCheck className="w-4 h-4" /> :
+                          <AlertTriangle className="w-4 h-4" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-[#262626] truncate">{problem.title}</p>
                       <p className="text-xs text-[#525252]">
                         {problem.status === "RESOLVED" ? "Resolved" :
-                         problem.verificationCount > 0 ? `${problem.verificationCount} verifications` :
-                         "Pending verification"}
+                          problem.verificationCount > 0 ? `${problem.verificationCount} verifications` :
+                            "Pending verification"}
                         <span className="mx-1">-</span>
                         {new Date(problem.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       </p>
@@ -765,14 +765,14 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               )}
               <button
                 onClick={() => setIsMapFullscreen(false)}
-                className="p-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-colors"
+                className="p-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-black hover:bg-white/20 transition-colors"
               >
-                <X className="w-5 h-5 text-white" />
+                <X className="w-5 h-5 text-black" />
               </button>
             </div>
             <MapView
-              problems={problems.filter((p) => 
-                (p.latitude !== null && p.longitude !== null) || 
+              problems={problems.filter((p) =>
+                (p.latitude !== null && p.longitude !== null) ||
                 (p.verifications && p.verifications.length > 0)
               )}
               onSelectProblem={(id) => setSelectedId(id)}
@@ -887,18 +887,18 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
       {/* Submit Problem Form Modal */}
       {showSubmitForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setShowSubmitForm(false)}
           />
           <div className="relative z-10">
-            <SubmitProblemForm 
+            <SubmitProblemForm
               isOpen={showSubmitForm}
               onClose={() => setShowSubmitForm(false)}
               onSuccess={() => {
                 refetchProblems();
                 setShowSubmitForm(false);
-              }} 
+              }}
             />
           </div>
         </div>
