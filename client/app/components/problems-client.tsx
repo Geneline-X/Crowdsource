@@ -308,16 +308,16 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
       </div>
 
       {/* Main Content Area - Full height with fixed sidebar */}
-      <div className="flex-1 flex px-6 pb-6 gap-6 min-h-0">
+      <div className="flex-1 flex px-3 md:px-6 pb-4 md:pb-6 gap-4 md:gap-6 min-h-0 flex-col lg:flex-row">
 
         {/* Left Panel - Problem List (Scrollable) */}
         <div className="w-full lg:w-[500px] xl:w-[550px] shrink-0 flex flex-col bg-white rounded-xl border border-[var(--ds-card-border)] overflow-hidden max-h-full">
 
           {/* Search and Filters */}
-          <div className="shrink-0 p-4 space-y-3 border-b border-[var(--ds-card-border)]">
+          <div className="shrink-0 p-3 md:p-4 space-y-3 border-b border-[var(--ds-card-border)]">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search problems..."
@@ -328,8 +328,8 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex items-center justify-between">
-              <div className="flex gap-1 p-1 bg-[#F5F3EE] rounded-lg border border-[#E8E6E1]">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0">
+              <div className="flex gap-1 p-1 bg-[#F5F3EE] rounded-lg border border-[#E8E6E1] overflow-x-auto">
                 {[
                   { key: "all", label: "All", count: problems.length },
                   { key: "verified", label: "Verified", count: verifiedCount },
@@ -339,7 +339,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                     key={tab.key}
                     onClick={() => setActiveFilter(tab.key as typeof activeFilter)}
                     className={cn(
-                      "px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200",
+                      "px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-medium rounded-md transition-all duration-200 whitespace-nowrap",
                       activeFilter === tab.key
                         ? "bg-[#2D5A47] text-white shadow-sm"
                         : "text-[#525252] hover:bg-[#E8E6E1]"
@@ -612,7 +612,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             {/* Mobile Map Button */}
             <button
               onClick={() => setIsMapFullscreen(true)}
-              className="lg:hidden w-full mb-3 px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-violet-600 text-white font-medium text-sm shadow-lg shadow-violet-500/30 flex items-center justify-center gap-2"
+              className="lg:hidden w-full mb-3 px-4 py-3 rounded-xl bg-[#2D5A47] hover:bg-[#235242] text-white font-medium text-sm shadow-lg shadow-[#2D5A47]/30 flex items-center justify-center gap-2"
             >
               <MapPin className="w-4 h-4" />
               View Map
