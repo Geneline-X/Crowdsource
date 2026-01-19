@@ -358,7 +358,7 @@ export default function MapClient({
     <div className="relative w-full h-full">
       {/* Map Controls */}
       {showControls && (
-        <div className="absolute top-2 left-2 z-[400] flex flex-col gap-1.5">
+        <div className="absolute top-2 left-2 z-400 flex flex-col gap-1.5">
           <div className="bg-white rounded-lg border border-[#E8E6E1] shadow-md p-1 flex gap-0.5">
             <button
               onClick={() => setViewMode("markers")}
