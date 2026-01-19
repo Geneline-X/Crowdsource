@@ -14,7 +14,13 @@
     "render-build": "npm ci --only=production",
     "vercel-build": "echo 'Build complete'"
   },
-  "keywords": ["whatsapp", "ai", "chatbot", "docker", "aidex"],
+  "keywords": [
+    "whatsapp",
+    "ai",
+    "chatbot",
+    "docker",
+    "aidex"
+  ],
   "author": "Dennis",
   "license": "ISC",
   "dependencies": {
@@ -25,6 +31,6 @@
     "qrcode": "^1.5.4",
     "socket.io": "^4.8.1",
     "whatsapp-integration": "file:",
-    "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#main"
+    "whatsapp-web.js": "^1.34.4"
   }
 }
