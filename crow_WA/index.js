@@ -492,9 +492,8 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
           console.error('[message] Error sending reply:', error.message, error.stack);
           try {
             await client.sendPresenceAvailable();
-            await client.simulateTyping(message.from, true);
             await new Promise(resolve => setTimeout(resolve, 1000));
-            await client.simulateTyping(message.from, false);
+
             await client.sendMessage(message.from, 'Sorry, there was an error processing your request.');
           } catch (sendError) {
             console.error('Error sending error message:', sendError.message, sendError.stack);
