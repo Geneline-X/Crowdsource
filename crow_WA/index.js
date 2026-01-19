@@ -99,11 +99,34 @@ async function sendMessageDirectly(client, phoneE164, message) {
 
     // Small delay before sending
     await new Promise(resolve => setTimeout(resolve, 300));
-    await client.sendMessage(wid._serialized, message);
+    await safeSendMessage(client, wid._serialized, message);
     
     return { success: true, jid: wid._serialized };
   } catch (error) {
     return { success: false, error: error.message };
+  }
+}
+
+// Safe sendMessage wrapper to handle markedUnread error (whatsapp-web.js issue)
+// This works around the sendSeen bug by using chat.sendMessage directly when needed
+async function safeSendMessage(client, chatId, content, options = {}) {
+  try {
+    // First attempt: use standard client.sendMessage
+    return await client.sendMessage(chatId, content, options);
+  } catch (error) {
+    // Handle the markedUnread error by using chat directly
+    if (error.message?.includes('markedUnread') || error.message?.includes('sendSeen')) {
+      console.warn(`[safeSendMessage] Caught sendSeen error, using chat.sendMessage fallback`);
+      try {
+        const chat = await client.getChatById(chatId);
+        if (chat) {
+          return await chat.sendMessage(content, options);
+        }
+      } catch (chatError) {
+        console.error(`[safeSendMessage] Chat fallback also failed:`, chatError.message);
+      }
+    }
+    throw error;
   }
 }
 
@@ -475,7 +498,7 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
 
       if (text.trim()) {
         try {
-          await client.sendMessage(message.from, text);
+          await safeSendMessage(client, message.from, text);
           console.log(`[message] Reply sent to ${message.from}: ${text}`);
           try {
             messagesLog.push({
@@ -494,14 +517,14 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
             await client.sendPresenceAvailable();
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            await client.sendMessage(message.from, 'Sorry, there was an error processing your request.');
+            await safeSendMessage(client, message.from, 'Sorry, there was an error processing your request.');
           } catch (sendError) {
             console.error('Error sending error message:', sendError.message, sendError.stack);
           }
         }
       } else {
         await new Promise(resolve => setTimeout(resolve, 500));
-        await client.sendMessage(message.from, 'Sorry, I couldn\'t generate a response.');
+        await safeSendMessage(client, message.from, 'Sorry, I couldn\'t generate a response.');
         console.log('[message] Sent fallback message due to empty response');
         try {
           messagesLog.push({
@@ -519,7 +542,7 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
       console.error('[message] Error processing incoming message:', error.message, error.stack);
       try {
         await new Promise(resolve => setTimeout(resolve, 500));
-        await client.sendMessage(message.from, 'Sorry, there was an error processing your request.');
+        await safeSendMessage(client, message.from, 'Sorry, there was an error processing your request.');
       } catch (sendError) {
         console.error('Error sending error message:', sendError.message, sendError.stack);
       }
@@ -822,7 +845,7 @@ app.post('/send-message', requireApiKey, async (req, res) => {
   try {
     // Small delay before sending message
     await new Promise(resolve => setTimeout(resolve, 500));
-    await client.sendMessage(to, body);
+    await safeSendMessage(client, to, body);
     console.log(`✅ ${process.env.BRAND_NAME || 'Server'}: Message sent to ${to}: ${body}`);
     res.status(200).json({ status: 'success' });
   } catch (error) {
@@ -948,7 +971,7 @@ app.post('/send-media', requireApiKey, async (req, res) => {
 
     // Small delay before sending
     await new Promise(resolve => setTimeout(resolve, 300));
-    await client.sendMessage(wid._serialized, media, caption ? { caption } : {});
+    await safeSendMessage(client, wid._serialized, media, caption ? { caption } : {});
     console.log(`✅ ${process.env.BRAND_NAME || 'Server'}: Media sent to ${wid._serialized} (from ${phoneE164})${caption ? ` with caption: ${caption}` : ''}`);
     return res.status(200).json({ status: 'success', to: phoneE164 });
   } catch (error) {
