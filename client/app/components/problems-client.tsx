@@ -317,7 +317,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           <div className="shrink-0 p-3 md:p-4 space-y-3 border-b border-[var(--ds-card-border)]">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search problems..."
