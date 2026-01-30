@@ -80,6 +80,7 @@ const requireApiKey = (req, res, next) => {
 
 const qrCodes = new Map();
 const clients = new Map();
+const initializingClients = new Map(); // Track clients being initialized to prevent duplicates
 const messagesLog = [];
 const MAX_LOG = 200;
 
@@ -233,6 +234,10 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
       } else if (qrCodes.has(chatbotId)) {
         console.log(`Client awaiting QR scan for ${chatbotId}`);
         return { status: 'awaiting_qr', qr: qrCodes.get(chatbotId)?.base64 };
+      } else {
+        // Client exists but not connected and no QR - it's initializing
+        console.log(`Client still initializing for ${chatbotId}, skipping duplicate init`);
+        return { status: 'initializing' };
       }
     } catch (error) {
       console.error(`Error checking client status for ${chatbotId}:`, error.message, error.stack);
@@ -247,9 +252,18 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
     }
   }
 
+  // Check if already initializing
+  if (initializingClients.has(chatbotId)) {
+    console.log(`Client initialization already in progress for ${chatbotId}`);
+    return { status: 'initializing' };
+  }
+  initializingClients.set(chatbotId, true);
+
   const networkOk = await checkNetwork();
   if (!networkOk) {
-    throw new Error('Network check failed: Cannot reach web.whatsapp.com');
+    initializingClients.delete(chatbotId);
+    console.warn(`Network check failed but continuing anyway for ${chatbotId}`);
+    // Don't throw - just continue with initialization
   }
 
   // Simple client configuration with LocalAuth
@@ -306,7 +320,9 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
 
   client.on('ready', async () => {
     console.log(`✅ ${process.env.BRAND_NAME || 'Server'}: Client ready for ${chatbotId}`);
+    console.log(`✅ ${process.env.BRAND_NAME || 'Server'}: Client info:`, client.info);
     const phoneNumber = client.info?.wid?.user || 'unknown';
+    console.log(`✅ ${process.env.BRAND_NAME || 'Server'}: Phone number: ${phoneNumber}`);
     
     startHealthMonitoring(chatbotId, client);
     
@@ -332,6 +348,7 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
 
   client.on('authenticated', () => {
     console.log(`🔐 ${process.env.BRAND_NAME || 'Server'}: Session authenticated for ${chatbotId}`);
+    console.log(`🔐 ${process.env.BRAND_NAME || 'Server'}: Waiting for client to become ready...`);
   });
 
   client.on('message_create', async (message) => {
@@ -656,6 +673,7 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
     initPromise.catch(() => {});
     await Promise.race([initPromise, initializeTimeout]);
     clients.set(chatbotId, client);
+    initializingClients.delete(chatbotId); // Clear initializing flag on success
     console.log(`✅ ${process.env.BRAND_NAME || 'Server'}: Client initialized successfully for ${chatbotId}`);
     console.log(`📊 ${process.env.BRAND_NAME || 'Server'}: Memory usage after init: ${process.memoryUsage().heapUsed / 1024 / 1024} MB`);
     return { status: 'initialized' };
@@ -665,6 +683,7 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
     // Clean up failed client
     clients.delete(chatbotId);
     qrCodes.delete(chatbotId);
+    initializingClients.delete(chatbotId); // Clear initializing flag on error
     try {
       await client.destroy();
     } catch (destroyError) {
