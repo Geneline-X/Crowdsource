@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
+const qrcodeTerminal = require('qrcode-terminal');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const http = require('http');
@@ -278,6 +279,14 @@ async function initializeClient(retryCount = 0, maxRetries = 3) {
 
   client.on('qr', async (qr) => {
     console.log(`📱 ${process.env.BRAND_NAME || 'Server'}: QR code generated for ${chatbotId}`);
+    
+    // Render QR code to terminal/console immediately
+    console.log('\n========== SCAN THIS QR CODE WITH WHATSAPP ==========');
+    qrcodeTerminal.generate(qr, { small: true }, (qrString) => {
+      console.log(qrString);
+      console.log('=====================================================\n');
+    });
+    
     try {
       const base64 = await qrcode.toDataURL(qr, {
         width: 512,
@@ -715,7 +724,7 @@ initializeClient().catch((error) => {
   process.exit(1);
 });
 
-app.post('/init', requireApiKey, async (req, res) => {
+app.post('/init', async (req, res) => {
   console.log(`📱 ${process.env.BRAND_NAME || 'Server'}: Received /init request:`, req.body);
   try {
     const result = await initializeClient();

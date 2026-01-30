@@ -29,6 +29,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
     "socket.io": "^4.8.1",
     "whatsapp-integration": "file:",
     "whatsapp-web.js": "github:pedroslopez/whatsapp-web.js#main"
