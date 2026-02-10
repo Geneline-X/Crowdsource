@@ -4,6 +4,22 @@ dotenv.config();
 
 export const config = {
   port: parseInt(process.env.PORT || "3800", 10),
+  cors: {
+    origins: Array.from(
+      new Set(
+        [
+          "http://localhost:3000",
+          "http://localhost:3001",
+          process.env.WEB_APP_URL,
+          ...(process.env.CORS_ORIGINS
+            ? process.env.CORS_ORIGINS.split(",")
+                .map((origin) => origin.trim())
+                .filter(Boolean)
+            : []),
+        ].filter((origin): origin is string => Boolean(origin))
+      )
+    ),
+  },
   
   openai: {
     apiKey: process.env.OPENAI_API_KEY || "",
