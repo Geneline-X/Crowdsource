@@ -6,13 +6,24 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL
+  if (!connectionString) {
+    throw new Error("DATABASE_URL is not set")
+  }
+
   const sslConfig = process.env.DATABASE_CA_CERT
     ? { rejectUnauthorized: true, ca: process.env.DATABASE_CA_CERT }
-    : undefined;
+    : undefined
+
+  const parsed = new URL(connectionString)
   const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL,
+    host: parsed.hostname,
+    port: parsed.port ? parseInt(parsed.port, 10) : 5432,
+    database: parsed.pathname.replace(/^\//, ""),
+    user: decodeURIComponent(parsed.username),
+    password: decodeURIComponent(parsed.password),
     ssl: sslConfig,
-  });
+  })
   return new PrismaClient({ adapter });
 }
 
