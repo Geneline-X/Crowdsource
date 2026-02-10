@@ -6,7 +6,13 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  const sslConfig = process.env.DATABASE_CA_CERT
+    ? { rejectUnauthorized: true, ca: process.env.DATABASE_CA_CERT }
+    : undefined;
+  const adapter = new PrismaPg({
+    connectionString: process.env.DATABASE_URL,
+    ssl: sslConfig,
+  });
   return new PrismaClient({ adapter });
 }
 
