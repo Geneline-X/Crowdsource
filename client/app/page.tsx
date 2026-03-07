@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { MainAppWrapper } from "@/app/components/main-app-wrapper";
+import { AppShell } from "@/app/components/app-shell";
+import { ProblemsClient } from "@/app/components/problems-client";
 import { Problem } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -39,5 +40,9 @@ async function getProblems() {
 export default async function HomePage() {
   const problems = await getProblems();
 
-  return <MainAppWrapper initialProblems={problems} />;
+  return (
+    <AppShell>
+      <ProblemsClient initialProblems={problems} />
+    </AppShell>
+  );
 }

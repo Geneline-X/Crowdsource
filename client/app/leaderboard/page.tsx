@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Sparkles,
 } from "lucide-react";
+import { AppShell } from "@/app/components/app-shell";
 import { useLeaderboard } from "@/lib/hooks/use-leaderboard";
 import { LeaderboardSkeleton } from "@/app/components/ui/skeleton";
 
@@ -49,7 +50,8 @@ export default function LeaderboardPage() {
   const { data: leaderboard, isLoading, error, refetch } = useLeaderboard();
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F0F1E8]">
+    <AppShell>
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#F0F1E8]">
       {/* Header */}
       <header className="shrink-0 bg-white border-b border-[#E8E6E1] px-6 py-4">
         <div className="flex items-center justify-between">
@@ -177,7 +179,7 @@ export default function LeaderboardPage() {
           </div>
         )}
       </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
-

@@ -32,6 +32,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAnalytics } from "@/lib/hooks/use-analytics";
+import { AppShell } from "@/app/components/app-shell";
 import { AnalyticsSkeleton } from "@/app/components/ui/skeleton";
 
 const COLORS = ['#0091ff', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6'];
@@ -49,7 +50,8 @@ export default function AnalyticsPage() {
   const { data, isLoading, error, refetch } = useAnalytics(dateRange);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F0F1E8]">
+    <AppShell>
+      <div className="flex-1 flex flex-col overflow-hidden bg-[#F0F1E8]">
       {/* Header */}
       <header className="shrink-0 bg-white border-b border-[#E8E6E1] px-6 py-4">
         <div className="flex items-center justify-between">
@@ -377,6 +379,7 @@ export default function AnalyticsPage() {
           </>
         )}
       </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
