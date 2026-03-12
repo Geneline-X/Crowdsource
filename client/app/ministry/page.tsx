@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMinistryProblems, useUpdateStatus, MinistryProblem } from "@/lib/hooks/use-ministry";
 import { MinistrySkeleton } from "@/app/components/ui/skeleton";
@@ -14,9 +15,12 @@ const statusColors: Record<string, string> = {
 };
 
 export default function MinistryDashboard() {
+  const searchParams = useSearchParams();
+  const initialStatus = searchParams.get("status") || "";
+  const initialSearch = searchParams.get("search") || "";
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<string>('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>(initialStatus);
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [selectedProblem, setSelectedProblem] = useState<MinistryProblem | null>(null);
 
   const { data, isLoading, error, refetch } = useMinistryProblems({

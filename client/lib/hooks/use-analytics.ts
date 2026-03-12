@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-client";
 
-interface AnalyticsData {
+export interface AnalyticsData {
   summary: {
     totalProblems: number;
     resolvedProblems: number;
