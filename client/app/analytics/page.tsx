@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   BarChart,
@@ -45,9 +45,87 @@ const STATUS_COLORS: Record<string, string> = {
   REJECTED: '#ef4444',
 };
 
+type AnalyticsData = NonNullable<ReturnType<typeof useAnalytics>["data"]>;
+
+type ActionItem = {
+  title: string;
+  detail: string;
+  action: string;
+  tone: "critical" | "warning" | "positive";
+  icon: typeof AlertCircle;
+};
+
+function buildActionItems(data: AnalyticsData, dateRange: number): ActionItem[] {
+  const topCategory = data.categoryBreakdown[0];
+  const topLocation = data.locationBreakdown[0];
+  const recentWindow = data.problemsOverTime.slice(-Math.min(7, data.problemsOverTime.length));
+
+  const reportedRecently = recentWindow.reduce((sum, day) => sum + day.count, 0);
+  const resolvedRecently = recentWindow.reduce((sum, day) => sum + day.resolved, 0);
+  const reviewBacklog = data.summary.pendingProblems + data.summary.inProgressProblems;
+  const backlogShare = data.summary.totalProblems
+    ? Math.round((reviewBacklog / data.summary.totalProblems) * 100)
+    : 0;
+
+  const items: ActionItem[] = [];
+
+  if (reviewBacklog > 0) {
+    items.push({
+      title: "Clear the review backlog first",
+      detail: `${reviewBacklog} problems are still waiting in review or progress, which is ${backlogShare}% of the current workload.`,
+      action: "Assign a quick triage pass to move the oldest pending reports into owners today.",
+      tone: backlogShare >= 40 ? "critical" : "warning",
+      icon: Clock,
+    });
+  }
+
+  if (reportedRecently > resolvedRecently) {
+    items.push({
+      title: "New reports are outpacing fixes",
+      detail: `${reportedRecently} problems were reported in the last ${Math.min(7, dateRange)} days, while only ${resolvedRecently} were resolved.`,
+      action: "Focus the next sprint on fast-win fixes to stop the queue from growing.",
+      tone: "critical",
+      icon: TrendingUp,
+    });
+  }
+
+  if (topCategory) {
+    items.push({
+      title: `Prioritize ${topCategory.name}`,
+      detail: `${topCategory.value} reports fall into this category, making it the biggest source of community pain right now.`,
+      action: "Review recurring root causes here first and bundle similar fixes into one response plan.",
+      tone: "warning",
+      icon: AlertCircle,
+    });
+  }
+
+  if (topLocation) {
+    items.push({
+      title: `Investigate ${topLocation.name}`,
+      detail: `${topLocation.value} reports came from this location, more than any other hotspot in the selected period.`,
+      action: "Check for a shared local issue and coordinate a targeted field follow-up.",
+      tone: "warning",
+      icon: MapPin,
+    });
+  }
+
+  if (items.length < 3) {
+    items.push({
+      title: "Keep resolution momentum up",
+      detail: `${data.summary.resolvedProblems} problems have already been resolved with a ${data.summary.resolutionRate}% resolution rate.`,
+      action: "Use the same workflow on the highest-upvoted unresolved reports next.",
+      tone: "positive",
+      icon: CheckCircle,
+    });
+  }
+
+  return items.slice(0, 3);
+}
+
 export default function AnalyticsPage() {
   const [dateRange, setDateRange] = useState(30);
   const { data, isLoading, error, refetch } = useAnalytics(dateRange);
+  const actionItems = useMemo(() => (data ? buildActionItems(data, dateRange) : []), [data, dateRange]);
 
   return (
     <AppShell>
@@ -161,6 +239,69 @@ export default function AnalyticsPage() {
                 </motion.div>
               ))}
             </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="bg-white rounded-xl border border-[#E8E6E1] p-6 mb-8"
+            >
+              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-2 rounded-xl bg-[#2D5A47]/10 border border-[#2D5A47]/15">
+                      <Sparkles className="w-4 h-4 text-[#2D5A47]" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-[#262626]">What to fix first</h2>
+                  </div>
+                  <p className="text-sm text-[#525252] max-w-2xl">
+                    A quick read on the most actionable issues from the current analytics window.
+                  </p>
+                </div>
+                <p className="text-sm text-[#6B7280]">Based on the last {dateRange} days</p>
+              </div>
+
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                {actionItems.map((item) => {
+                  const toneStyles = {
+                    critical: {
+                      chip: "bg-red-50 text-red-700 border-red-100",
+                      iconWrap: "bg-red-100 text-red-600",
+                      label: "Fix now",
+                    },
+                    warning: {
+                      chip: "bg-amber-50 text-amber-700 border-amber-100",
+                      iconWrap: "bg-amber-100 text-amber-700",
+                      label: "High impact",
+                    },
+                    positive: {
+                      chip: "bg-emerald-50 text-emerald-700 border-emerald-100",
+                      iconWrap: "bg-emerald-100 text-emerald-700",
+                      label: "Keep going",
+                    },
+                  }[item.tone];
+
+                  return (
+                    <div key={item.title} className="rounded-2xl border border-[#E8E6E1] bg-[#FAFAF7] p-5">
+                      <div className="flex items-start justify-between gap-3 mb-4">
+                        <div className={`p-2.5 rounded-xl ${toneStyles.iconWrap}`}>
+                          <item.icon className="w-5 h-5" />
+                        </div>
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${toneStyles.chip}`}>
+                          {toneStyles.label}
+                        </span>
+                      </div>
+                      <h3 className="text-base font-semibold text-[#262626] mb-2">{item.title}</h3>
+                      <p className="text-sm text-[#525252] leading-6 mb-4">{item.detail}</p>
+                      <div className="pt-4 border-t border-[#E8E6E1]">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#7A7A73] mb-2">Recommended action</p>
+                        <p className="text-sm text-[#2D5A47] leading-6">{item.action}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
 
             {/* Charts Row 1 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
