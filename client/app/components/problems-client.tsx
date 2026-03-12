@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,17 +36,8 @@ import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-client";
 
-const CATEGORY_MAP: Record<string, { label: string; gradient: string; }> = {
-  infrastructure: { label: "Infrastructure", gradient: "from-blue-500 to-cyan-500" },
-  sanitation: { label: "Sanitation", gradient: "from-emerald-500 to-green-500" },
-  safety: { label: "Safety", gradient: "from-red-500 to-rose-500" },
-  default: { label: "General", gradient: "from-gray-500 to-gray-600" },
-};
-
-function getCategoryConfig(locationSource: string | null) {
-  if (!locationSource) return CATEGORY_MAP.default;
-  return CATEGORY_MAP[locationSource] || CATEGORY_MAP.default;
-}
+type HeaderTab = "active" | "mapped" | "votes" | "resolved";
+type SortMode = "votes" | "priority";
 
 function getSeverityConfig(score: number | undefined): { level: string; color: string; bgColor: string; borderColor: string } {
   if (!score || score < 25) {
@@ -67,13 +58,17 @@ interface ProblemsClientProps {
 export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
+  const initialQuery = searchParams.get("search") || "";
+  const initialTab = (searchParams.get("tab") as HeaderTab | null) || "active";
+  const statusFilter = searchParams.get("status");
+  const sortMode = (searchParams.get("sort") as SortMode | null) || "votes";
 
   // React Query hooks for data fetching with optimistic updates
-  const { data: problems = initialProblems, isLoading, error: queryError, dataUpdatedAt, refetch } = useProblems({ pollingInterval: 5000 });
+  const { data: problems = initialProblems, error: queryError, dataUpdatedAt } = useProblems({ pollingInterval: 5000 });
   const upvoteMutation = useUpvote();
 
   // Zustand store for persisted voted problems
-  const { addVotedProblem, hasVoted: storeHasVoted } = useAppStore();
+  const { hasVoted: storeHasVoted } = useAppStore();
 
   // Refetch function to replace the old fetchProblems
   const refetchProblems = useCallback(() => {
@@ -81,12 +76,12 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   }, [queryClient]);
 
   // Local UI state
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null | undefined>(undefined);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<"all" | "verified" | "pending">("all");
   const [newProblemDetected, setNewProblemDetected] = useState<boolean>(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; mimeType: string } | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
   const [verifyProblemId, setVerifyProblemId] = useState<number | null>(null);
   const [offerHelpModalOpen, setOfferHelpModalOpen] = useState(false);
@@ -94,43 +89,57 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const [resolutionProofModalOpen, setResolutionProofModalOpen] = useState(false);
   const [selectedResolutionProblem, setSelectedResolutionProblem] = useState<Problem | null>(null);
   const [showSubmitForm, setShowSubmitForm] = useState(false);
-  const [headerTab, setHeaderTab] = useState<"active" | "mapped" | "votes" | "resolved">("active");
+  const [headerTab, setHeaderTab] = useState<HeaderTab>(initialTab);
+  const [voterId, setVoterId] = useState("");
   const voterIdRef = useRef<string>("");
   const previousCountRef = useRef<number>(initialProblems.length);
+  const querySelectedId = useMemo(() => {
+    const problemIdParam = searchParams.get("problem");
+    if (!problemIdParam) return null;
+
+    const problemId = parseInt(problemIdParam, 10);
+    if (Number.isNaN(problemId)) return null;
+
+    return problems.some((problem) => problem.id === problemId) ? problemId : null;
+  }, [searchParams, problems]);
+  const effectiveSelectedId = selectedId === undefined ? querySelectedId : selectedId;
 
   // Detect new problems
   useEffect(() => {
     if (problems.length > previousCountRef.current && previousCountRef.current > 0) {
-      setNewProblemDetected(true);
-      setTimeout(() => setNewProblemDetected(false), 3000);
+      const showTimer = window.setTimeout(() => setNewProblemDetected(true), 0);
+      const hideTimer = window.setTimeout(() => setNewProblemDetected(false), 3000);
+
+      return () => {
+        window.clearTimeout(showTimer);
+        window.clearTimeout(hideTimer);
+      };
     }
+
     previousCountRef.current = problems.length;
   }, [problems.length]);
 
   useEffect(() => {
-    const problemIdParam = searchParams.get("problem");
-    if (problemIdParam) {
-      const problemId = parseInt(problemIdParam, 10);
-      if (!isNaN(problemId)) {
-        const problem = problems.find(p => p.id === problemId);
-        if (problem) {
-          setSelectedId(problemId);
-          setTimeout(() => {
-            const element = document.querySelector(`[data-problem-id="${problemId}"]`);
-            if (element) {
-              element.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-          }, 500);
+    if (querySelectedId !== null) {
+      const timer = window.setTimeout(() => {
+        const element = document.querySelector(`[data-problem-id="${querySelectedId}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
         }
-      }
+      }, 500);
+
+      return () => {
+        window.clearTimeout(timer);
+      };
     }
-  }, [searchParams, problems]);
+  }, [querySelectedId]);
 
   useEffect(() => {
     const initVoterId = async () => {
       const storedVoterId = localStorage.getItem("crowdsource_vid");
       if (storedVoterId) {
         voterIdRef.current = storedVoterId;
+        setVoterId(storedVoterId);
       } else {
         const fingerprint = `${navigator.userAgent}_${screen.width}x${screen.height}_${new Date().getTimezoneOffset()}_${Date.now()}`;
         const encoder = new TextEncoder();
@@ -140,6 +149,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
         const hashedId = hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 32);
         localStorage.setItem("crowdsource_vid", hashedId);
         voterIdRef.current = hashedId;
+        setVoterId(hashedId);
       }
     };
     initVoterId();
@@ -162,7 +172,29 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
     }
   }, [problems]);
 
-  const sorted = [...problems].sort((a, b) => b.upvoteCount - a.upvoteCount);
+  const getPriorityScore = useCallback((problem: Problem) => {
+    const severity = problem.severityScore ?? 0;
+    const voteWeight = problem.upvoteCount * 3;
+    const statusWeight =
+      problem.status === "REPORTED" ? 45 :
+      problem.status === "IN_REVIEW" ? 35 :
+      problem.status === "IN_PROGRESS" ? 25 :
+      problem.status === "RESOLVED" ? -100 :
+      0;
+    const verificationWeight = problem.locationVerified ? 10 : 0;
+    const ageInDays = Math.max(0, (Date.now() - new Date(problem.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+    const recencyWeight = Math.max(0, 14 - ageInDays);
+
+    return severity + voteWeight + statusWeight + verificationWeight + recencyWeight;
+  }, []);
+
+  const sorted = [...problems].sort((a, b) => {
+    if (sortMode === "priority") {
+      return getPriorityScore(b) - getPriorityScore(a);
+    }
+
+    return b.upvoteCount - a.upvoteCount;
+  });
 
   // Apply header tab filter first
   const headerFiltered = sorted.filter((p) => {
@@ -181,6 +213,10 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   });
 
   const filteredProblems = headerFiltered.filter((p) => {
+    if (statusFilter && p.status !== statusFilter) {
+      return false;
+    }
+
     const matchesFilter =
       activeFilter === "all" ? true :
         activeFilter === "verified" ? p.locationVerified :
@@ -205,7 +241,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
   const totalVotes = problems.reduce((sum, p) => sum + p.upvoteCount, 0);
 
   const maxVotes = Math.max(...problems.map((p) => p.upvoteCount), 1);
-  const selectedProblem = selectedId ? problems.find((p) => p.id === selectedId) : null;
+  const selectedProblem = effectiveSelectedId ? problems.find((p) => p.id === effectiveSelectedId) : null;
   const anyModalOpen = verifyModalOpen || offerHelpModalOpen || resolutionProofModalOpen || showSubmitForm || !!selectedImage;
 
   if (queryError) {
@@ -359,6 +395,11 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
               <div className="flex items-center gap-1.5 text-xs text-[#525252]">
                 <Activity className="w-3 h-3" />
                 <span>{filteredProblems.length}</span>
+                {sortMode === "priority" && (
+                  <span className="ml-2 rounded-full bg-[#2D5A47]/10 px-2 py-1 font-medium text-[#2D5A47]">
+                    Priority order
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -376,9 +417,8 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
             ) : (
               <AnimatePresence mode="popLayout">
                 {filteredProblems.map((problem, index) => {
-                  const category = getCategoryConfig(problem.locationSource);
                   const hasLocation = problem.latitude !== null && problem.longitude !== null;
-                  const isSelected = selectedId === problem.id;
+                  const isSelected = effectiveSelectedId === problem.id;
                   const hasVoted = storeHasVoted(problem.id);
 
                   return (
@@ -686,7 +726,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                   (p.verifications && p.verifications.length > 0)
                 )}
                 onSelectProblem={(id) => setSelectedId(id)}
-                selectedProblemId={selectedId}
+                selectedProblemId={effectiveSelectedId ?? null}
                 centerOnProblem={selectedProblem}
                 fullscreen
                 showControls={!anyModalOpen && !isMapFullscreen}
@@ -776,7 +816,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
                 (p.verifications && p.verifications.length > 0)
               )}
               onSelectProblem={(id) => setSelectedId(id)}
-              selectedProblemId={selectedId}
+              selectedProblemId={effectiveSelectedId ?? null}
               centerOnProblem={selectedProblem}
               fullscreen
               showControls={!anyModalOpen}
@@ -841,7 +881,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           onSuccess={() => {
             refetchProblems();
           }}
-          fingerprint={voterIdRef.current}
+          fingerprint={voterId}
         />
       )}
 
@@ -858,7 +898,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           onSuccess={() => {
             refetchProblems();
           }}
-          fingerprint={voterIdRef.current}
+          fingerprint={voterId}
         />
       )}
 
@@ -875,7 +915,7 @@ export function ProblemsClient({ initialProblems }: ProblemsClientProps) {
           averageRating={selectedResolutionProblem.averageRating || undefined}
           ratingCount={selectedResolutionProblem.ratingCount || 0}
           canRate={storeHasVoted(selectedResolutionProblem.id)}
-          fingerprint={voterIdRef.current}
+          fingerprint={voterId}
           isOpen={resolutionProofModalOpen}
           onClose={() => {
             setResolutionProofModalOpen(false);

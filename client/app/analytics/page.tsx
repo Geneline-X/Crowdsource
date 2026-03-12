@@ -33,7 +33,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAnalytics } from "@/lib/hooks/use-analytics";
-import { buildActionItems } from "@/lib/analytics-insights";
+import { buildActionItems } from "../../lib/analytics-insights";
 import { AppShell } from "@/app/components/app-shell";
 import { AnalyticsSkeleton } from "@/app/components/ui/skeleton";
 
